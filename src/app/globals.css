@@ -40,3 +40,35 @@ a {
     color-scheme: dark;
   }
 }
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px 12px;
+}
+
+header {
+  border-bottom: 1px solid #eee;
+}
+
+footer {
+  border-top: 1px solid #eee;
+  margin-top: 24px;
+}
+
+.logo {
+  font-weight: 700;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.muted {
+  opacity: 0.75;
+  margin-top: 6px;
+  font-size: 14px;
+}
