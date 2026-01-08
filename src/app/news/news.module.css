@@ -1,0 +1,52 @@
+.page {
+    display: grid;
+    gap: 14px;
+}
+
+.title {
+    margin: 0;
+    font-size: 26px;
+}
+
+.list {
+    display: grid;
+    gap: 12px;
+}
+
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px;
+    display: grid;
+    gap: 6px;
+    transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.meta {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.link {
+    font-weight: 700;
+    text-decoration: none;
+    color: inherit;
+}
+
+.link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.summary {
+    opacity: 0.86;
+}
+
+.empty {
+    opacity: 0.7;
+}

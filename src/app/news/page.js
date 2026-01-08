@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllNews } from "@/lib/news";
+import styles from "./news.module.css";
 
 export const metadata = {
     title: "Новости — Поток 96",
@@ -10,31 +11,25 @@ export default async function NewsListPage() {
     const news = await getAllNews();
 
     return (
-        <div style={{ display: "grid", gap: 12 }}>
-            <h1 style={{ margin: 0, fontSize: 26 }}>Новости</h1>
+        <div className={styles.page}>
+            <h1 className={styles.title}>Новости</h1>
 
-            {news.map((n) => (
-                <article
-                    key={n.slug}
-                    style={{
-                        border: "1px solid #eee",
-                        borderRadius: 12,
-                        padding: 12,
-                        display: "grid",
-                        gap: 6,
-                    }}
-                >
-                    <div style={{ fontSize: 12, opacity: 0.7 }}>{n.date}</div>
-                    <Link href={`/news/${n.slug}`} style={{ fontWeight: 700 }}>
-                        {n.title}
-                    </Link>
+            <div className={styles.list}>
+                {news.map((n) => (
+                    <article key={n.slug} className={styles.card}>
+                        <div className={styles.meta}>{n.date}</div>
 
-                    <div style={{ opacity: 0.85 }}>{n.summary}</div>
-                </article>
-            ))}
+                        <Link href={`/news/${n.slug}`} className={styles.link}>
+                            {n.title}
+                        </Link>
+
+                        <div className={styles.summary}>{n.summary}</div>
+                    </article>
+                ))}
+            </div>
 
             {news.length === 0 && (
-                <div style={{ opacity: 0.7 }}>
+                <div className={styles.empty}>
                     Пока нет опубликованных новостей (status: published).
                 </div>
             )}
