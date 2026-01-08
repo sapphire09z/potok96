@@ -30,3 +30,27 @@ export async function getAllNews() {
         .filter((p) => p.status === "published")
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 }
+export async function getNewsBySlug(slug) {
+    const files = await fs.readdir(NEWS_DIR);
+
+    for (const filename of files) {
+        if (!filename.endsWith(".md")) continue;
+
+        const fullPath = path.join(NEWS_DIR, filename);
+        const raw = await fs.readFile(fullPath, "utf8");
+        const { data, content } = matter(raw);
+
+        if (data.slug === slug) {
+            return {
+                slug: data.slug,
+                title: data.title,
+                date: data.date,
+                summary: data.summary ?? "",
+                status: data.status ?? "draft",
+                content, // пока просто сырой markdown-текст
+            };
+        }
+    }
+
+    return null;
+}
