@@ -1,31 +1,19 @@
 import Link from "next/link";
+import { getAllNews } from "@/lib/news";
 
 export const metadata = {
     title: "Новости — Поток 96",
     description: "Городские новости Красноуфимска и района.",
 };
 
-const mockNews = [
-    {
-        slug: "potok-start",
-        title: "Поток 96: старт проекта",
-        date: "2026-01-07",
-        summary: "Запускаем городской портал и соцплощадки.",
-    },
-    {
-        slug: "afisha-week",
-        title: "Афиша недели: что происходит в городе",
-        date: "2026-01-07",
-        summary: "Подборка ближайших событий и активностей.",
-    },
-];
+export default async function NewsListPage() {
+    const news = await getAllNews();
 
-export default function NewsListPage() {
     return (
         <div style={{ display: "grid", gap: 12 }}>
             <h1 style={{ margin: 0, fontSize: 26 }}>Новости</h1>
 
-            {mockNews.map((n) => (
+            {news.map((n) => (
                 <article
                     key={n.slug}
                     style={{
@@ -37,7 +25,6 @@ export default function NewsListPage() {
                     }}
                 >
                     <div style={{ fontSize: 12, opacity: 0.7 }}>{n.date}</div>
-
                     <Link href={`/news/${n.slug}`} style={{ fontWeight: 700 }}>
                         {n.title}
                     </Link>
@@ -45,6 +32,12 @@ export default function NewsListPage() {
                     <div style={{ opacity: 0.85 }}>{n.summary}</div>
                 </article>
             ))}
+
+            {news.length === 0 && (
+                <div style={{ opacity: 0.7 }}>
+                    Пока нет опубликованных новостей (status: published).
+                </div>
+            )}
         </div>
     );
 }
