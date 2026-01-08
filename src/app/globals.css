@@ -47,12 +47,12 @@ a {
 }
 
 header {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 footer {
-  border-top: 1px solid #eee;
-  margin-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 28px;
 }
 
 .logo {

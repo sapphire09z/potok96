@@ -1,0 +1,77 @@
+.article {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px 0 28px;
+
+    display: grid;
+    gap: 14px;
+}
+
+.meta {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.title {
+    margin: 0;
+    font-size: 38px;
+    line-height: 1.12;
+}
+
+.content a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.95;
+}
+
+/* базовая типографика markdown */
+.content p {
+    margin: 0.9em 0;
+}
+
+.content h2 {
+    margin: 1.4em 0 0.6em;
+    font-size: 24px;
+    line-height: 1.25;
+}
+
+.content h3 {
+    margin: 1.2em 0 0.6em;
+    font-size: 20px;
+    line-height: 1.25;
+}
+
+.content ul,
+.content ol {
+    margin: 0.8em 0;
+    padding-left: 1.2em;
+}
+
+.content li {
+    margin: 0.35em 0;
+}
+
+.content a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.content blockquote {
+    margin: 1em 0;
+    padding-left: 12px;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.9;
+}
+
+.content code {
+    padding: 0.1em 0.35em;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+}
+
+.content pre {
+    padding: 12px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+}

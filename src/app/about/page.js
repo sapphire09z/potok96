@@ -25,7 +25,7 @@ export default function AboutPage() {
             <section>
                 <h2 style={{ margin: "0 0 8px", fontSize: 18 }}>Контакты</h2>
                 <p style={{ margin: 0, opacity: 0.85 }}>
-                    Пока временно: <b>potok66@local</b> (заменим на реальные позже)
+                    Пока временно: <b>potok96@local</b> (заменим на реальные позже)
                 </p>
             </section>
         </div>

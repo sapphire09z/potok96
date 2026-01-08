@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getNewsBySlug } from "@/lib/news";
+import ReactMarkdown from "react-markdown";
+import styles from "./article.module.css";
 
 export default async function NewsItemPage({ params }) {
     const { slug } = await params;
@@ -10,15 +12,12 @@ export default async function NewsItemPage({ params }) {
     }
 
     return (
-        <article style={{ display: "grid", gap: 12 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>{post.date}</div>
-
-            <h1 style={{ margin: 0, fontSize: 26 }}>{post.title}</h1>
-
-            {/* пока выводим markdown как обычный текст */}
-            <pre style={{ whiteSpace: "pre-wrap", margin: 0, opacity: 0.9 }}>
-        {post.content}
-      </pre>
+        <article className={styles.article}>
+            <div className={styles.meta}>{post.date}</div>
+            <h1 className={styles.title}>{post.title}</h1>
+            <div className={styles.content}>
+                <ReactMarkdown>{post.content}</ReactMarkdown>
+            </div>
         </article>
     );
 }
