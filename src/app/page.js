@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllNews } from "@/lib/news";
+import {getAllEvents} from "@/lib/events";
 import styles from "./home.module.css";
 
 export const metadata = {
@@ -9,7 +10,9 @@ export const metadata = {
 
 export default async function HomePage() {
   const news = await getAllNews();
+  const events = await getAllEvents();
   const latest = news.slice(0, 5);
+    const nearestEvents = events.slice(0, 5);
 
   return (
       <div className={styles.page}>
@@ -42,6 +45,28 @@ export default async function HomePage() {
             <Link href="/news">Все новости →</Link>
           </div>
         </section>
+          <section>
+              <h2 className={styles.sectionTitle}>Ближайшие события</h2>
+
+              <div className={styles.list}>
+                  {nearestEvents.map((e) => (
+                      <article key={e.slug} className={styles.card}>
+                          <div className={styles.meta}>
+                              {e.startAt} {e.location ? `• ${e.location}` : ""} {e.price ? `• ${e.price}` : ""}
+                          </div>
+
+                          <Link href={`/events/${e.slug}`} className={styles.link}>
+                              {e.title}
+                          </Link>
+
+                          {e.summary && <div className={styles.summary}>{e.summary}</div>}
+                      </article>
+                  ))}
+              </div>
+              <div className={styles.more}>
+                  <Link href="/events">Вся афиша →</Link>
+              </div>
+          </section>
       </div>
   );
 }
