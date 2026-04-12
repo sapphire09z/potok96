@@ -1,4 +1,5 @@
 ---
+category: "город"
 slug: afisha-week
 title: "Афиша недели: куда сходить"
 date: "2026-01-08"

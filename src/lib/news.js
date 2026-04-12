@@ -17,6 +17,9 @@ export async function getAllNews() {
                 const { data } = matter(raw);
 
                 return {
+                    category: data.category ?? "город",
+                    tags: data.tags ?? [],
+                    crosspost: data.crosspost ?? [],
                     slug: data.slug,
                     title: data.title,
                     date: data.date,
@@ -42,6 +45,9 @@ export async function getNewsBySlug(slug) {
 
         if (data.slug === slug) {
             return {
+                category: data.category ?? "город",
+                tags: data.tags ?? [],
+                crosspost: data.crosspost ?? [],
                 slug: data.slug,
                 title: data.title,
                 date: data.date,

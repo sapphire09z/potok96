@@ -9,6 +9,7 @@ export function Header() {
                 <nav className="nav">
                     <Link href="/news">Новости</Link>
                     <Link href="/events">Афиша</Link>
+                    <Link href="/orgs">Справочник</Link>
                     <Link href="/about">О проекте</Link>
                 </nav>
             </div>
