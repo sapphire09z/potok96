@@ -3,6 +3,11 @@ import path from "node:path";
 import matter from "gray-matter";
 
 const NEWS_DIR = path.join(process.cwd(), "content", "news");
+function normalizeTags(tags) {
+    if (Array.isArray(tags)) return tags;
+    if (typeof tags === "string" && tags.trim()) return [tags];
+    return [];
+}
 
 export async function getAllNews() {
     const files = await fs.readdir(NEWS_DIR);
@@ -18,13 +23,16 @@ export async function getAllNews() {
 
                 return {
                     category: data.category ?? "город",
-                    tags: data.tags ?? [],
                     crosspost: data.crosspost ?? [],
                     slug: data.slug,
                     title: data.title,
                     date: data.date,
                     summary: data.summary ?? "",
                     status: data.status ?? "draft",
+                    author: data.author ?? "Редакция Поток 96",
+                    org: data.org ?? "",
+                    tags: normalizeTags(data.tags),
+                    cover: data.cover ?? "",
                 };
             })
     );
@@ -46,14 +54,18 @@ export async function getNewsBySlug(slug) {
         if (data.slug === slug) {
             return {
                 category: data.category ?? "город",
-                tags: data.tags ?? [],
                 crosspost: data.crosspost ?? [],
                 slug: data.slug,
                 title: data.title,
                 date: data.date,
                 summary: data.summary ?? "",
                 status: data.status ?? "draft",
-                content, // пока просто сырой markdown-текст
+                author: data.author ?? "Редакция Поток 96",
+                org: data.org ?? "",
+                tags: normalizeTags(data.tags),
+                cover: data.cover ?? "",
+
+                content,
             };
         }
     }
