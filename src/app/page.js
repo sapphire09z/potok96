@@ -1,72 +1,157 @@
 import Link from "next/link";
+
 import { getAllNews } from "@/lib/news";
-import {getAllEvents} from "@/lib/events";
+import { getAllEvents } from "@/lib/events";
+import { getAllOrgs } from "@/lib/orgs";
+
 import styles from "./home.module.css";
 
-export const metadata = {
-  title: "Поток 96",
-  description: "Новости, афиша и городская жизнь Красноуфимска и района.",
-};
-
 export default async function HomePage() {
-  const news = await getAllNews();
-  const events = await getAllEvents();
-  const latest = news.slice(0, 5);
-    const nearestEvents = events.slice(0, 5);
+    const [news, events, orgs] = await Promise.all([
+        getAllNews(),
+        getAllEvents(),
+        getAllOrgs(),
+    ]);
 
-  return (
-      <div className={styles.page}>
-        <section>
-          <h1 className={styles.heroTitle}>Поток 96</h1>
-          <p className={styles.heroText}>
-            Городские новости, афиша, люди и проекты Красноуфимска и района. Это учебный
-            портал: сначала контент и скорость, затем — расширение функций.
-          </p>
-        </section>
+    const publishedNews = news
+        .filter((post) => post.status === "published")
+        .slice(0, 6);
 
-        <section>
-          <h2 className={styles.sectionTitle}>Последние новости</h2>
+    const publishedEvents = events
+        .filter((event) => event.status === "published")
+        .slice(0, 4);
 
-          <div className={styles.list}>
-            {latest.map((n) => (
-                <article key={n.slug} className={styles.card}>
-                  <div className={styles.meta}>{n.date}</div>
+    const publishedOrgs = orgs
+        .filter((org) => org.status === "published")
+        .slice(0, 5);
 
-                  <Link href={`/news/${n.slug}`} className={styles.link}>
-                    {n.title}
-                  </Link>
+    const mainPost = publishedNews[0];
+    const otherNews = publishedNews.slice(1);
 
-                  <div className={styles.summary}>{n.summary}</div>
-                </article>
-            ))}
-          </div>
+    return (
+        <div className={styles.page}>
+            <section className={styles.hero}>
+                <div>
+                    <div className={styles.kicker}>Городской портал</div>
+                    <h1 className={styles.heroTitle}>Поток 96</h1>
+                    <p className={styles.heroText}>
+                        Новости, события, организации и городские объявления Красноуфимска
+                        и района.
+                    </p>
+                </div>
+            </section>
 
-          <div className={styles.more}>
-            <Link href="/news">Все новости →</Link>
-          </div>
-        </section>
-          <section>
-              <h2 className={styles.sectionTitle}>Ближайшие события</h2>
+            <div className={styles.layout}>
+                <main className={styles.main}>
+                    {mainPost && (
+                        <section className={styles.mainStory}>
+                            <div className={styles.sectionLabel}>Главное</div>
 
-              <div className={styles.list}>
-                  {nearestEvents.map((e) => (
-                      <article key={e.slug} className={styles.card}>
-                          <div className={styles.meta}>
-                              {e.startAt} {e.location ? `• ${e.location}` : ""} {e.price ? `• ${e.price}` : ""}
-                          </div>
+                            <Link href={`/news/${mainPost.slug}`} className={styles.mainStoryLink}>
+                                <h2>{mainPost.title}</h2>
 
-                          <Link href={`/events/${e.slug}`} className={styles.link}>
-                              {e.title}
-                          </Link>
+                                {mainPost.summary && <p>{mainPost.summary}</p>}
 
-                          {e.summary && <div className={styles.summary}>{e.summary}</div>}
-                      </article>
-                  ))}
-              </div>
-              <div className={styles.more}>
-                  <Link href="/events">Вся афиша →</Link>
-              </div>
-          </section>
-      </div>
-  );
+                                <div className={styles.meta}>
+                                    <span>{mainPost.category}</span>
+                                    <span>•</span>
+                                    <span>{mainPost.date}</span>
+                                </div>
+                            </Link>
+                        </section>
+                    )}
+
+                    <section className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Последние новости</h2>
+                            <Link href="/news">Все новости</Link>
+                        </div>
+
+                        <div className={styles.newsList}>
+                            {otherNews.map((post) => (
+                                <Link
+                                    key={post.slug}
+                                    href={`/news/${post.slug}`}
+                                    className={styles.newsItem}
+                                >
+                                    <div className={styles.newsTitle}>{post.title}</div>
+
+                                    {post.summary && (
+                                        <div className={styles.newsSummary}>{post.summary}</div>
+                                    )}
+
+                                    <div className={styles.meta}>
+                                        <span>{post.category}</span>
+                                        <span>•</span>
+                                        <span>{post.date}</span>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                </main>
+
+                <aside className={styles.sidebar}>
+                    <section className={styles.sideBlock}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Афиша</h2>
+                            <Link href="/events">Все</Link>
+                        </div>
+
+                        <div className={styles.sideList}>
+                            {publishedEvents.map((event) => (
+                                <Link
+                                    key={event.slug}
+                                    href={`/events/${event.slug}`}
+                                    className={styles.sideItem}
+                                >
+                                    <div className={styles.sideTitle}>{event.title}</div>
+
+                                    {event.startAt && (
+                                        <div className={styles.sideMeta}>{event.startAt}</div>
+                                    )}
+
+                                    {event.location && (
+                                        <div className={styles.sideMeta}>{event.location}</div>
+                                    )}
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className={styles.sideBlock}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Организации</h2>
+                            <Link href="/orgs">Все</Link>
+                        </div>
+
+                        <div className={styles.sideList}>
+                            {publishedOrgs.map((org) => (
+                                <Link
+                                    key={org.slug}
+                                    href={`/orgs/${org.slug}`}
+                                    className={styles.sideItem}
+                                >
+                                    <div className={styles.sideTitle}>{org.title}</div>
+
+                                    {org.type && (
+                                        <div className={styles.sideMeta}>{org.type}</div>
+                                    )}
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className={styles.adBox}>
+                        <div className={styles.sectionLabel}>Скоро</div>
+                        <h2>Объявления</h2>
+                        <p>
+                            Раздел для частных объявлений, услуг, вакансий и городских
+                            предложений.
+                        </p>
+                    </section>
+                </aside>
+            </div>
+        </div>
+    );
 }

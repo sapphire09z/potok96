@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
-import { getOrgBySlug } from "@/lib/orgs";
 import { getAllEvents } from "@/lib/events";
 import { getAllNews } from "@/lib/news";
+import { getOrgBySlug } from "@/lib/orgs";
+
+import styles from "./org.module.css";
 
 export default async function OrgPage({ params }) {
     const { slug } = await params;
@@ -24,60 +26,93 @@ export default async function OrgPage({ params }) {
     const relatedNews = news.filter((post) => post.org === org.slug);
 
     return (
-        <article style={{ display: "grid", gap: 12, maxWidth: 720 }}>
-            <h1 style={{ margin: 0 }}>{org.title}</h1>
+        <article className={styles.page}>
+            <header className={styles.header}>
+                <div className={styles.kicker}>{org.type}</div>
 
-            <div style={{ opacity: 0.7 }}>{org.type}</div>
+                <h1>{org.title}</h1>
 
-            <div>
-                <b>Адрес:</b> {org.address}
-            </div>
+                <div className={styles.infoGrid}>
+                    {org.address && (
+                        <div className={styles.infoItem}>
+                            <span>Адрес</span>
+                            <strong>{org.address}</strong>
+                        </div>
+                    )}
 
-            <div>
-                <b>Телефон:</b> {org.phone}
-            </div>
+                    {org.phone && (
+                        <div className={styles.infoItem}>
+                            <span>Телефон</span>
+                            <strong>{org.phone}</strong>
+                        </div>
+                    )}
 
-            <div>
-                <b>Время:</b> {org.hours}
-            </div>
+                    {org.hours && (
+                        <div className={styles.infoItem}>
+                            <span>Время работы</span>
+                            <strong>{org.hours}</strong>
+                        </div>
+                    )}
+                </div>
+            </header>
 
-            <div style={{ lineHeight: 1.6 }}>
+            <section className={styles.content}>
                 <ReactMarkdown>{org.content}</ReactMarkdown>
-            </div>
+            </section>
 
             {relatedEvents.length > 0 && (
-                <section style={{ marginTop: 20 }}>
-                    <h3>События</h3>
+                <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h2>События организации</h2>
+                        <span>{relatedEvents.length}</span>
+                    </div>
 
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div className={styles.list}>
                         {relatedEvents.map((event) => (
-                            <div key={event.slug}>
-                                <Link href={`/events/${event.slug}`}>
-                                    {event.title}
-                                </Link>
-                            </div>
+                            <Link
+                                key={event.slug}
+                                href={`/events/${event.slug}`}
+                                className={styles.listItem}
+                            >
+                                <div>
+                                    <h3>{event.title}</h3>
+
+                                    {event.summary && <p>{event.summary}</p>}
+                                </div>
+
+                                {event.startAt && (
+                                    <span className={styles.date}>{event.startAt}</span>
+                                )}
+                            </Link>
                         ))}
                     </div>
                 </section>
             )}
 
             {relatedNews.length > 0 && (
-                <section style={{ marginTop: 20 }}>
-                    <h3>Новости организации</h3>
+                <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h2>Новости организации</h2>
+                        <span>{relatedNews.length}</span>
+                    </div>
 
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div className={styles.list}>
                         {relatedNews.map((post) => (
-                            <div key={post.slug}>
-                                <Link href={`/news/${post.slug}`}>
-                                    {post.title}
-                                </Link>
+                            <Link
+                                key={post.slug}
+                                href={`/news/${post.slug}`}
+                                className={styles.listItem}
+                            >
+                                <div>
+                                    <h3>{post.title}</h3>
+
+                                    {post.summary && <p>{post.summary}</p>}
+                                </div>
 
                                 {post.date && (
-                                    <div style={{ fontSize: 14, opacity: 0.65 }}>
-                                        {post.date}
-                                    </div>
+                                    <span className={styles.date}>{post.date}</span>
                                 )}
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </section>

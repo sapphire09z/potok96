@@ -16,9 +16,10 @@ export default async function NewsItemPage({ params }) {
         notFound();
     }
 
-    const relatedOrg = post.org ? await getOrgBySlug(post.org) : null;
-
-    const allNews = await getAllNews();
+    const [relatedOrg, allNews] = await Promise.all([
+        post.org ? getOrgBySlug(post.org) : null,
+        getAllNews(),
+    ]);
 
     const relatedPosts = allNews
         .filter((item) => item.status === "published")
@@ -27,43 +28,46 @@ export default async function NewsItemPage({ params }) {
         .slice(0, 3);
 
     return (
-        <article className={styles.article}>
-            <div className={styles.category}>{post.category}</div>
+        <article className={styles.page}>
+            <header className={styles.header}>
+                <div className={styles.kicker}>{post.category}</div>
 
-            <h1 className={styles.title}>{post.title}</h1>
+                <h1>{post.title}</h1>
 
-            {post.summary && <p className={styles.lead}>{post.summary}</p>}
+                {post.summary && <p className={styles.lead}>{post.summary}</p>}
 
-            <div className={styles.meta}>
-                <span>{post.author}</span>
-                <span>•</span>
-                <span>{post.date}</span>
-            </div>
-
-            {relatedOrg && (
-                <div className={styles.orgBox}>
-                    <span>Организация: </span>
-                    <Link href={`/orgs/${relatedOrg.slug}`}>{relatedOrg.title}</Link>
+                <div className={styles.meta}>
+                    <span>{post.author}</span>
+                    <span>•</span>
+                    <span>{post.date}</span>
                 </div>
-            )}
 
-            <div className={styles.content}>
+                {relatedOrg && (
+                    <div className={styles.orgBox}>
+                        <span>Организация: </span>
+                        <Link href={`/orgs/${relatedOrg.slug}`}>{relatedOrg.title}</Link>
+                    </div>
+                )}
+            </header>
+
+            <section className={styles.content}>
                 <ReactMarkdown>{post.content}</ReactMarkdown>
-            </div>
+            </section>
 
             {post.tags?.length > 0 && (
-                <div className={styles.tags}>
+                <section className={styles.tags}>
                     {post.tags.map((tag) => (
-                        <span key={tag} className={styles.tag}>
-              #{tag}
-            </span>
+                        <span key={tag}>#{tag}</span>
                     ))}
-                </div>
+                </section>
             )}
 
             {relatedPosts.length > 0 && (
                 <section className={styles.related}>
-                    <h2>Ещё по теме</h2>
+                    <div className={styles.sectionHeader}>
+                        <h2>Ещё по теме</h2>
+                        <span>{relatedPosts.length}</span>
+                    </div>
 
                     <div className={styles.relatedList}>
                         {relatedPosts.map((item) => (
@@ -72,13 +76,13 @@ export default async function NewsItemPage({ params }) {
                                 href={`/news/${item.slug}`}
                                 className={styles.relatedItem}
                             >
-                                <div className={styles.relatedTitle}>{item.title}</div>
+                                <div>
+                                    <h3>{item.title}</h3>
 
-                                {item.summary && (
-                                    <div className={styles.relatedSummary}>{item.summary}</div>
-                                )}
+                                    {item.summary && <p>{item.summary}</p>}
+                                </div>
 
-                                <div className={styles.relatedDate}>{item.date}</div>
+                                {item.date && <span className={styles.date}>{item.date}</span>}
                             </Link>
                         ))}
                     </div>
