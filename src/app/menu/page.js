@@ -10,18 +10,6 @@ export const metadata = {
 export default function MenuPage() {
     return (
         <main className={styles.page}>
-            <header className={styles.top}>
-                <Link href="/" className={styles.close} aria-label="Закрыть меню">
-                    ×
-                </Link>
-
-                <Link href="/" className={styles.logo}>
-                    Поток 96
-                </Link>
-
-                <div aria-hidden="true" />
-            </header>
-
             <section className={styles.content}>
                 <form className={styles.search} action="/search" method="get">
                     <input type="search" name="q" placeholder="Поиск" />

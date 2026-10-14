@@ -3,40 +3,10 @@
     background: var(--bg);
     color: var(--text);
 }
-
-.top {
-    height: 76px;
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) 48px;
-    align-items: center;
-    padding: 0 18px;
-    border-bottom: 1px solid var(--border);
-}
-
-.close {
-    width: 46px;
-    height: 46px;
-    display: grid;
-    place-items: center;
-    color: inherit;
-    text-decoration: none;
-    font-size: 48px;
-    line-height: 1;
-}
-
-.logo {
-    justify-self: center;
-    color: inherit;
-    text-decoration: none;
-    font-size: 24px;
-    font-weight: 850;
-    letter-spacing: -0.05em;
-}
-
 .content {
     display: grid;
     gap: 24px;
-    padding: 24px 22px 44px;
+    padding: 28px 22px 44px;
 }
 
 .search {
