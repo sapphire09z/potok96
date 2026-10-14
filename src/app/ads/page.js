@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import { formatDate } from "@/lib/date";
 import { getAllAds } from "@/lib/ads";
 
 import styles from "./ads.module.css";
@@ -59,7 +59,7 @@ export default async function AdsPage() {
                             <div className={styles.adDetails}>
                                 {ad.price && <span>{ad.price}</span>}
                                 {ad.location && <span>{ad.location}</span>}
-                                {ad.date && <span>{ad.date}</span>}
+                                {ad.date && <span>{formatDate(ad.date)}</span>}
                             </div>
 
                             {ad.tags?.length > 0 && (

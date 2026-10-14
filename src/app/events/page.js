@@ -1,27 +1,10 @@
 import Link from "next/link";
-
+import { formatDateTime } from "@/lib/date";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
 
 import styles from "./events.module.css";
 
-function formatEventDate(value) {
-    if (!value) return "";
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-}
 
 export default async function EventsPage() {
     const [events, orgs] = await Promise.all([
@@ -63,7 +46,7 @@ export default async function EventsPage() {
 
                         <div className={styles.meta}>
                             {mainEvent.startAt && (
-                                <span>{formatEventDate(mainEvent.startAt)}</span>
+                                <span>{formatDateTime(mainEvent.startAt)}</span>
                             )}
 
                             {mainEvent.location && (
@@ -101,7 +84,7 @@ export default async function EventsPage() {
                                 className={styles.eventCard}
                             >
                                 <div className={styles.eventDate}>
-                                    {formatEventDate(event.startAt)}
+                                    {formatDateTime(event.startAt)}
                                 </div>
 
                                 <h3>{event.title}</h3>

@@ -92,3 +92,75 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
+@media (max-width: 700px) {
+    .page {
+        gap: 28px;
+    }
+
+    .header {
+        gap: 16px;
+        padding: 18px;
+        border-radius: 20px;
+    }
+
+    .kicker {
+        font-size: 12px;
+        letter-spacing: 0.07em;
+    }
+
+    .header h1 {
+        font-size: clamp(34px, 12vw, 48px);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+    }
+
+    .lead {
+        font-size: 17px;
+        line-height: 1.45;
+    }
+
+    .infoGrid {
+        gap: 10px;
+    }
+
+    .infoItem {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .infoItem span {
+        font-size: 12px;
+    }
+
+    .infoItem strong {
+        font-size: 15px;
+    }
+
+    .content {
+        font-size: 16px;
+        line-height: 1.65;
+    }
+
+    .tags {
+        gap: 7px;
+    }
+
+    .tags span {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 430px) {
+    .header {
+        padding: 16px;
+    }
+
+    .header h1 {
+        font-size: 38px;
+    }
+
+    .lead {
+        font-size: 16px;
+    }
+}

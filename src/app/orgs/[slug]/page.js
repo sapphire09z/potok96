@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-
+import { formatDate, formatDateTime } from "@/lib/date";
 import { getAllEvents } from "@/lib/events";
 import { getAllNews } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
@@ -81,7 +81,7 @@ export default async function OrgPage({ params }) {
                                 </div>
 
                                 {event.startAt && (
-                                    <span className={styles.date}>{event.startAt}</span>
+                                    <span className={styles.date}>{formatDateTime(event.startAt)}</span>
                                 )}
                             </Link>
                         ))}
@@ -110,7 +110,7 @@ export default async function OrgPage({ params }) {
                                 </div>
 
                                 {post.date && (
-                                    <span className={styles.date}>{post.date}</span>
+                                    <span className={styles.date}>{formatDate(post.date)}</span>
                                 )}
                             </Link>
                         ))}

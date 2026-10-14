@@ -1,29 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-
+import { formatDateTime } from "@/lib/date";
 import { getEventBySlug } from "@/lib/events";
 import { getOrgBySlug } from "@/lib/orgs";
 
 import styles from "./event.module.css";
 
-function formatEventDate(value) {
-    if (!value) return "";
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-}
 
 export default async function EventPage({ params }) {
     const { slug } = await params;
@@ -49,7 +32,7 @@ export default async function EventPage({ params }) {
                     {event.startAt && (
                         <div className={styles.infoItem}>
                             <span>Дата и время</span>
-                            <strong>{formatEventDate(event.startAt)}</strong>
+                            <strong>{formatDateTime(event.startAt)}</strong>
                         </div>
                     )}
 

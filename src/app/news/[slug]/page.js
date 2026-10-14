@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-
+import { formatDate } from "@/lib/date";
 import { getAllNews, getNewsBySlug } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
 
@@ -39,7 +39,7 @@ export default async function NewsItemPage({ params }) {
                 <div className={styles.meta}>
                     <span>{post.author}</span>
                     <span>•</span>
-                    <span>{post.date}</span>
+                    <span>{formatDate(post.date)}</span>
                 </div>
 
                 {relatedOrg && (
@@ -82,7 +82,9 @@ export default async function NewsItemPage({ params }) {
                                     {item.summary && <p>{item.summary}</p>}
                                 </div>
 
-                                {item.date && <span className={styles.date}>{item.date}</span>}
+                                {item.date && (
+                                    <span className={styles.date}>{formatDate(item.date)}</span>
+                                )}
                             </Link>
                         ))}
                     </div>

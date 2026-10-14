@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/lib/date";
 
 import { getAllNews } from "@/lib/news";
 
@@ -36,7 +37,7 @@ export default async function NewsPage() {
                         <div className={styles.meta}>
                             <span>{mainPost.category}</span>
                             <span>•</span>
-                            <span>{mainPost.date}</span>
+                            <span>{formatDate(mainPost.date)}</span>
                         </div>
                     </Link>
                 </section>
@@ -59,7 +60,7 @@ export default async function NewsPage() {
                                 <div className={styles.newsMeta}>
                                     <span>{post.category}</span>
                                     <span>•</span>
-                                    <span>{post.date}</span>
+                                    <span>{formatDate(post.date)}</span>
                                 </div>
 
                                 <h3>{post.title}</h3>

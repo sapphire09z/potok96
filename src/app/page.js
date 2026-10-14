@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAllNews } from "@/lib/news";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
-
+import { formatDate, formatDateTime } from "@/lib/date";
 import styles from "./home.module.css";
 
 export default async function HomePage() {
@@ -55,7 +55,7 @@ export default async function HomePage() {
                                 <div className={styles.meta}>
                                     <span>{mainPost.category}</span>
                                     <span>•</span>
-                                    <span>{mainPost.date}</span>
+                                    <span>{formatDate(mainPost.date)}</span>
                                 </div>
                             </Link>
                         </section>
@@ -83,7 +83,7 @@ export default async function HomePage() {
                                     <div className={styles.meta}>
                                         <span>{post.category}</span>
                                         <span>•</span>
-                                        <span>{post.date}</span>
+                                        <span>{formatDate(post.date)}</span>
                                     </div>
                                 </Link>
                             ))}
@@ -108,7 +108,7 @@ export default async function HomePage() {
                                     <div className={styles.sideTitle}>{event.title}</div>
 
                                     {event.startAt && (
-                                        <div className={styles.sideMeta}>{event.startAt}</div>
+                                        <div className={styles.sideMeta}>{formatDateTime(event.startAt)}</div>
                                     )}
 
                                     {event.location && (
