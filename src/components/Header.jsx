@@ -1,9 +1,14 @@
 import Link from "next/link";
+import MobileMenu from "@/components/MobileMenu";
 
 export default function Header() {
     return (
         <header className="site-header">
             <div className="site-header-inner">
+                <div className="mobile-menu-slot">
+                    <MobileMenu />
+                </div>
+
                 <Link href="/" className="site-logo">
                     <span className="site-logo-title">Поток 96</span>
                     <span className="site-logo-subtitle">Красноуфимск и район</span>
@@ -16,6 +21,8 @@ export default function Header() {
                     <Link href="/ads">Объявления</Link>
                     <Link href="/about">О проекте</Link>
                 </nav>
+
+                <div className="mobile-header-spacer" aria-hidden="true" />
             </div>
         </header>
     );

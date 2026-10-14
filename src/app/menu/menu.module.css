@@ -1,0 +1,133 @@
+.page {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.top {
+    height: 76px;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    align-items: center;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.close {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    color: inherit;
+    text-decoration: none;
+    font-size: 48px;
+    line-height: 1;
+}
+
+.logo {
+    justify-self: center;
+    color: inherit;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 850;
+    letter-spacing: -0.05em;
+}
+
+.content {
+    display: grid;
+    gap: 24px;
+    padding: 24px 22px 44px;
+}
+
+.search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+}
+
+.search input {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 14px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+}
+
+.search button {
+    min-height: 52px;
+    padding: 0 18px;
+    background: #151515;
+    border: 1px solid #151515;
+    border-radius: 8px;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.home {
+    padding: 16px 0;
+    color: inherit;
+    text-decoration: none;
+    font-size: 28px;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    border-bottom: 1px solid var(--border);
+}
+
+.section {
+    border-bottom: 1px solid var(--border);
+}
+
+.section:first-of-type {
+    border-top: 1px solid var(--border);
+}
+
+.section summary {
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    cursor: pointer;
+    font-size: 28px;
+    font-weight: 850;
+    letter-spacing: -0.045em;
+}
+
+.section summary::-webkit-details-marker {
+    display: none;
+}
+
+.section summary::after {
+    content: "⌄";
+    font-size: 28px;
+}
+
+.section[open] summary::after {
+    content: "⌃";
+}
+
+.links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 28px;
+    padding: 0 0 26px;
+}
+
+.links a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 21px;
+    line-height: 1.25;
+}
+
+.about {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 18px;
+}
