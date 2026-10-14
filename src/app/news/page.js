@@ -1,63 +1,83 @@
 import Link from "next/link";
+
 import { getAllNews } from "@/lib/news";
+
 import styles from "./news.module.css";
 
-export const metadata = {
-    title: "Новости — Поток 96",
-    description: "Городские новости Красноуфимска и района.",
-};
-
-export default async function NewsListPage() {
+export default async function NewsPage() {
     const news = await getAllNews();
 
-    const categories = Array.from(
-        new Set(news.map((n) => n.category ?? "город"))
-    ).sort((a, b) => a.localeCompare(b, "ru"));
+    const publishedNews = news
+        .filter((post) => post.status === "published")
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const mainPost = publishedNews[0];
+    const otherPosts = publishedNews.slice(1);
 
     return (
         <div className={styles.page}>
-            <h1 className={styles.title}>Новости</h1>
+            <header className={styles.header}>
+                <div className={styles.kicker}>Новости</div>
+                <h1>Городская лента</h1>
+                <p>
+                    События, люди, организации и важные изменения Красноуфимска и района.
+                </p>
+            </header>
 
-            {/* Рубрики */}
-            <div className={styles.categories}>
-                {categories.map((c) => (
-                    <Link
-                        key={c}
-                        href={`/news/category/${encodeURIComponent(c)}`}
-                        className={styles.cat}
-                    >
-                        {c}
-                    </Link>
-                ))}
-            </div>
+            {mainPost && (
+                <section className={styles.featured}>
+                    <div className={styles.sectionLabel}>Главное</div>
 
-            <div className={styles.list}>
-                {news.map((n) => (
-                    <article key={n.slug} className={styles.card}>
+                    <Link href={`/news/${mainPost.slug}`} className={styles.featuredLink}>
+                        <h2>{mainPost.title}</h2>
+
+                        {mainPost.summary && <p>{mainPost.summary}</p>}
+
                         <div className={styles.meta}>
-                            <span>{n.date}</span>
-                            {n.category && (
-                                <Link
-                                    href={`/news/category/${encodeURIComponent(n.category)}`}
-                                    className={styles.catPill}
-                                >
-                                    {n.category}
-                                </Link>
-                            )}
+                            <span>{mainPost.category}</span>
+                            <span>•</span>
+                            <span>{mainPost.date}</span>
                         </div>
-
-                        <Link href={`/news/${n.slug}`} className={styles.link}>
-                            {n.title}
-                        </Link>
-
-                        <div className={styles.summary}>{n.summary}</div>
-                    </article>
-                ))}
-            </div>
-
-            {news.length === 0 && (
-                <div className={styles.empty}>Пока нет опубликованных новостей.</div>
+                    </Link>
+                </section>
             )}
+
+            <section className={styles.listSection}>
+                <div className={styles.sectionHeader}>
+                    <h2>Все новости</h2>
+                    <span>{publishedNews.length}</span>
+                </div>
+
+                <div className={styles.newsList}>
+                    {otherPosts.map((post) => (
+                        <Link
+                            key={post.slug}
+                            href={`/news/${post.slug}`}
+                            className={styles.newsItem}
+                        >
+                            <div className={styles.newsText}>
+                                <div className={styles.newsMeta}>
+                                    <span>{post.category}</span>
+                                    <span>•</span>
+                                    <span>{post.date}</span>
+                                </div>
+
+                                <h3>{post.title}</h3>
+
+                                {post.summary && <p>{post.summary}</p>}
+
+                                {post.tags?.length > 0 && (
+                                    <div className={styles.tags}>
+                                        {post.tags.slice(0, 4).map((tag) => (
+                                            <span key={tag}>#{tag}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </section>
         </div>
     );
 }
