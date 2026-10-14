@@ -1,12 +1,15 @@
 import Link from "next/link";
 
-export function Header() {
+export default function Header() {
     return (
-        <header>
-            <div className="container">
-                <Link href="/" className="logo">Поток 96</Link>
+        <header className="site-header">
+            <div className="site-header-inner">
+                <Link href="/" className="site-logo">
+                    <span className="site-logo-title">Поток 96</span>
+                    <span className="site-logo-subtitle">Красноуфимск и район</span>
+                </Link>
 
-                <nav className="nav">
+                <nav className="site-nav" aria-label="Основная навигация">
                     <Link href="/news">Новости</Link>
                     <Link href="/events">Афиша</Link>
                     <Link href="/orgs">Справочник</Link>

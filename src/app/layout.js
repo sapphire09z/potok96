@@ -1,33 +1,23 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {Header} from "@/components/Header";
-import {Footer} from "@/components/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Медиа портал Поток 96",
-  description: "Красноуфимск и район новости, афиша, объявления, работа",
+    title: "Поток 96",
+    description: "Городской портал Красноуфимска и района",
 };
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="ru">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-      <Header />
-      <main className="container">
-          {children}
-      </main>
-      <Footer />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="ru">
+        <body className="site-body">
+        <Header />
+
+        <main className="site-main">{children}</main>
+
+        <Footer />
+        </body>
+        </html>
+    );
 }

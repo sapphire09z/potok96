@@ -1,9 +1,10 @@
-export function Footer() {
+export default function Footer() {
     return (
-        <footer>
-            <div className="container">
-                <div>© {new Date().getFullYear()} Поток 96</div>
-                <div className="muted">Контакты: potok96@local (временно)</div>
+        <footer className="site-footer">
+            <div className="site-footer-inner">
+                <strong>Поток 96</strong>
+                <span>Городской портал Красноуфимска и района.</span>
+                <span>Контакты: potok96@local</span>
             </div>
         </footer>
     );
