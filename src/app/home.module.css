@@ -243,3 +243,144 @@
         top: 94px;
     }
 }
+@media (max-width: 700px) {
+    .page {
+        gap: 30px;
+    }
+
+    .hero {
+        padding: 18px 0 20px;
+    }
+
+    .kicker,
+    .sectionLabel {
+        font-size: 12px;
+        letter-spacing: 0.07em;
+    }
+
+    .heroTitle {
+        font-size: clamp(42px, 18vw, 68px);
+        line-height: 0.92;
+        letter-spacing: -0.075em;
+    }
+
+    .heroText {
+        margin-top: 14px;
+        font-size: 17px;
+        line-height: 1.45;
+    }
+
+    .layout {
+        gap: 30px;
+    }
+
+    .main {
+        gap: 30px;
+    }
+
+    .mainStory {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .mainStoryLink {
+        gap: 10px;
+    }
+
+    .mainStoryLink h2 {
+        font-size: clamp(28px, 9vw, 40px);
+        line-height: 1.05;
+        letter-spacing: -0.055em;
+    }
+
+    .mainStoryLink p {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .sectionHeader {
+        padding-bottom: 9px;
+    }
+
+    .sectionHeader h2 {
+        font-size: 23px;
+    }
+
+    .sectionHeader a {
+        font-size: 13px;
+    }
+
+    .newsItem {
+        padding: 15px 0;
+    }
+
+    .newsTitle {
+        font-size: 20px;
+        line-height: 1.2;
+    }
+
+    .newsSummary {
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .meta {
+        font-size: 12px;
+    }
+
+    .sidebar {
+        gap: 18px;
+    }
+
+    .sideBlock {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .sideItem {
+        padding: 10px 0;
+    }
+
+    .sideTitle {
+        font-size: 16px;
+    }
+
+    .sideMeta {
+        font-size: 12px;
+    }
+
+    .adBox {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .adBox h2 {
+        font-size: 23px;
+    }
+
+    .adBox p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 430px) {
+    .heroTitle {
+        font-size: 50px;
+    }
+
+    .heroText {
+        font-size: 16px;
+    }
+
+    .mainStory {
+        padding: 16px;
+    }
+
+    .mainStoryLink h2 {
+        font-size: 30px;
+    }
+
+    .newsTitle {
+        font-size: 19px;
+    }
+}
