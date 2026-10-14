@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/date";
 import { getAllAds } from "@/lib/ads";
-
+import EmptyState from "@/components/EmptyState";
 import styles from "./ads.module.css";
 
 export const metadata = {
@@ -47,31 +47,38 @@ export default async function AdsPage() {
                     <span>{publishedAds.length}</span>
                 </div>
 
-                <div className={styles.adsGrid}>
-                    {publishedAds.map((ad) => (
-                        <Link key={ad.slug} href={`/ads/${ad.slug}`} className={styles.adCard}>
-                            <div className={styles.adCategory}>{ad.category}</div>
+                {publishedAds.length === 0 ? (
+                    <EmptyState
+                        title="Объявлений пока нет"
+                        text="Скоро здесь появятся частные объявления, услуги и вакансии."
+                    />
+                ) : (
+                    <div className={styles.adsGrid}>
+                        {publishedAds.map((ad) => (
+                            <Link key={ad.slug} href={`/ads/${ad.slug}`} className={styles.adCard}>
+                                <div className={styles.adCategory}>{ad.category}</div>
 
-                            <h3>{ad.title}</h3>
+                                <h3>{ad.title}</h3>
 
-                            {ad.summary && <p>{ad.summary}</p>}
+                                {ad.summary && <p>{ad.summary}</p>}
 
-                            <div className={styles.adDetails}>
-                                {ad.price && <span>{ad.price}</span>}
-                                {ad.location && <span>{ad.location}</span>}
-                                {ad.date && <span>{formatDate(ad.date)}</span>}
-                            </div>
-
-                            {ad.tags?.length > 0 && (
-                                <div className={styles.tags}>
-                                    {ad.tags.slice(0, 4).map((tag) => (
-                                        <span key={tag}>#{tag}</span>
-                                    ))}
+                                <div className={styles.adDetails}>
+                                    {ad.price && <span>{ad.price}</span>}
+                                    {ad.location && <span>{ad.location}</span>}
+                                    {ad.date && <span>{formatDate(ad.date)}</span>}
                                 </div>
-                            )}
-                        </Link>
-                    ))}
-                </div>
+
+                                {ad.tags?.length > 0 && (
+                                    <div className={styles.tags}>
+                                        {ad.tags.slice(0, 4).map((tag) => (
+                                            <span key={tag}>#{tag}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     );

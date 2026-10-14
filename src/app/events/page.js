@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatDateTime } from "@/lib/date";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
+import EmptyState from "@/components/EmptyState";
 
 import styles from "./events.module.css";
 
@@ -73,33 +74,40 @@ export default async function EventsPage() {
                     <span>{publishedEvents.length}</span>
                 </div>
 
-                <div className={styles.eventsGrid}>
-                    {otherEvents.map((event) => {
-                        const org = event.org ? orgBySlug.get(event.org) : null;
+                {publishedEvents.length === 0 ? (
+                    <EmptyState
+                        title="Событий пока нет"
+                        text="Скоро здесь появятся мероприятия, встречи и городская афиша."
+                    />
+                ) : (
+                    <div className={styles.eventsGrid}>
+                        {otherEvents.map((event) => {
+                            const org = event.org ? orgBySlug.get(event.org) : null;
 
-                        return (
-                            <Link
-                                key={event.slug}
-                                href={`/events/${event.slug}`}
-                                className={styles.eventCard}
-                            >
-                                <div className={styles.eventDate}>
-                                    {formatDateTime(event.startAt)}
-                                </div>
+                            return (
+                                <Link
+                                    key={event.slug}
+                                    href={`/events/${event.slug}`}
+                                    className={styles.eventCard}
+                                >
+                                    <div className={styles.eventDate}>
+                                        {formatDateTime(event.startAt)}
+                                    </div>
 
-                                <h3>{event.title}</h3>
+                                    <h3>{event.title}</h3>
 
-                                {event.summary && <p>{event.summary}</p>}
+                                    {event.summary && <p>{event.summary}</p>}
 
-                                <div className={styles.eventDetails}>
-                                    {event.location && <span>{event.location}</span>}
-                                    {event.price && <span>{event.price}</span>}
-                                    {org && <span>{org.title}</span>}
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
+                                    <div className={styles.eventDetails}>
+                                        {event.location && <span>{event.location}</span>}
+                                        {event.price && <span>{event.price}</span>}
+                                        {org && <span>{org.title}</span>}
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
             </section>
         </div>
     );

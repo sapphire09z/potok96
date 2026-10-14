@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import EmptyState from "@/components/EmptyState";
 import { getAllOrgs } from "@/lib/orgs";
 
 import styles from "./orgs.module.css";
@@ -40,33 +40,40 @@ export default async function OrgsPage() {
                     <span>{publishedOrgs.length}</span>
                 </div>
 
-                <div className={styles.orgsGrid}>
-                    {publishedOrgs.map((org) => (
-                        <Link
-                            key={org.slug}
-                            href={`/orgs/${org.slug}`}
-                            className={styles.orgCard}
-                        >
-                            <div className={styles.orgType}>{org.type}</div>
+                {publishedOrgs.length === 0 ? (
+                    <EmptyState
+                        title="Организаций пока нет"
+                        text="Справочник скоро начнёт наполняться городскими организациями."
+                    />
+                ) : (
+                    <div className={styles.orgsGrid}>
+                        {publishedOrgs.map((org) => (
+                            <Link
+                                key={org.slug}
+                                href={`/orgs/${org.slug}`}
+                                className={styles.orgCard}
+                            >
+                                <div className={styles.orgType}>{org.type}</div>
 
-                            <h3>{org.title}</h3>
+                                <h3>{org.title}</h3>
 
-                            <div className={styles.orgInfo}>
-                                {org.address && <span>{org.address}</span>}
-                                {org.phone && <span>{org.phone}</span>}
-                                {org.hours && <span>{org.hours}</span>}
-                            </div>
-
-                            {org.tags?.length > 0 && (
-                                <div className={styles.tags}>
-                                    {org.tags.slice(0, 4).map((tag) => (
-                                        <span key={tag}>#{tag}</span>
-                                    ))}
+                                <div className={styles.orgInfo}>
+                                    {org.address && <span>{org.address}</span>}
+                                    {org.phone && <span>{org.phone}</span>}
+                                    {org.hours && <span>{org.hours}</span>}
                                 </div>
-                            )}
-                        </Link>
-                    ))}
-                </div>
+
+                                {org.tags?.length > 0 && (
+                                    <div className={styles.tags}>
+                                        {org.tags.slice(0, 4).map((tag) => (
+                                            <span key={tag}>#{tag}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     );

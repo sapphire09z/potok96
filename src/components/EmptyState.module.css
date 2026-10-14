@@ -1,0 +1,23 @@
+.empty {
+    display: grid;
+    gap: 8px;
+    padding: 22px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+}
+
+.empty h3 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.empty p {
+    margin: 0;
+    max-width: 520px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--muted);
+}

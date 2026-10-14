@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/date";
+import EmptyState from "@/components/EmptyState";
 
 import { getAllNews } from "@/lib/news";
 
@@ -49,35 +50,42 @@ export default async function NewsPage() {
                     <span>{publishedNews.length}</span>
                 </div>
 
-                <div className={styles.newsList}>
-                    {otherPosts.map((post) => (
-                        <Link
-                            key={post.slug}
-                            href={`/news/${post.slug}`}
-                            className={styles.newsItem}
-                        >
-                            <div className={styles.newsText}>
-                                <div className={styles.newsMeta}>
-                                    <span>{post.category}</span>
-                                    <span>•</span>
-                                    <span>{formatDate(post.date)}</span>
-                                </div>
-
-                                <h3>{post.title}</h3>
-
-                                {post.summary && <p>{post.summary}</p>}
-
-                                {post.tags?.length > 0 && (
-                                    <div className={styles.tags}>
-                                        {post.tags.slice(0, 4).map((tag) => (
-                                            <span key={tag}>#{tag}</span>
-                                        ))}
+                {publishedNews.length === 0 ? (
+                    <EmptyState
+                        title="Новостей пока нет"
+                        text="Раздел скоро начнёт наполняться городскими материалами."
+                    />
+                ) : (
+                    <div className={styles.newsList}>
+                        {otherPosts.map((post) => (
+                            <Link
+                                key={post.slug}
+                                href={`/news/${post.slug}`}
+                                className={styles.newsItem}
+                            >
+                                <div className={styles.newsText}>
+                                    <div className={styles.newsMeta}>
+                                        <span>{post.category}</span>
+                                        <span>•</span>
+                                        <span>{formatDate(post.date)}</span>
                                     </div>
-                                )}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+
+                                    <h3>{post.title}</h3>
+
+                                    {post.summary && <p>{post.summary}</p>}
+
+                                    {post.tags?.length > 0 && (
+                                        <div className={styles.tags}>
+                                            {post.tags.slice(0, 4).map((tag) => (
+                                                <span key={tag}>#{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     );
