@@ -3,6 +3,7 @@ import { formatDateTime } from "@/lib/date";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
 import EmptyState from "@/components/EmptyState";
+import Image from "next/image";
 
 import styles from "./events.module.css";
 export const metadata = {
@@ -44,6 +45,19 @@ export default async function EventsPage() {
                         href={`/events/${mainEvent.slug}`}
                         className={styles.featuredLink}
                     >
+
+                        {mainEvent.cover && (
+                            <div className={styles.featuredPoster}>
+                                <Image
+                                    src={mainEvent.cover}
+                                    alt={`Афиша: ${mainEvent.title}`}
+                                    fill
+                                    sizes="(max-width: 700px) 220px, 260px"
+                                    className={styles.posterImage}
+                                />
+                            </div>
+                        )}
+
                         <h2>{mainEvent.title}</h2>
 
                         {mainEvent.summary && <p>{mainEvent.summary}</p>}
@@ -91,11 +105,24 @@ export default async function EventsPage() {
                                 <Link
                                     key={event.slug}
                                     href={`/events/${event.slug}`}
-                                    className={styles.eventCard}
+                                    className={`${styles.eventCard} ${event.cover ? styles.withPoster : ""}`}
                                 >
                                     <div className={styles.eventDate}>
                                         {formatDateTime(event.startAt)}
                                     </div>
+
+                                    {event.cover && (
+                                        <div className={styles.cardPoster}>
+                                            <Image
+                                                src={event.cover}
+                                                alt={`Афиша: ${event.title}`}
+                                                fill
+                                                sizes="150px"
+                                                className={styles.posterImage}
+                                            />
+                                        </div>
+                                    )}
+
 
                                     <h3>{event.title}</h3>
 

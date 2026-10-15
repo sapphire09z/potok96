@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { formatDateTime } from "@/lib/date";
 import { getEventBySlug } from "@/lib/events";
 import { getOrgBySlug } from "@/lib/orgs";
+import Image from "next/image";
 
 import styles from "./event.module.css";
 export async function generateMetadata({ params }) {
@@ -45,7 +46,23 @@ export default async function EventPage({ params }) {
 
                 <h1>{event.title}</h1>
 
-                {event.summary && <p className={styles.lead}>{event.summary}</p>}
+                <div className={`${styles.eventLayout} ${event.cover ? styles.hasPoster : ""}`}>
+                    {event.cover && (
+                        <div className={styles.eventPoster}>
+                            <Image
+                                src={event.cover}
+                                alt={`Афиша: ${event.title}`}
+                                fill
+                                sizes="(max-width: 700px) 260px, 260px"
+                                className={styles.posterImage}
+                            />
+                        </div>
+                    )}
+
+                    <div className={styles.eventBody}>
+
+
+                    {event.summary && <p className={styles.lead}>{event.summary}</p>}
 
                 <div className={styles.infoGrid}>
                     {event.startAt && (
@@ -76,7 +93,22 @@ export default async function EventPage({ params }) {
                         <Link href={`/orgs/${org.slug}`}>{org.title}</Link>
                     </div>
                 )}
+                    </div>
+                </div>
             </header>
+
+            {event.video && (
+                <div className={styles.video}>
+                    <iframe
+                        src={event.video}
+                        title={`Видео: ${event.title}`}
+                        loading="lazy"
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                        allowFullScreen
+                    />
+                </div>
+            )}
+
 
             <section className={styles.content}>
                 <ReactMarkdown>{event.content}</ReactMarkdown>

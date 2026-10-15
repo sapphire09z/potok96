@@ -23,6 +23,7 @@ export async function getAllEvents() {
                     location: data.location ?? "",
                     price: data.price ?? "",
                     summary: data.summary ?? "",
+                    cover: data.cover ?? "",
                     org: data.org ?? null,
                     status: data.status ?? "draft",
                 };
@@ -54,6 +55,8 @@ export async function getEventBySlug(slug) {
                 location: data.location ?? "",
                 price: data.price ?? "",
                 summary: data.summary ?? "",
+                cover: data.cover ?? "",
+                video: data.video ?? "",
                 org: data.org ?? null,
                 status: data.status ?? "draft",
                 content,

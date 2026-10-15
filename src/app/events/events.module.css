@@ -279,3 +279,103 @@
         font-size: 22px;
     }
 }
+
+/* Афиша главного события */
+.featuredPoster {
+    position: relative;
+    width: min(100%, 260px);
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--paper);
+    border-radius: 12px;
+}
+
+/* Афиши остальных событий */
+.cardPoster {
+    position: relative;
+    width: min(100%, 150px);
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--paper);
+    border-radius: 10px;
+}
+
+/* Показываем плакат целиком */
+.posterImage {
+    object-fit: contain;
+}
+
+@media (max-width: 700px) {
+    .featuredPoster {
+        width: min(100%, 220px);
+    }
+
+    .cardPoster {
+        width: min(100%, 140px);
+    }
+}
+
+/* Карточка мероприятия с афишей */
+.withPoster {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-areas:
+    "poster date"
+    "poster title"
+    "poster summary"
+    "poster details";
+    column-gap: 22px;
+    row-gap: 10px;
+    align-content: start;
+}
+
+.withPoster .cardPoster {
+    grid-area: poster;
+    width: 150px;
+    max-width: 100%;
+    align-self: start;
+}
+
+.withPoster .eventDate {
+    grid-area: date;
+}
+
+.withPoster h3 {
+    grid-area: title;
+}
+
+.withPoster > p {
+    grid-area: summary;
+}
+
+.withPoster .eventDetails {
+    grid-area: details;
+    align-self: end;
+}
+
+/* Мобильная версия */
+@media (max-width: 700px) {
+    .withPoster {
+        grid-template-columns: 110px minmax(0, 1fr);
+        column-gap: 14px;
+        row-gap: 8px;
+    }
+
+    .withPoster .cardPoster {
+        width: 110px;
+    }
+
+    .withPoster h3 {
+        font-size: 21px;
+        line-height: 1.15;
+    }
+
+    .withPoster .eventDate {
+        font-size: 12px;
+    }
+
+    .withPoster > p {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+}
