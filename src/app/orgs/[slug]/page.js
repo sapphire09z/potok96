@@ -7,7 +7,26 @@ import { getAllNews } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
 
 import styles from "./org.module.css";
+export async function generateMetadata({ params }) {
+    const { slug } = await params;
+    const org = await getOrgBySlug(slug);
 
+    if (!org || org.status !== "published") {
+        return {
+            title: "Организация не найдена",
+        };
+    }
+
+    return {
+        title: org.title,
+        description: `${org.type || "Организация"} в справочнике Поток 96.`,
+        openGraph: {
+            title: org.title,
+            description: `${org.type || "Организация"} в справочнике Поток 96.`,
+            type: "article",
+        },
+    };
+}
 export default async function OrgPage({ params }) {
     const { slug } = await params;
 

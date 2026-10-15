@@ -4,7 +4,26 @@ import ReactMarkdown from "react-markdown";
 import { getAdBySlug } from "@/lib/ads";
 
 import styles from "./ad.module.css";
+export async function generateMetadata({ params }) {
+    const { slug } = await params;
+    const ad = await getAdBySlug(slug);
 
+    if (!ad || ad.status !== "published") {
+        return {
+            title: "Объявление не найдено",
+        };
+    }
+
+    return {
+        title: ad.title,
+        description: ad.summary || `Объявление на городском портале Поток 96.`,
+        openGraph: {
+            title: ad.title,
+            description: ad.summary || "Объявление на городском портале Поток 96.",
+            type: "article",
+        },
+    };
+}
 export default async function AdPage({ params }) {
     const { slug } = await params;
 

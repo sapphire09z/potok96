@@ -6,7 +6,26 @@ import { getAllNews, getNewsBySlug } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
 
 import styles from "./article.module.css";
+export async function generateMetadata({ params }) {
+    const { slug } = await params;
+    const post = await getNewsBySlug(slug);
 
+    if (!post || post.status !== "published") {
+        return {
+            title: "Новость не найдена",
+        };
+    }
+
+    return {
+        title: post.title,
+        description: post.summary || `Новость на городском портале Поток 96.`,
+        openGraph: {
+            title: post.title,
+            description: post.summary || "Новость на городском портале Поток 96.",
+            type: "article",
+        },
+    };
+}
 export default async function NewsItemPage({ params }) {
     const { slug } = await params;
 

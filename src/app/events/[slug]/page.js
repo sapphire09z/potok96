@@ -6,7 +6,26 @@ import { getEventBySlug } from "@/lib/events";
 import { getOrgBySlug } from "@/lib/orgs";
 
 import styles from "./event.module.css";
+export async function generateMetadata({ params }) {
+    const { slug } = await params;
+    const event = await getEventBySlug(slug);
 
+    if (!event || event.status !== "published") {
+        return {
+            title: "Событие не найдено",
+        };
+    }
+
+    return {
+        title: event.title,
+        description: event.summary || `Событие в афише Поток 96.`,
+        openGraph: {
+            title: event.title,
+            description: event.summary || "Событие в афише Поток 96.",
+            type: "article",
+        },
+    };
+}
 
 export default async function EventPage({ params }) {
     const { slug } = await params;

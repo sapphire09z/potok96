@@ -5,7 +5,10 @@ import { getAllOrgs } from "@/lib/orgs";
 import EmptyState from "@/components/EmptyState";
 
 import styles from "./events.module.css";
-
+export const metadata = {
+    title: "Афиша",
+    description: "Афиша событий, мероприятий и встреч Красноуфимска и района.",
+};
 
 export default async function EventsPage() {
     const [events, orgs] = await Promise.all([

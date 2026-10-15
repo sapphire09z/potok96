@@ -3,7 +3,10 @@ import EmptyState from "@/components/EmptyState";
 import { getAllOrgs } from "@/lib/orgs";
 
 import styles from "./orgs.module.css";
-
+export const metadata = {
+    title: "Справочник организаций",
+    description: "Организации, учреждения, секции и услуги Красноуфимска и района.",
+};
 export default async function OrgsPage() {
     const orgs = await getAllOrgs();
 

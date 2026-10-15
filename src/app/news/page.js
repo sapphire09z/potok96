@@ -5,7 +5,10 @@ import EmptyState from "@/components/EmptyState";
 import { getAllNews } from "@/lib/news";
 
 import styles from "./news.module.css";
-
+export const metadata = {
+    title: "Новости",
+    description: "Новости Красноуфимска и района на городском портале Поток 96.",
+};
 export default async function NewsPage() {
     const news = await getAllNews();
 
