@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/date";
 import EmptyState from "@/components/EmptyState";
-
+import Image from "next/image";
 import { getAllNews } from "@/lib/news";
 
 import styles from "./news.module.css";
@@ -33,8 +33,23 @@ export default async function NewsPage() {
                 <section className={styles.featured}>
                     <div className={styles.sectionLabel}>Главное</div>
 
+
                     <Link href={`/news/${mainPost.slug}`} className={styles.featuredLink}>
+                        {mainPost.cover && (
+                            <div className={styles.featuredImage}>
+                                <Image
+                                    src={mainPost.cover}
+                                    alt={mainPost.title}
+                                    fill
+                                    priority
+                                    sizes="(max-width: 700px) 100vw, 900px"
+                                    className={styles.coverImage}
+                                />
+                            </div>
+                        )}
+
                         <h2>{mainPost.title}</h2>
+
 
                         {mainPost.summary && <p>{mainPost.summary}</p>}
 
@@ -64,8 +79,21 @@ export default async function NewsPage() {
                             <Link
                                 key={post.slug}
                                 href={`/news/${post.slug}`}
-                                className={styles.newsItem}
+                                className={`${styles.newsItem} ${post.cover ? styles.newsItemWithImage : ""}`}
                             >
+
+                                {post.cover && (
+                                    <div className={styles.newsThumbnail}>
+                                        <Image
+                                            src={post.cover}
+                                            alt={post.title}
+                                            fill
+                                            sizes="(max-width: 700px) 110px, 160px"
+                                            className={styles.coverImage}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className={styles.newsText}>
                                     <div className={styles.newsMeta}>
                                         <span>{post.category}</span>
