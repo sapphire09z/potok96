@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { formatDate } from "@/lib/date";
 import { getAllNews, getNewsBySlug } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
-
+import Image from "next/image";
 import styles from "./article.module.css";
 export async function generateMetadata({ params }) {
     const { slug } = await params;
@@ -68,6 +68,19 @@ export default async function NewsItemPage({ params }) {
                     </div>
                 )}
             </header>
+
+            {post.cover && (
+                <div className={styles.articleCover}>
+                    <Image
+                        src={post.cover}
+                        alt={post.title}
+                        fill
+                        sizes="(max-width: 700px) 100vw, 1100px"
+                        className={styles.coverImage}
+                        priority
+                    />
+                </div>
+            )}
 
             <section className={styles.content}>
                 <ReactMarkdown>{post.content}</ReactMarkdown>

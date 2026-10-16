@@ -191,3 +191,42 @@
         align-items: start;
     }
 }
+
+/* Главная фотография статьи */
+.articleCover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 560px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #eae6e0;
+}
+
+.coverImage {
+    object-fit: cover;
+}
+
+/* Фотографии внутри текста новости */
+.content img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 24px 0;
+    border-radius: 14px;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 700px) {
+    .articleCover {
+        aspect-ratio: 16 / 10;
+        max-height: none;
+        border-radius: 14px;
+    }
+
+    .content img {
+        margin: 20px 0;
+        border-radius: 10px;
+    }
+}
