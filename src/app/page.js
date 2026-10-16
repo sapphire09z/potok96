@@ -8,11 +8,14 @@ import styles from "./home.module.css";
 import Image from "next/image";
 export const dynamic = "force-dynamic";
 import FeaturedStories from "@/components/FeaturedStories";
+import { getCurrentAlerts } from "@/lib/alerts";
+import CityAlerts from "@/components/CityAlerts";
 export default async function HomePage() {
-    const [news, events, orgs] = await Promise.all([
+    const [news, events, orgs, alerts] = await Promise.all([
         getAllNews(),
         getAllEvents(),
         getAllOrgs(),
+        getCurrentAlerts(),
     ]);
 
 
@@ -71,7 +74,11 @@ export default async function HomePage() {
 
             <div className={styles.layout}>
                 <main className={styles.main}>
-
+                    {alerts.length > 0 && (
+                        <div className={styles.mobileAlerts}>
+                            <CityAlerts alerts={alerts} limit={1} />
+                        </div>
+                    )}
                     {featuredPosts.length > 0 && (
                         <section className={styles.mainStory}>
                             <div className={styles.sectionLabel}>Главное</div>
@@ -131,6 +138,11 @@ export default async function HomePage() {
                 </main>
 
                 <aside className={styles.sidebar}>
+                    {alerts.length > 0 && (
+                        <div className={styles.desktopAlerts}>
+                            <CityAlerts alerts={alerts} limit={2} />
+                        </div>
+                    )}
                     <section className={styles.sideBlock}>
                         <div className={styles.sectionHeader}>
                             <h2>Афиша</h2>

@@ -1,0 +1,187 @@
+
+.page {
+    display: grid;
+    gap: 42px;
+    min-width: 0;
+}
+
+.header {
+    display: grid;
+    gap: 16px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+}
+
+.kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: clamp(42px, 6vw, 76px);
+    line-height: 0.98;
+    letter-spacing: -0.065em;
+}
+
+.header p {
+    max-width: 650px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.section {
+    display: grid;
+    gap: 20px;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--text);
+}
+
+.sectionHeader h2 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: -0.045em;
+}
+
+.sectionHeader span {
+    color: var(--muted);
+}
+
+.list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.card {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+}
+
+.cardTop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.category {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.state {
+    color: var(--muted);
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.04em;
+}
+
+.addresses,
+.times > div {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.addresses span,
+.times span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.addresses strong,
+.times strong {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.times {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.content {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.content p {
+    margin: 0 0 10px;
+}
+
+.content p:last-child {
+    margin-bottom: 0;
+}
+
+.source {
+    padding-top: 12px;
+    border-top: 1px solid var(--soft-border);
+    font-size: 12px;
+    color: var(--muted);
+}
+
+@media (max-width: 800px) {
+    .list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        gap: 30px;
+    }
+
+    .header h1 {
+        font-size: clamp(36px, 10vw, 48px);
+    }
+
+    .header p {
+        font-size: 16px;
+    }
+
+    .sectionHeader h2 {
+        font-size: 23px;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .card h3 {
+        font-size: 21px;
+    }
+
+    .times {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

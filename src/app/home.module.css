@@ -451,3 +451,25 @@
         line-height: 1.4;
     }
 }
+
+/* Городские уведомления */
+.mobileAlerts {
+    display: none;
+}
+
+.desktopAlerts {
+    display: block;
+    min-width: 0;
+}
+
+/* Перенос блока наверх на мобильных */
+@media (max-width: 900px) {
+    .desktopAlerts {
+        display: none;
+    }
+
+    .mobileAlerts {
+        display: block;
+        margin-bottom: 24px;
+    }
+}
