@@ -4,6 +4,8 @@ slug: obnovili-fasad-vokzala
 date: "2026-10-15"
 status: "published"
 category: "Город"
+featured: true
+featuredOrder: 1
 cover: "/media/news/vokzal.jpg"
 summary: "В Красноуфимске обновили фасад железнодорожного вокзала."
 ---

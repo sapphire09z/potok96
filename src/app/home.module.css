@@ -384,3 +384,70 @@
         font-size: 19px;
     }
 }
+
+/* Обложка главной новости */
+.mainStoryImage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 380px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #eae6e0;
+    margin-bottom: 20px;
+}
+
+.coverImage {
+    object-fit: cover;
+}
+
+/* Новости с миниатюрами */
+.newsWithImage {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.newsThumbnail {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #eae6e0;
+}
+
+.newsBody {
+    min-width: 0;
+}
+
+/* Мобильная версия */
+@media (max-width: 700px) {
+    .mainStoryImage {
+        aspect-ratio: 16 / 10;
+        max-height: none;
+        margin-bottom: 16px;
+        border-radius: 12px;
+    }
+
+    .newsWithImage {
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .newsThumbnail {
+        border-radius: 9px;
+    }
+
+    .newsWithImage .newsTitle {
+        font-size: 19px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .newsWithImage .newsSummary {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+}

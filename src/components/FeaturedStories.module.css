@@ -1,0 +1,159 @@
+
+.carousel {
+    width: 100%;
+    min-width: 0;
+}
+
+.viewport {
+    overflow: hidden;
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+}
+
+.slide {
+    flex: 0 0 100%;
+    min-width: 0;
+}
+
+.story {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 380px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #eae6e0;
+}
+
+.cover {
+    object-fit: cover;
+}
+
+.title {
+    margin: 0 0 14px;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1.06;
+    letter-spacing: -0.055em;
+}
+
+.summary {
+    margin: 0 0 18px;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 20px;
+    margin-top: 22px;
+    border-top: 1px solid var(--soft-border);
+}
+
+.dots,
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.dot {
+    width: 22px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: #ded8cf;
+    cursor: pointer;
+}
+
+.activeDot {
+    width: 34px;
+    background: #151515;
+}
+
+.counter {
+    margin-right: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.arrow {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.arrow:not(:disabled):hover {
+    background: #f1eee9;
+}
+
+.dot:focus-visible,
+.arrow:focus-visible,
+.story:focus-visible {
+    outline: 2px solid #285ec4;
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    .image {
+        aspect-ratio: 16 / 10;
+        max-height: none;
+        margin-bottom: 18px;
+        border-radius: 12px;
+    }
+
+    .title {
+        font-size: clamp(29px, 8vw, 38px);
+        line-height: 1.08;
+    }
+
+    .summary {
+        font-size: 16px;
+        line-height: 1.45;
+    }
+
+    .controls {
+        margin-top: 18px;
+        padding-top: 16px;
+    }
+
+    .arrow {
+        width: 36px;
+        height: 36px;
+    }
+}

@@ -33,6 +33,8 @@ export async function getAllNews() {
                     org: data.org ?? "",
                     tags: normalizeTags(data.tags),
                     cover: data.cover ?? "",
+                    featured: data.featured === true,
+                    featuredOrder: Number(data.featuredOrder ?? 99),
                 };
             })
     );

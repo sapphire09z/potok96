@@ -5,7 +5,9 @@ import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
 import { formatDate, formatDateTime } from "@/lib/date";
 import styles from "./home.module.css";
-
+import Image from "next/image";
+export const dynamic = "force-dynamic";
+import FeaturedStories from "@/components/FeaturedStories";
 export default async function HomePage() {
     const [news, events, orgs] = await Promise.all([
         getAllNews(),
@@ -13,20 +15,46 @@ export default async function HomePage() {
         getAllOrgs(),
     ]);
 
+
     const publishedNews = news
         .filter((post) => post.status === "published")
-        .slice(0, 6);
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const pinnedNews = publishedNews
+        .filter((post) => post.featured)
+        .sort((a, b) => a.featuredOrder - b.featuredOrder);
+
+    const regularNews = publishedNews.filter(
+        (post) => !post.featured
+    );
+
+    const featuredPosts = [
+        ...pinnedNews,
+        ...regularNews,
+    ].slice(0, 3);
+
+    const featuredSlugs = new Set(
+        featuredPosts.map((post) => post.slug)
+    );
+
+// Новости, которые не вошли в карусель
+    const otherNews = publishedNews
+        .filter((post) => !featuredSlugs.has(post.slug))
+        .slice(0, 5);
+
+    const now = Date.now();
 
     const publishedEvents = events
         .filter((event) => event.status === "published")
+        .filter((event) => {
+            const start = new Date(event.startAt).getTime();
+            return Number.isFinite(start) && start >= now;
+        })
         .slice(0, 4);
 
     const publishedOrgs = orgs
         .filter((org) => org.status === "published")
         .slice(0, 5);
-
-    const mainPost = publishedNews[0];
-    const otherNews = publishedNews.slice(1);
 
     return (
         <div className={styles.page}>
@@ -43,21 +71,12 @@ export default async function HomePage() {
 
             <div className={styles.layout}>
                 <main className={styles.main}>
-                    {mainPost && (
+
+                    {featuredPosts.length > 0 && (
                         <section className={styles.mainStory}>
                             <div className={styles.sectionLabel}>Главное</div>
 
-                            <Link href={`/news/${mainPost.slug}`} className={styles.mainStoryLink}>
-                                <h2>{mainPost.title}</h2>
-
-                                {mainPost.summary && <p>{mainPost.summary}</p>}
-
-                                <div className={styles.meta}>
-                                    <span>{mainPost.category}</span>
-                                    <span>•</span>
-                                    <span>{formatDate(mainPost.date)}</span>
-                                </div>
-                            </Link>
+                            <FeaturedStories stories={featuredPosts} />
                         </section>
                     )}
 
@@ -68,25 +87,45 @@ export default async function HomePage() {
                         </div>
 
                         <div className={styles.newsList}>
+
                             {otherNews.map((post) => (
                                 <Link
                                     key={post.slug}
                                     href={`/news/${post.slug}`}
-                                    className={styles.newsItem}
+                                    className={`${styles.newsItem} ${post.cover ? styles.newsWithImage : ""}`}
                                 >
-                                    <div className={styles.newsTitle}>{post.title}</div>
-
-                                    {post.summary && (
-                                        <div className={styles.newsSummary}>{post.summary}</div>
+                                    {post.cover && (
+                                        <div className={styles.newsThumbnail}>
+                                            <Image
+                                                src={post.cover}
+                                                alt={post.title}
+                                                fill
+                                                sizes="(max-width: 700px) 100px, 140px"
+                                                className={styles.coverImage}
+                                            />
+                                        </div>
                                     )}
 
-                                    <div className={styles.meta}>
-                                        <span>{post.category}</span>
-                                        <span>•</span>
-                                        <span>{formatDate(post.date)}</span>
+                                    <div className={styles.newsBody}>
+                                        <div className={styles.newsTitle}>
+                                            {post.title}
+                                        </div>
+
+                                        {post.summary && (
+                                            <div className={styles.newsSummary}>
+                                                {post.summary}
+                                            </div>
+                                        )}
+
+                                        <div className={styles.meta}>
+                                            <span>{post.category}</span>
+                                            <span>•</span>
+                                            <span>{formatDate(post.date)}</span>
+                                        </div>
                                     </div>
                                 </Link>
                             ))}
+
                         </div>
                     </section>
                 </main>
