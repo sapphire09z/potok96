@@ -277,3 +277,91 @@
         border-radius: 12px;
     }
 }
+
+/* Фотографии с подписями */
+.content .figure {
+    width: 100%;
+    min-width: 0;
+    margin: 24px 0;
+}
+
+.content .figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: 14px;
+}
+
+.content .figure figcaption {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+}
+
+/* Цитаты */
+.content blockquote {
+    margin: 20px 0;
+    padding: 16px 22px;
+    border-left: 3px solid var(--text);
+    border-radius: 0 12px 12px 0;
+    background: #f1eee9;
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Списки */
+.content ul,
+.content ol {
+    margin: 12px 0 22px;
+    padding-left: 1.5em;
+}
+
+.content li {
+    padding-left: 4px;
+    line-height: 1.6;
+}
+
+.content li + li {
+    margin-top: 8px;
+}
+
+/* Подзаголовки */
+.content h2 {
+    margin-top: 32px;
+}
+
+.content h3 {
+    margin-top: 24px;
+}
+
+@media (max-width: 700px) {
+    .content .figure {
+        margin: 20px 0;
+    }
+
+    .content .figure img {
+        border-radius: 12px;
+    }
+
+    .content .figure figcaption {
+        margin-top: 8px;
+        font-size: 12px;
+        text-align: left;
+    }
+
+    .content blockquote {
+        padding: 14px 16px;
+        margin: 16px 0;
+    }
+
+    .content h2 {
+        margin-top: 26px;
+    }
+}

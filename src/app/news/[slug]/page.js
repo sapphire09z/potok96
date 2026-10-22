@@ -26,6 +26,36 @@ export async function generateMetadata({ params }) {
         },
     };
 }
+
+function ArticleParagraph({ node, children, ...props }) {
+    const nodes = node?.children?.filter(
+        (child) =>
+            child.type !== "text" || child.value.trim() !== ""
+    ) ?? [];
+
+    const image =
+        nodes.length === 1 &&
+        nodes[0].type === "element" &&
+        nodes[0].tagName === "img"
+            ? nodes[0]
+            : null;
+
+    if (image) {
+        const caption = image.properties?.title;
+
+        return (
+            <figure className={styles.figure}>
+                {children}
+                {caption && (
+                    <figcaption>{caption}</figcaption>
+                )}
+            </figure>
+        );
+    }
+
+    return <p {...props}>{children}</p>;
+}
+
 export default async function NewsItemPage({ params }) {
     const { slug } = await params;
 
@@ -83,7 +113,9 @@ export default async function NewsItemPage({ params }) {
             )}
 
             <section className={styles.content}>
-                <ReactMarkdown>{post.content}</ReactMarkdown>
+                <ReactMarkdown components={{ p: ArticleParagraph }}>
+                    {post.content}
+                </ReactMarkdown>
             </section>
 
             {post.tags?.length > 0 && (

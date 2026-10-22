@@ -26,6 +26,7 @@ export async function getAllAlerts() {
                     status: data.status ?? "draft",
                     state: data.state ?? "planned",
                     urgency: data.urgency ?? "normal",
+                    confirmed: data.confirmed === true,
                     startAt: data.startAt ?? null,
                     expectedEndAt: data.expectedEndAt ?? null,
                     addresses: data.addresses ?? "",
