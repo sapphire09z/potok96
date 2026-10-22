@@ -230,3 +230,50 @@
         border-radius: 10px;
     }
 }
+
+/* Адаптация текста статьи для мобильных устройств */
+@media (max-width: 700px) {
+    .header h1 {
+        font-size: clamp(32px, 9vw, 42px);
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+        overflow-wrap: break-word;
+    }
+
+    .lead {
+        font-size: 17px;
+        line-height: 1.45;
+    }
+
+    .content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        font-size: 16px;
+        line-height: 1.65;
+        overflow-wrap: break-word;
+    }
+
+    .content p {
+        margin: 0 0 18px;
+    }
+
+    .content h2 {
+        font-size: 25px;
+        line-height: 1.2;
+    }
+
+    .content h3 {
+        font-size: 21px;
+        line-height: 1.25;
+    }
+
+    .content img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        margin: 20px auto;
+        border-radius: 12px;
+    }
+}
