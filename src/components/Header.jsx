@@ -18,6 +18,7 @@ export default function Header() {
                     <Link href="/news">Новости</Link>
                     <Link href="/events">Афиша</Link>
                     <Link href="/orgs">Справочник</Link>
+                    <Link href="/official">Официально</Link>
                     <Link href="/ads">Объявления</Link>
                     <Link href="/about">О проекте</Link>
                 </nav>

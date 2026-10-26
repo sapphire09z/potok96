@@ -47,7 +47,14 @@ export default function MenuPage() {
                         <Link href="/orgs">Спорт и культура</Link>
                     </div>
                 </details>
-
+                <details className={styles.section}>
+                    <summary>Официально</summary>
+                    <div className={styles.links}>
+                        <Link href="/official">Нормативные провавые акты</Link>
+                        <Link href="/official">Сообщения администрации и ведомств</Link>
+                        <Link href="/official">Городские службы</Link>
+                    </div>
+                </details>
                 <details className={styles.section}>
                     <summary>Объявления</summary>
                     <div className={styles.links}>
