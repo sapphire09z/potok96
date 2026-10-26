@@ -23,7 +23,7 @@ const sections = [
         title: "Сообщения администрации и ведомств",
         description:
             "Информационные сообщения, уведомления и объявления органов власти и учреждений.",
-        href: null,
+        href: "/official/notices",
     },
     {
         id: "alerts",
