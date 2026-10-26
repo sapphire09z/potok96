@@ -8,6 +8,18 @@ import { getOrgBySlug } from "@/lib/orgs";
 import Image from "next/image";
 
 import styles from "./org.module.css";
+
+function safeExternalLink(value) {
+    if (typeof value !== "string") return null;
+
+    try {
+        const url = new URL(value);
+        return url.protocol === "https:" ? url.href : null;
+    } catch {
+        return null;
+    }
+}
+
 export async function generateMetadata({ params }) {
     const { slug } = await params;
     const org = await getOrgBySlug(slug);
@@ -58,6 +70,29 @@ export default async function OrgPage({ params }) {
     } catch {
         websiteHref = null;
     }
+
+    const mapHref = safeExternalLink(org.mapUrl);
+
+    const emailHref =
+        typeof org.email === "string" &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(org.email)
+            ? `mailto:${org.email}`
+            : null;
+
+    const socialLinks = [
+        {
+            label: "ВКонтакте",
+            href: safeExternalLink(org.socials?.vk),
+        },
+        {
+            label: "Одноклассники",
+            href: safeExternalLink(org.socials?.ok),
+        },
+        {
+            label: "MAX",
+            href: safeExternalLink(org.socials?.max),
+        },
+    ].filter((item) => item.href);
 
     const [events, news] = await Promise.all([
         getAllEvents(),
@@ -139,12 +174,13 @@ export default async function OrgPage({ params }) {
                     )}
                 </div>
 
-                {(phoneHref || websiteHref) && (
+                {(phoneHref || websiteHref || emailHref || mapHref) && (
                     <div className={styles.actions}>
                         {phoneHref && (
                             <a href={phoneHref} className={styles.primaryAction}>
                                 Позвонить
                             </a>
+
                         )}
 
                         {websiteHref && (
@@ -157,7 +193,46 @@ export default async function OrgPage({ params }) {
                                 Перейти на сайт ↗
                             </a>
                         )}
+
+                        {emailHref && (
+                            <a
+                                href={emailHref}
+                                className={styles.secondaryAction}
+                            >
+                                Написать на почту
+                            </a>
+                        )}
+
+                        {mapHref && (
+                            <a
+                                href={mapHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.secondaryAction}
+                            >
+                                На карте ↗
+                            </a>
+                        )}
+
                     </div>
+                )}
+
+                {socialLinks.length > 0 && (
+                    <nav
+                        className={styles.socialLinks}
+                        aria-label="Социальные сети организации"
+                    >
+                        {socialLinks.map((item) => (
+                            <a
+                                key={item.label}
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {item.label} ↗
+                            </a>
+                        ))}
+                    </nav>
                 )}
 
             </header>
@@ -186,6 +261,36 @@ export default async function OrgPage({ params }) {
                 )}
 
             </section>
+
+            {org.gallery?.length > 0 && (
+                <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h2>Фотографии</h2>
+                        <span>{org.gallery.length}</span>
+                    </div>
+
+                    <div className={styles.galleryGrid}>
+                        {org.gallery.map((photo, index) => (
+                            <a
+                                key={`${photo.src}-${index}`}
+                                href={photo.src}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.galleryItem}
+                                aria-label={`Открыть фотографию: ${photo.alt}`}
+                            >
+                                <Image
+                                    src={photo.src}
+                                    alt={photo.alt}
+                                    fill
+                                    sizes="(max-width: 700px) 50vw, 280px"
+                                    className={styles.galleryImage}
+                                />
+                            </a>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {relatedEvents.length > 0 && (
                 <section className={styles.section}>

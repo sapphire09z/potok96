@@ -57,6 +57,28 @@ export async function getOrgBySlug(slug) {
                 logo: data.logo ?? "",
                 cover: data.cover ?? "",
                 website: data.website ?? "",
+
+                email: data.email ?? "",
+                mapUrl: data.mapUrl ?? "",
+                socials:
+                    data.socials && typeof data.socials === "object" &&
+                    !Array.isArray(data.socials)
+                        ? data.socials
+                        : {},
+                gallery: Array.isArray(data.gallery)
+                    ? data.gallery
+                        .filter(
+                            (photo) =>
+                                photo &&
+                                typeof photo.src === "string" &&
+                                photo.src.startsWith("/media/orgs/")
+                        )
+                        .map((photo) => ({
+                            src: photo.src,
+                            alt: photo.alt || `Фотография: ${data.title}`,
+                        }))
+                    : [],
+
                 status: data.status ?? "draft",
                 content,
             };

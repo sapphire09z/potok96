@@ -13,6 +13,19 @@ services:
   - "Образовательные мастер-классы"
 logo: "/media/orgs/kosmos/2.jpg"
 cover: "/media/orgs/kosmos/1.jpeg"
+
+email: "vip.sapphire@mail.ru"
+mapUrl: ""
+socials:
+  vk: ""
+  ok: ""
+  max: ""
+
+
+gallery:
+  - src: "/media/orgs/kosmos/1.jpeg"
+    alt: "Фотография молодёжного центра"
+
 ---
 
 Молодежный центр, где проходят турниры, мастер-классы и городские мероприятия.
