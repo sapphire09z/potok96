@@ -36,12 +36,46 @@ export default async function OrgPage({ params }) {
         notFound();
     }
 
+    const phoneNumber = String(org.phone ?? "")
+        .replace(/[^\d+]/g, "");
+
+    const phoneHref =
+        phoneNumber.replace(/\D/g, "").length >= 7
+            ? `tel:${phoneNumber}`
+            : null;
+
+    let websiteHref = null;
+
+    try {
+        if (org.website) {
+            const url = new URL(org.website);
+
+            if (["https:", "http:"].includes(url.protocol)) {
+                websiteHref = url.href;
+            }
+        }
+    } catch {
+        websiteHref = null;
+    }
+
     const [events, news] = await Promise.all([
         getAllEvents(),
         getAllNews(),
     ]);
 
-    const relatedEvents = events.filter((event) => event.org === org.slug);
+    const now = Date.now();
+
+    const relatedEvents = events
+        .filter(
+            (event) =>
+                event.org === org.slug &&
+                new Date(event.startAt).getTime() >= now
+        )
+        .sort(
+            (a, b) =>
+                new Date(a.startAt).getTime() -
+                new Date(b.startAt).getTime()
+        );
     const relatedNews = news.filter((post) => post.org === org.slug);
 
     return (
@@ -73,16 +107,59 @@ export default async function OrgPage({ params }) {
                         </div>
                     )}
                 </div>
+
+                {(phoneHref || websiteHref) && (
+                    <div className={styles.actions}>
+                        {phoneHref && (
+                            <a href={phoneHref} className={styles.primaryAction}>
+                                Позвонить
+                            </a>
+                        )}
+
+                        {websiteHref && (
+                            <a
+                                href={websiteHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.secondaryAction}
+                            >
+                                Перейти на сайт ↗
+                            </a>
+                        )}
+                    </div>
+                )}
+
             </header>
 
             <section className={styles.content}>
                 <ReactMarkdown>{org.content}</ReactMarkdown>
+
+                {org.services?.length > 0 && (
+                    <section className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Услуги и направления</h2>
+                            <span>{org.services.length}</span>
+                        </div>
+
+                        <div className={styles.servicesGrid}>
+                            {org.services.map((service, index) => (
+                                <div
+                                    key={`${service}-${index}`}
+                                    className={styles.serviceItem}
+                                >
+                                    {service}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
             </section>
 
             {relatedEvents.length > 0 && (
                 <section className={styles.section}>
                     <div className={styles.sectionHeader}>
-                        <h2>События организации</h2>
+                        <h2>Предстоящие мероприятия</h2>
                         <span>{relatedEvents.length}</span>
                     </div>
 

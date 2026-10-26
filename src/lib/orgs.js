@@ -51,6 +51,8 @@ export async function getOrgBySlug(slug) {
                 phone: data.phone ?? "",
                 hours: data.hours ?? "",
                 tags: data.tags ?? [],
+                services: Array.isArray(data.services) ? data.services : [],
+                website: data.website ?? "",
                 status: data.status ?? "draft",
                 content,
             };
