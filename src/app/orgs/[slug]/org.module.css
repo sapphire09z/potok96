@@ -318,3 +318,76 @@
         width: 100%;
     }
 }
+
+/* Обложка организации */
+
+.cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 6;
+    min-height: 190px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--bg);
+}
+
+.coverImage {
+    object-fit: cover;
+}
+
+/* Логотип и название */
+
+.identity {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+}
+
+.identityText {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.logo {
+    position: relative;
+    flex: 0 0 96px;
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+}
+
+.logoImage {
+    object-fit: contain;
+    padding: 8px;
+}
+
+@media (max-width: 700px) {
+    .cover {
+        aspect-ratio: 16 / 9;
+        min-height: 140px;
+        border-radius: 14px;
+    }
+
+    .identity {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .identityText {
+        width: 100%;
+    }
+
+    .logo {
+        flex-basis: 76px;
+        width: 76px;
+        height: 76px;
+        border-radius: 16px;
+    }
+}

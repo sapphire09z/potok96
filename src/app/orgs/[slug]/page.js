@@ -5,6 +5,7 @@ import { formatDate, formatDateTime } from "@/lib/date";
 import { getAllEvents } from "@/lib/events";
 import { getAllNews } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
+import Image from "next/image";
 
 import styles from "./org.module.css";
 export async function generateMetadata({ params }) {
@@ -80,10 +81,40 @@ export default async function OrgPage({ params }) {
 
     return (
         <article className={styles.page}>
-            <header className={styles.header}>
-                <div className={styles.kicker}>{org.type}</div>
 
-                <h1>{org.title}</h1>
+            <header className={styles.header}>
+                {org.cover && (
+                    <div className={styles.cover}>
+                        <Image
+                            src={org.cover}
+                            alt={`Фотография организации: ${org.title}`}
+                            fill
+                            sizes="(max-width: 700px) 100vw, 900px"
+                            className={styles.coverImage}
+                            priority
+                        />
+                    </div>
+                )}
+
+                <div className={styles.identity}>
+                    {org.logo && (
+                        <div className={styles.logo}>
+                            <Image
+                                src={org.logo}
+                                alt={`Логотип: ${org.title}`}
+                                fill
+                                sizes="96px"
+                                className={styles.logoImage}
+                            />
+                        </div>
+                    )}
+
+                    <div className={styles.identityText}>
+                        <div className={styles.kicker}>{org.type}</div>
+                        <h1>{org.title}</h1>
+                    </div>
+                </div>
+
 
                 <div className={styles.infoGrid}>
                     {org.address && (

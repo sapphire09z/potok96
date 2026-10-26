@@ -24,6 +24,8 @@ export async function getAllOrgs() {
                     hours: data.hours ?? "",
                     tags: data.tags ?? [],
                     services: Array.isArray(data.services) ? data.services : [],
+                    logo: data.logo ?? "",
+                    cover: data.cover ?? "",
                     status: data.status ?? "draft",
                 };
             })
@@ -52,6 +54,8 @@ export async function getOrgBySlug(slug) {
                 hours: data.hours ?? "",
                 tags: data.tags ?? [],
                 services: Array.isArray(data.services) ? data.services : [],
+                logo: data.logo ?? "",
+                cover: data.cover ?? "",
                 website: data.website ?? "",
                 status: data.status ?? "draft",
                 content,
