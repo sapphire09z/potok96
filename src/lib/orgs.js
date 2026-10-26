@@ -23,6 +23,7 @@ export async function getAllOrgs() {
                     phone: data.phone ?? "",
                     hours: data.hours ?? "",
                     tags: data.tags ?? [],
+                    services: Array.isArray(data.services) ? data.services : [],
                     status: data.status ?? "draft",
                 };
             })

@@ -7,16 +7,56 @@ export const metadata = {
     title: "Справочник организаций",
     description: "Организации, учреждения, секции и услуги Красноуфимска и района.",
 };
-export default async function OrgsPage() {
-    const orgs = await getAllOrgs();
 
-    const publishedOrgs = orgs
-        .filter((org) => org.status === "published")
+export default async function OrgsPage({ searchParams }) {
+    const params = await searchParams;
+
+    const q =
+        typeof params?.q === "string"
+            ? params.q.trim()
+            : "";
+
+    const selectedType =
+        typeof params?.type === "string"
+            ? params.type
+            : "";
+
+    const publishedOrgs = (await getAllOrgs())
         .sort((a, b) => a.title.localeCompare(b.title, "ru"));
 
-    const types = Array.from(
-        new Set(publishedOrgs.map((org) => org.type).filter(Boolean))
-    );
+    const types = [...new Set(
+        publishedOrgs.map((org) => org.type).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, "ru"));
+
+    const normalizedQuery = q.toLocaleLowerCase("ru-RU");
+
+    const filteredOrgs = publishedOrgs.filter((org) => {
+        const searchableText = [
+            org.title,
+            org.type,
+            org.address,
+            ...(Array.isArray(org.tags) ? org.tags : []),
+            ...(Array.isArray(org.services) ? org.services : []),
+        ]
+            .join(" ")
+            .toLocaleLowerCase("ru-RU");
+
+        return (
+            searchableText.includes(normalizedQuery) &&
+            (!selectedType || org.type === selectedType)
+        );
+    });
+
+    function typeHref(type) {
+        const params = new URLSearchParams();
+
+        if (q) params.set("q", q);
+        if (type) params.set("type", type);
+
+        const query = params.toString();
+        return query ? `/orgs?${query}` : "/orgs";
+    }
+
 
     return (
         <div className={styles.page}>
@@ -29,34 +69,99 @@ export default async function OrgsPage() {
                 </p>
             </header>
 
+            <form
+                action="/orgs"
+                method="get"
+                className={styles.searchForm}
+            >
+                <label htmlFor="org-search" className={styles.searchLabel}>
+                    Найти организацию или услугу
+                </label>
+
+                <div className={styles.searchRow}>
+                    <input
+                        id="org-search"
+                        type="search"
+                        name="q"
+                        defaultValue={q}
+                        placeholder="Название, услуга, направление..."
+                        maxLength={120}
+                    />
+
+                    {selectedType && (
+                        <input type="hidden" name="type" value={selectedType} />
+                    )}
+
+                    <button type="submit">Найти</button>
+
+                    {(q || selectedType) && (
+                        <Link href="/orgs" className={styles.reset}>
+                            Сбросить
+                        </Link>
+                    )}
+                </div>
+            </form>
+
+
+
             {types.length > 0 && (
-                <section className={styles.types}>
+                <nav
+                    className={styles.types}
+                    aria-label="Категории организаций"
+                >
+                    <Link
+                        href={typeHref("")}
+                        className={!selectedType ? styles.activeType : ""}
+                    >
+                        Все
+                    </Link>
+
                     {types.map((type) => (
-                        <span key={type}>{type}</span>
+                        <Link
+                            key={type}
+                            href={typeHref(type)}
+                            className={
+                                selectedType === type ? styles.activeType : ""
+                            }
+                        >
+                            {type}
+                        </Link>
                     ))}
-                </section>
+                </nav>
             )}
+
+
 
             <section className={styles.listSection}>
                 <div className={styles.sectionHeader}>
                     <h2>Все организации</h2>
-                    <span>{publishedOrgs.length}</span>
+                    <span>{filteredOrgs.length}</span>
                 </div>
 
-                {publishedOrgs.length === 0 ? (
+                {filteredOrgs.length === 0 ? (
                     <EmptyState
-                        title="Организаций пока нет"
-                        text="Справочник скоро начнёт наполняться городскими организациями."
+                        title={
+                            publishedOrgs.length === 0
+                                ? "Организаций пока нет"
+                                : "Ничего не найдено"
+                        }
+                        text={
+                            publishedOrgs.length === 0
+                                ? "Справочник скоро начнёт наполняться."
+                                : "Попробуйте изменить запрос или категорию."
+                        }
                     />
                 ) : (
                     <div className={styles.orgsGrid}>
-                        {publishedOrgs.map((org) => (
+                        {filteredOrgs.map((org) => (
                             <Link
                                 key={org.slug}
                                 href={`/orgs/${org.slug}`}
                                 className={styles.orgCard}
                             >
-                                <div className={styles.orgType}>{org.type}</div>
+                                <div className={styles.orgType}>
+                                    {org.type}
+                                </div>
 
                                 <h3>{org.title}</h3>
 
@@ -78,6 +183,7 @@ export default async function OrgsPage() {
                     </div>
                 )}
             </section>
+
         </div>
     );
 }
