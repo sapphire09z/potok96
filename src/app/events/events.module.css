@@ -402,3 +402,97 @@
     font-weight: 800;
     color: #252525;
 }
+
+/* Фильтры афиши */
+
+.filters {
+    display: grid;
+    gap: 18px;
+}
+
+.filterGroup {
+    display: grid;
+    gap: 10px;
+}
+
+.filterLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.filterLinks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterChip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 9px 15px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.filterChip:hover {
+    border-color: var(--text);
+}
+
+.filterChip.activeFilter {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+}
+
+.clearFilters {
+    padding: 9px 4px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.filterChip:focus-visible,
+.clearFilters:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 3px;
+}
+
+/* Подтверждённое участие в программе */
+
+.pushkinBadge,
+.eventDetails .pushkinBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border: 1px solid #c9b2dc;
+    border-radius: 999px;
+    background: #f2eaf8;
+    color: #5e3777;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+    .filters {
+        gap: 16px;
+    }
+
+    .filterChip {
+        min-height: 38px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+.filters {
+    display: grid;
+    gap: 18px;
+}

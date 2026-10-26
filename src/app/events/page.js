@@ -49,34 +49,126 @@ function EventCard({ event, org }) {
             <div className={styles.eventDetails}>
                 {event.location && <span>{event.location}</span>}
                 {event.price && <span>{event.price}</span>}
+                {event.pushkinCard && (
+                    <span className={styles.pushkinBadge}>
+        Пушкинская карта
+    </span>
+                )}
                 {org && <span>{org.title}</span>}
             </div>
         </Link>
     );
 }
 
-export default async function EventsPage() {
+const YEKAT_OFFSET = 5 * 60 * 60 * 1000;
+
+function getLocalDate(value) {
+    const timestamp = new Date(value).getTime();
+
+    if (!Number.isFinite(timestamp)) return "";
+
+    return new Date(timestamp + YEKAT_OFFSET)
+        .toISOString()
+        .slice(0, 10);
+}
+
+function addDays(dateString, days) {
+    const date = new Date(`${dateString}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+}
+
+
+export default async function EventsPage({ searchParams }) {
+    const params = await searchParams;
+
+    const selectedDate = ["today", "tomorrow", "weekend"]
+        .includes(params?.date)
+        ? params.date
+        : "all";
+
+    const onlyFree = params?.free === "1";
+    const onlyPushkin = params?.pushkin === "1";
+
     const [events, orgs] = await Promise.all([
         getAllEvents(),
         getAllOrgs(),
     ]);
-    const orgBySlug = new Map(orgs.map((org) => [org.slug, org]));
 
-    const now = Date.now();
-
-// Предстоящие мероприятия
-    const upcomingEvents = events.filter(
-        (event) => new Date(event.startAt).getTime() >= now
+    const orgBySlug = new Map(
+        orgs.map((org) => [org.slug, org])
     );
 
-// Прошедшие мероприятия — сначала самые недавние
+    const now = Date.now();
+    const today = getLocalDate(now);
+    const tomorrow = addDays(today, 1);
+
+    const dayOfWeek = new Date(
+        `${today}T00:00:00Z`
+    ).getUTCDay();
+
+    const daysToSaturday =
+        dayOfWeek === 0
+            ? -1
+            : (6 - dayOfWeek + 7) % 7;
+
+    const saturday = addDays(today, daysToSaturday);
+    const sunday = addDays(saturday, 1);
+
+    const upcomingEvents = events.filter(
+        (event) =>
+            new Date(event.startAt).getTime() >= now
+    );
+
     const pastEvents = events
-        .filter((event) => new Date(event.startAt).getTime() < now)
+        .filter(
+            (event) =>
+                new Date(event.startAt).getTime() < now
+        )
         .reverse();
 
-// Ближайшее мероприятие
-    const mainEvent = upcomingEvents[0] ?? null;
-    const otherEvents = upcomingEvents.slice(1);
+    const filteredEvents = upcomingEvents.filter((event) => {
+        const eventDate = getLocalDate(event.startAt);
+
+        const matchesDate =
+            selectedDate === "all" ||
+            (selectedDate === "today" && eventDate === today) ||
+            (selectedDate === "tomorrow" && eventDate === tomorrow) ||
+            (
+                selectedDate === "weekend" &&
+                (eventDate === saturday || eventDate === sunday)
+            );
+
+        return (
+            matchesDate &&
+            (!onlyFree || event.isFree) &&
+            (!onlyPushkin || event.pushkinCard)
+        );
+    });
+
+    const mainEvent = filteredEvents[0] ?? null;
+    const otherEvents = filteredEvents.slice(1);
+
+    const hasFilters =
+        selectedDate !== "all" ||
+        onlyFree ||
+        onlyPushkin;
+
+    function filterHref({
+                            date = selectedDate,
+                            free = onlyFree,
+                            pushkin = onlyPushkin,
+                        } = {}) {
+        const search = new URLSearchParams();
+
+        if (date !== "all") search.set("date", date);
+        if (free) search.set("free", "1");
+        if (pushkin) search.set("pushkin", "1");
+
+        const query = search.toString();
+
+        return query ? `/events?${query}` : "/events";
+    }
 
 
     return (
@@ -89,6 +181,66 @@ export default async function EventsPage() {
                     Красноуфимска и района.
                 </p>
             </header>
+
+            <section className={styles.filters} aria-label="Фильтры афиши">
+                <div className={styles.filterGroup}>
+                    <div className={styles.filterLabel}>Когда</div>
+
+                    <nav className={styles.filterLinks} aria-label="Выбор даты">
+                        {[
+                            { id: "all", label: "Все предстоящие" },,
+                            { id: "today", label: "Сегодня" },
+                            { id: "tomorrow", label: "Завтра" },
+                            { id: "weekend", label: "Выходные" },
+                        ].map((item) => (
+                            <Link
+                                key={item.id}
+                                href={filterHref({ date: item.id })}
+                                className={`${styles.filterChip} ${
+                                    selectedDate === item.id
+                                        ? styles.activeFilter
+                                        : ""
+                                }`}
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+
+                <div className={styles.filterGroup}>
+                    <div className={styles.filterLabel}>Дополнительно</div>
+
+                    <nav
+                        className={styles.filterLinks}
+                        aria-label="Дополнительные условия"
+                    >
+                        <Link
+                            href={filterHref({ free: !onlyFree })}
+                            className={`${styles.filterChip} ${
+                                onlyFree ? styles.activeFilter : ""
+                            }`}
+                        >
+                            Бесплатно
+                        </Link>
+
+                        <Link
+                            href={filterHref({ pushkin: !onlyPushkin })}
+                            className={`${styles.filterChip} ${
+                                onlyPushkin ? styles.activeFilter : ""
+                            }`}
+                        >
+                            Пушкинская карта
+                        </Link>
+
+                        {hasFilters && (
+                            <Link href="/events" className={styles.clearFilters}>
+                                Сбросить фильтры
+                            </Link>
+                        )}
+                    </nav>
+                </div>
+            </section>
 
             {mainEvent && (
                 <section className={styles.featured}>
@@ -116,6 +268,11 @@ export default async function EventsPage() {
                         {mainEvent.summary && <p>{mainEvent.summary}</p>}
 
                         <div className={styles.meta}>
+                            {mainEvent.pushkinCard && (
+                                <span className={styles.pushkinBadge}>
+                                    Пушкинская карта
+                                </span>
+                            )}
                             {mainEvent.startAt && (
                                 <span>{formatDateTime(mainEvent.startAt)}</span>
                             )}
@@ -142,8 +299,16 @@ export default async function EventsPage() {
             {/* Нет предстоящих событий */}
             {!mainEvent && (
                 <EmptyState
-                    title="Предстоящих мероприятий пока нет"
-                    text="Следите за обновлениями городской афиши."
+                    title={
+                        hasFilters
+                            ? "По выбранным условиям событий не найдено"
+                            : "Предстоящих мероприятий пока нет"
+                    }
+                    text={
+                        hasFilters
+                            ? "Попробуйте изменить или сбросить фильтры."
+                            : "Следите за обновлениями городской афиши."
+                    }
                 />
             )}
 
@@ -168,7 +333,7 @@ export default async function EventsPage() {
             )}
 
             {/* Архив мероприятий */}
-            {pastEvents.length > 0 && (
+            {!hasFilters && pastEvents.length > 0 && (
                 <section className={styles.listSection}>
                     <div className={styles.sectionHeader}>
                         <h2>Прошедшие мероприятия</h2>
