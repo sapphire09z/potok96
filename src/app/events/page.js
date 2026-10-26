@@ -17,14 +17,15 @@ function EventCard({ event, org }) {
     return (
         <Link
             href={`/events/${event.slug}`}
-            className={`${styles.eventCard} ${event.cover ? styles.withPoster : ""}`}
+            className={`${styles.eventCard} ${styles.withPoster}`}
         >
             <div className={styles.eventDate}>
                 {formatDateTime(event.startAt)}
             </div>
 
-            {event.cover && (
-                <div className={styles.cardPoster}>
+
+            <div className={styles.cardPoster}>
+                {event.cover ? (
                     <Image
                         src={event.cover}
                         alt={`Афиша: ${event.title}`}
@@ -32,8 +33,14 @@ function EventCard({ event, org }) {
                         sizes="(max-width: 700px) 110px, 150px"
                         className={styles.posterImage}
                     />
-                </div>
-            )}
+                ) : (
+                    <div className={styles.posterPlaceholder}>
+                        <span>Поток 96</span>
+                        <strong>Афиша</strong>
+                    </div>
+                )}
+            </div>
+
 
             <h3>{event.title}</h3>
 
