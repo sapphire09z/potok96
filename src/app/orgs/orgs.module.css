@@ -323,3 +323,48 @@
         flex-basis: 100%;
     }
 }
+
+/* Группы фильтров */
+
+.filterGroup {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.filterCaption {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+/* Вид организации и населённый пункт */
+
+.orgMeta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.orgPlace {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+}
+
+@media (max-width: 700px) {
+    .filterGroup {
+        gap: 8px;
+    }
+
+    .orgMeta {
+        font-size: 12px;
+    }
+}

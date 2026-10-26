@@ -1,11 +1,18 @@
+
 import Link from "next/link";
 import EmptyState from "@/components/EmptyState";
 import { getAllOrgs } from "@/lib/orgs";
+import {
+    ORG_CATEGORIES,
+    getOrgCategoryTitle,
+} from "@/lib/orgCategories";
 
 import styles from "./orgs.module.css";
+
 export const metadata = {
     title: "Справочник организаций",
-    description: "Организации, учреждения, секции и услуги Красноуфимска и района.",
+    description:
+        "Организации, учреждения, секции и услуги Красноуфимска и района.",
 };
 
 export default async function OrgsPage({ searchParams }) {
@@ -16,17 +23,34 @@ export default async function OrgsPage({ searchParams }) {
             ? params.q.trim()
             : "";
 
-    const selectedType =
-        typeof params?.type === "string"
-            ? params.type
+    const requestedCategory =
+        typeof params?.category === "string"
+            ? params.category
             : "";
 
-    const publishedOrgs = (await getAllOrgs())
-        .sort((a, b) => a.title.localeCompare(b.title, "ru"));
+    const category = ORG_CATEGORIES.some(
+        (item) => item.id === requestedCategory
+    )
+        ? requestedCategory
+        : "";
 
-    const types = [...new Set(
-        publishedOrgs.map((org) => org.type).filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b, "ru"));
+    const area =
+        params?.area === "city" || params?.area === "district"
+            ? params.area
+            : "";
+
+    const publishedOrgs = (await getAllOrgs()).sort(
+        (a, b) => a.title.localeCompare(b.title, "ru")
+    );
+
+    // Показываем только категории, в которых есть организации.
+    const categories = ORG_CATEGORIES.filter((item) =>
+        publishedOrgs.some((org) => org.category === item.id)
+    );
+
+    const hasDistrict = publishedOrgs.some(
+        (org) => org.area === "district"
+    );
 
     const normalizedQuery = q.toLocaleLowerCase("ru-RU");
 
@@ -34,7 +58,9 @@ export default async function OrgsPage({ searchParams }) {
         const searchableText = [
             org.title,
             org.type,
+            getOrgCategoryTitle(org.category),
             org.address,
+            org.locality,
             ...(Array.isArray(org.tags) ? org.tags : []),
             ...(Array.isArray(org.services) ? org.services : []),
         ]
@@ -43,29 +69,34 @@ export default async function OrgsPage({ searchParams }) {
 
         return (
             searchableText.includes(normalizedQuery) &&
-            (!selectedType || org.type === selectedType)
+            (!category || org.category === category) &&
+            (!area || org.area === area)
         );
     });
 
-    function typeHref(type) {
-        const params = new URLSearchParams();
+    function filterHref({
+                            nextCategory = category,
+                            nextArea = area,
+                        } = {}) {
+        const search = new URLSearchParams();
 
-        if (q) params.set("q", q);
-        if (type) params.set("type", type);
+        if (q) search.set("q", q);
+        if (nextCategory) search.set("category", nextCategory);
+        if (nextArea) search.set("area", nextArea);
 
-        const query = params.toString();
+        const query = search.toString();
+
         return query ? `/orgs?${query}` : "/orgs";
     }
-
 
     return (
         <div className={styles.page}>
             <header className={styles.header}>
                 <div className={styles.kicker}>Справочник</div>
-                <h1>Организации города</h1>
+                <h1>Организации города и района</h1>
                 <p>
-                    Компании, учреждения, секции, услуги и городские места Красноуфимска
-                    и района.
+                    Компании, учреждения, секции, услуги и
+                    городские места Красноуфимска и района.
                 </p>
             </header>
 
@@ -74,7 +105,10 @@ export default async function OrgsPage({ searchParams }) {
                 method="get"
                 className={styles.searchForm}
             >
-                <label htmlFor="org-search" className={styles.searchLabel}>
+                <label
+                    htmlFor="org-search"
+                    className={styles.searchLabel}
+                >
                     Найти организацию или услугу
                 </label>
 
@@ -88,13 +122,25 @@ export default async function OrgsPage({ searchParams }) {
                         maxLength={120}
                     />
 
-                    {selectedType && (
-                        <input type="hidden" name="type" value={selectedType} />
+                    {category && (
+                        <input
+                            type="hidden"
+                            name="category"
+                            value={category}
+                        />
+                    )}
+
+                    {area && (
+                        <input
+                            type="hidden"
+                            name="area"
+                            value={area}
+                        />
                     )}
 
                     <button type="submit">Найти</button>
 
-                    {(q || selectedType) && (
+                    {(q || category || area) && (
                         <Link href="/orgs" className={styles.reset}>
                             Сбросить
                         </Link>
@@ -102,39 +148,80 @@ export default async function OrgsPage({ searchParams }) {
                 </div>
             </form>
 
+            {categories.length > 0 && (
+                <div className={styles.filterGroup}>
+                    <div className={styles.filterCaption}>
+                        Категории
+                    </div>
 
-
-            {types.length > 0 && (
-                <nav
-                    className={styles.types}
-                    aria-label="Категории организаций"
-                >
-                    <Link
-                        href={typeHref("")}
-                        className={!selectedType ? styles.activeType : ""}
+                    <nav
+                        className={styles.types}
+                        aria-label="Категории организаций"
                     >
-                        Все
-                    </Link>
-
-                    {types.map((type) => (
                         <Link
-                            key={type}
-                            href={typeHref(type)}
+                            href={filterHref({ nextCategory: "" })}
                             className={
-                                selectedType === type ? styles.activeType : ""
+                                !category ? styles.activeType : ""
                             }
                         >
-                            {type}
+                            Все
                         </Link>
-                    ))}
-                </nav>
+
+                        {categories.map((item) => (
+                            <Link
+                                key={item.id}
+                                href={filterHref({
+                                    nextCategory: item.id,
+                                })}
+                                className={
+                                    category === item.id
+                                        ? styles.activeType
+                                        : ""
+                                }
+                            >
+                                {item.title}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
             )}
 
+            {hasDistrict && (
+                <div className={styles.filterGroup}>
+                    <div className={styles.filterCaption}>
+                        Территория
+                    </div>
 
+                    <nav
+                        className={styles.types}
+                        aria-label="Территория"
+                    >
+                        {[
+                            { id: "", title: "Везде" },
+                            { id: "city", title: "Красноуфимск" },
+                            { id: "district", title: "Район" },
+                        ].map((item) => (
+                            <Link
+                                key={item.id}
+                                href={filterHref({
+                                    nextArea: item.id,
+                                })}
+                                className={
+                                    area === item.id
+                                        ? styles.activeType
+                                        : ""
+                                }
+                            >
+                                {item.title}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+            )}
 
             <section className={styles.listSection}>
                 <div className={styles.sectionHeader}>
-                    <h2>Все организации</h2>
+                    <h2>Организации</h2>
                     <span>{filteredOrgs.length}</span>
                 </div>
 
@@ -148,7 +235,7 @@ export default async function OrgsPage({ searchParams }) {
                         text={
                             publishedOrgs.length === 0
                                 ? "Справочник скоро начнёт наполняться."
-                                : "Попробуйте изменить запрос или категорию."
+                                : "Попробуйте изменить запрос или фильтры."
                         }
                     />
                 ) : (
@@ -160,15 +247,37 @@ export default async function OrgsPage({ searchParams }) {
                                 className={styles.orgCard}
                             >
                                 <div className={styles.orgType}>
-                                    {org.type}
+                                    {getOrgCategoryTitle(org.category)}
                                 </div>
 
                                 <h3>{org.title}</h3>
 
+                                <div className={styles.orgMeta}>
+                                    {org.type && <span>{org.type}</span>}
+
+                                    <span className={styles.orgPlace}>
+                                        {org.area === "district"
+                                            ? org.locality
+                                                ? `${org.locality} · район`
+                                                : "Район"
+                                            : "Красноуфимск"}
+                                    </span>
+                                </div>
+
                                 <div className={styles.orgInfo}>
-                                    {org.address && <span>{org.address}</span>}
-                                    {org.phone && <span>{org.phone}</span>}
-                                    {org.hours && <span>{org.hours}</span>}
+                                    {org.address &&
+                                        org.address.trim().toLowerCase() !==
+                                        org.locality.toLowerCase() && (
+                                            <span>{org.address}</span>
+                                        )}
+
+                                    {org.phone && (
+                                        <span>{org.phone}</span>
+                                    )}
+
+                                    {org.hours && (
+                                        <span>{org.hours}</span>
+                                    )}
                                 </div>
 
                                 {org.tags?.length > 0 && (
@@ -183,7 +292,6 @@ export default async function OrgsPage({ searchParams }) {
                     </div>
                 )}
             </section>
-
         </div>
     );
 }

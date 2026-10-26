@@ -19,6 +19,16 @@ export async function getAllOrgs() {
                     slug: data.slug,
                     title: data.title,
                     type: data.type ?? "",
+
+                    category: data.category ?? "other",
+                    area: data.area === "district" ? "district" : "city",
+                    locality:
+                        typeof data.locality === "string"
+                            ? data.locality.trim()
+                            : data.area === "district"
+                                ? ""
+                                : "Красноуфимск",
+
                     address: data.address ?? "",
                     phone: data.phone ?? "",
                     hours: data.hours ?? "",
@@ -49,6 +59,16 @@ export async function getOrgBySlug(slug) {
                 slug: data.slug,
                 title: data.title,
                 type: data.type ?? "",
+
+                category: data.category ?? "other",
+                area: data.area === "district" ? "district" : "city",
+                locality:
+                    typeof data.locality === "string"
+                        ? data.locality.trim()
+                        : data.area === "district"
+                            ? ""
+                            : "Красноуфимск",
+
                 address: data.address ?? "",
                 phone: data.phone ?? "",
                 hours: data.hours ?? "",
