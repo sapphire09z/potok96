@@ -39,7 +39,7 @@
     flex-wrap: wrap;
 }
 
-.categories span {
+.categories a {
     padding: 7px 12px;
     font-size: 14px;
     color: var(--muted);
@@ -178,7 +178,7 @@
         gap: 7px;
     }
 
-    .categories span {
+    .categories a {
         padding: 6px 10px;
         font-size: 13px;
     }
@@ -254,5 +254,87 @@
 
     .adCard h3 {
         font-size: 22px;
+    }
+}
+
+/* Поиск объявлений */
+
+.searchForm {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.searchLabel {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.searchRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.searchRow input {
+    flex: 1 1 260px;
+    min-width: 0;
+    height: 48px;
+    padding: 0 15px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+}
+
+.searchRow button {
+    min-height: 48px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--text);
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.reset {
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+/* Категории */
+
+.categories a {
+    text-decoration: none;
+}
+
+.categories a:hover {
+    border-color: var(--text);
+}
+
+.categories .activeCategory {
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+}
+
+.categories a:focus-visible,
+.searchRow input:focus-visible,
+.searchRow button:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    .searchRow input {
+        flex-basis: 100%;
     }
 }

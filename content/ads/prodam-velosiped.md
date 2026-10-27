@@ -1,8 +1,8 @@
 ---
 slug: prodam-velosiped
+category: "sale"
 title: "Продам велосипед"
 date: "2026-10-14"
-category: "Продажа"
 price: "5 000 ₽"
 location: "Красноуфимск"
 contact: "+7 900 000-00-00"
