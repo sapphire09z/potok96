@@ -35,6 +35,7 @@ export default function MenuPage() {
                     <div className={styles.links}>
                         <Link href="/events">Все события</Link>
                         <Link href="/events">Ближайшие</Link>
+                        <Link href="/events/cinema">Киноафиша и сеансы</Link>
                     </div>
                 </details>
 

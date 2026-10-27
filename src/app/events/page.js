@@ -222,19 +222,30 @@ export default async function EventsPage({ searchParams }) {
                                 Все события
                             </Link>
 
-                            {EVENT_CATEGORIES.map((item) => (
-                                <Link
-                                    key={item.id}
-                                    href={filterHref({ category: item.id })}
-                                    className={`${styles.filterChip} ${
-                                        selectedCategory === item.id
-                                            ? styles.activeFilter
-                                            : ""
-                                    }`}
-                                >
-                                    {item.title}
-                                </Link>
-                            ))}
+
+                            <Link
+                                href="/events/cinema"
+                                className={styles.filterChip}
+                            >
+                                Кино
+                            </Link>
+
+                            {EVENT_CATEGORIES
+                                .filter((item) => item.id !== "cinema")
+                                .map((item) => (
+                                    <Link
+                                        key={item.id}
+                                        href={filterHref({ category: item.id })}
+                                        className={`${styles.filterChip} ${
+                                            selectedCategory === item.id
+                                                ? styles.activeFilter
+                                                : ""
+                                        }`}
+                                    >
+                                        {item.title}
+                                    </Link>
+                                ))}
+
                         </nav>
                     </div>
 
@@ -249,7 +260,11 @@ export default async function EventsPage({ searchParams }) {
                         ].map((item) => (
                             <Link
                                 key={item.id}
-                                href={filterHref({ date: item.id })}
+                                href={
+                                    item.id === "cinema"
+                                        ? "/events/cinema"
+                                        : filterHref({ category: item.id })
+                                }
                                 className={`${styles.filterChip} ${
                                     selectedDate === item.id
                                         ? styles.activeFilter
