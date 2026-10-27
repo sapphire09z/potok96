@@ -5,6 +5,10 @@ import { getAllOrgs } from "@/lib/orgs";
 import EmptyState from "@/components/EmptyState";
 import Image from "next/image";
 export const dynamic = "force-dynamic";
+import {
+    EVENT_CATEGORIES,
+    getEventCategoryTitle,
+} from "@/lib/eventCategories";
 
 import styles from "./events.module.css";
 export const metadata = {
@@ -47,6 +51,7 @@ function EventCard({ event, org }) {
             {event.summary && <p>{event.summary}</p>}
 
             <div className={styles.eventDetails}>
+                <span>{getEventCategoryTitle(event.category)}</span>
                 {event.location && <span>{event.location}</span>}
                 {event.price && <span>{event.price}</span>}
                 {event.pushkinCard && (
@@ -89,6 +94,16 @@ export default async function EventsPage({ searchParams }) {
 
     const onlyFree = params?.free === "1";
     const onlyPushkin = params?.pushkin === "1";
+    const requestedCategory =
+        typeof params?.category === "string"
+            ? params.category
+            : "";
+
+    const selectedCategory = EVENT_CATEGORIES.some(
+        (item) => item.id === requestedCategory
+    )
+        ? requestedCategory
+        : "";
 
     const [events, orgs] = await Promise.all([
         getAllEvents(),
@@ -141,6 +156,7 @@ export default async function EventsPage({ searchParams }) {
 
         return (
             matchesDate &&
+            (!selectedCategory || event.category === selectedCategory) &&
             (!onlyFree || event.isFree) &&
             (!onlyPushkin || event.pushkinCard)
         );
@@ -151,16 +167,19 @@ export default async function EventsPage({ searchParams }) {
 
     const hasFilters =
         selectedDate !== "all" ||
+        Boolean(selectedCategory) ||
         onlyFree ||
         onlyPushkin;
 
     function filterHref({
                             date = selectedDate,
+                            category = selectedCategory,
                             free = onlyFree,
                             pushkin = onlyPushkin,
                         } = {}) {
         const search = new URLSearchParams();
 
+        if (category) search.set("category", category);
         if (date !== "all") search.set("date", date);
         if (free) search.set("free", "1");
         if (pushkin) search.set("pushkin", "1");
@@ -184,11 +203,46 @@ export default async function EventsPage({ searchParams }) {
 
             <section className={styles.filters} aria-label="Фильтры афиши">
                 <div className={styles.filterGroup}>
+
+                    <div className={styles.filterGroup}>
+                        <div className={styles.filterLabel}>
+                            Категории мероприятий
+                        </div>
+
+                        <nav
+                            className={styles.filterLinks}
+                            aria-label="Категории мероприятий"
+                        >
+                            <Link
+                                href={filterHref({ category: "" })}
+                                className={`${styles.filterChip} ${
+                                    !selectedCategory ? styles.activeFilter : ""
+                                }`}
+                            >
+                                Все события
+                            </Link>
+
+                            {EVENT_CATEGORIES.map((item) => (
+                                <Link
+                                    key={item.id}
+                                    href={filterHref({ category: item.id })}
+                                    className={`${styles.filterChip} ${
+                                        selectedCategory === item.id
+                                            ? styles.activeFilter
+                                            : ""
+                                    }`}
+                                >
+                                    {item.title}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
+
                     <div className={styles.filterLabel}>Когда</div>
 
                     <nav className={styles.filterLinks} aria-label="Выбор даты">
                         {[
-                            { id: "all", label: "Все предстоящие" },,
+                            { id: "all", label: "Все предстоящие" },
                             { id: "today", label: "Сегодня" },
                             { id: "tomorrow", label: "Завтра" },
                             { id: "weekend", label: "Выходные" },
@@ -268,6 +322,7 @@ export default async function EventsPage({ searchParams }) {
                         {mainEvent.summary && <p>{mainEvent.summary}</p>}
 
                         <div className={styles.meta}>
+                            <span>{getEventCategoryTitle(mainEvent.category)}</span>
                             {mainEvent.pushkinCard && (
                                 <span className={styles.pushkinBadge}>
                                     Пушкинская карта

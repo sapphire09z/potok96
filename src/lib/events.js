@@ -18,6 +18,7 @@ export async function getAllEvents() {
                 return {
                     slug: data.slug,
                     title: data.title,
+                    category: data.category ?? "other",
                     startAt: data.startAt,
                     endAt: data.endAt ?? null,
                     location: data.location ?? "",
@@ -52,6 +53,7 @@ export async function getEventBySlug(slug) {
             return {
                 slug: data.slug,
                 title: data.title,
+                category: data.category ?? "other",
                 startAt: data.startAt,
                 endAt: data.endAt ?? null,
                 location: data.location ?? "",
