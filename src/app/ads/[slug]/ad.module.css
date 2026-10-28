@@ -164,3 +164,78 @@
         font-size: 16px;
     }
 }
+
+/* Галерея фотографий */
+
+.gallery {
+    display: grid;
+    gap: 12px;
+    max-width: 760px;
+    min-width: 0;
+}
+
+.galleryMain {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #f0ede7;
+}
+
+.galleryImage {
+    object-fit: contain;
+}
+
+.thumbnails {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px;
+}
+
+.thumbnail {
+    position: relative;
+    flex: 0 0 78px;
+    width: 78px;
+    height: 78px;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background: #f0ede7;
+    cursor: pointer;
+}
+
+.thumbnailActive {
+    border-color: var(--text);
+}
+
+.thumbnailImage {
+    object-fit: cover;
+}
+
+.galleryCounter {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.thumbnail:focus-visible,
+.galleryMain:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    .galleryMain {
+        border-radius: 14px;
+    }
+
+    .thumbnail {
+        flex-basis: 64px;
+        width: 64px;
+        height: 64px;
+    }
+}

@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { getAdBySlug } from "@/lib/ads";
 
 import styles from "./ad.module.css";
+import AdGallery from "./AdGallery";
+import { getAdCategoryTitle } from "@/lib/adCategories";
 export async function generateMetadata({ params }) {
     const { slug } = await params;
     const ad = await getAdBySlug(slug);
@@ -36,7 +38,9 @@ export default async function AdPage({ params }) {
     return (
         <article className={styles.page}>
             <header className={styles.header}>
-                <div className={styles.kicker}>{ad.category}</div>
+                <div className={styles.kicker}>
+                    {getAdCategoryTitle(ad.category)}
+                </div>
 
                 <h1>{ad.title}</h1>
 
@@ -65,6 +69,7 @@ export default async function AdPage({ params }) {
                     )}
                 </div>
             </header>
+            <AdGallery photos={ad.photos} title={ad.title} />
 
             <section className={styles.content}>
                 <ReactMarkdown>{ad.content}</ReactMarkdown>

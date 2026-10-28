@@ -7,6 +7,7 @@ import {
     getAdCategoryTitle,
 } from "@/lib/adCategories";
 import EmptyState from "@/components/EmptyState";
+import Image from "next/image";
 
 import styles from "./ads.module.css";
 
@@ -200,6 +201,30 @@ export default async function AdsPage({ searchParams }) {
                                 href={`/ads/${ad.slug}`}
                                 className={styles.adCard}
                             >
+
+                                <div className={styles.adMedia}>
+                                    {ad.photos.length > 0 ? (
+                                        <Image
+                                            src={ad.photos[0]}
+                                            alt={`Фото объявления: ${ad.title}`}
+                                            fill
+                                            sizes="(max-width: 759px) 100vw, 550px"
+                                            className={styles.adImage}
+                                        />
+                                    ) : (
+                                        <div className={styles.adPlaceholder}>
+                                            <span>Поток 96</span>
+                                            <strong>Нет фото</strong>
+                                        </div>
+                                    )}
+
+                                    {ad.photos.length > 1 && (
+                                        <span className={styles.photoCount}>
+            {ad.photos.length} фото
+        </span>
+                                    )}
+                                </div>
+
                                 <div className={styles.adCategory}>
                                     {getAdCategoryTitle(ad.category)}
                                 </div>

@@ -22,9 +22,23 @@ function normalizeAd(data, content = "") {
         summary: data.summary ?? "",
         status: data.status ?? "draft",
         tags: normalizeTags(data.tags),
+        photos: normalizePhotos(data.photos),
         content,
     };
 }
+
+function normalizePhotos(photos) {
+    if (!Array.isArray(photos)) return [];
+
+    const validPhotos = photos.filter(
+        (photo) =>
+            typeof photo === "string" &&
+            /^\/media\/ads\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp|avif)$/i.test(photo)
+    );
+
+    return [...new Set(validPhotos)].slice(0, 8);
+}
+
 
 async function getAdFiles() {
     try {
