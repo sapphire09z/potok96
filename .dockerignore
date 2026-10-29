@@ -1,0 +1,10 @@
+.git
+.idea
+.next
+node_modules
+.env
+.env.*
+.DS_Store
+npm-debug.log*
+Dockerfile
+compose.yaml
