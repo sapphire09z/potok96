@@ -9,15 +9,22 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "dotenv": "^18.0.9",
     "embla-carousel-react": "^8.6.0",
     "gray-matter": "^4.0.3",
     "next": "16.1.1",
+    "pg": "^8.23.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "eslint": "^9",
-    "eslint-config-next": "16.1.1"
-  }
+    "eslint-config-next": "16.1.1",
+    "prisma": "^7.10.1"
+  },
+  "type": "module"
 }

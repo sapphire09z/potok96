@@ -1,0 +1,78 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  PUBLISHED
+  REJECTED
+  PAUSED
+  CLOSED
+  EXPIRED
+}
+
+model User {
+  id    String   @id @default(cuid())
+  email String?  @unique @db.VarChar(254)
+  phone String?  @unique @db.VarChar(24)
+  role  UserRole @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ads ClassifiedAd[]
+}
+
+model ClassifiedAd {
+  id   String  @id @default(cuid())
+  slug String? @unique
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  title        String @db.VarChar(120)
+  category     String @db.VarChar(32)
+  description  String @db.Text
+  priceRub     Int?
+  location     String @db.VarChar(120)
+  contactPhone String @db.VarChar(24)
+
+  status AdStatus @default(DRAFT)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  closedAt    DateTime?
+
+  photos AdPhoto[]
+
+  @@index([ownerId, createdAt])
+  @@index([status, createdAt])
+  @@index([status, category])
+}
+
+model AdPhoto {
+  id         String @id @default(cuid())
+  adId       String
+  storageKey String @db.VarChar(512)
+  sortOrder  Int    @default(0)
+
+  ad ClassifiedAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@index([adId, sortOrder])
+}
