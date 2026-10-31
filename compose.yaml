@@ -41,6 +41,18 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  migrate:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    environment:
+      DATABASE_URL: "postgresql://potok96:${POSTGRES_PASSWORD:?Database password is required}@db:5432/potok96?schema=public"
+    depends_on:
+      db:
+        condition: service_healthy
+
   caddy:
     image: caddy:2-alpine
     container_name: potok96-caddy
