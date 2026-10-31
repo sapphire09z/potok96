@@ -17,6 +17,12 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:3000:3000"
+
+    env_file:
+      - path: /opt/potok96-deploy/mobileid.env
+        required: false
+        format: raw
+
     logging:
       driver: json-file
       options:
