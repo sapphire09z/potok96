@@ -11,5 +11,10 @@ RUN npm ci
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+COPY src/lib/prisma.js ./src/lib/prisma.js
+COPY scripts/check-db.mjs ./scripts/check-db.mjs
+
+RUN DATABASE_URL="postgresql://dummy:dummy@127.0.0.1:5432/dummy" \
+    ./node_modules/.bin/prisma generate
 
 CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
