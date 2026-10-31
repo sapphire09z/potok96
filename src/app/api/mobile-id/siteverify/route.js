@@ -10,6 +10,12 @@ export async function POST(request) {
         const sessionId = body?.session_id;
         const verifyToken = body?.verify_token;
 
+        if (process.env.SMSAERO_MOBILEID_TEST_ENABLED !== "true") {
+            return NextResponse.json(
+                { error: "Mobile ID testing is disabled" },
+                { status: 503 }
+            );
+        }
         if (
             typeof sessionId !== "string" ||
             sessionId.length < 1 ||

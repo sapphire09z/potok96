@@ -9,6 +9,12 @@ export async function POST(request) {
         const body = await request.json().catch(() => null);
         const fingerprint = body?.fingerprint_hash;
 
+        if (process.env.SMSAERO_MOBILEID_TEST_ENABLED !== "true") {
+            return NextResponse.json(
+                { error: "Mobile ID testing is disabled" },
+                { status: 503 }
+            );
+        }
         if (
             typeof fingerprint !== "string" ||
             fingerprint.length < 8 ||
