@@ -3,6 +3,8 @@ import { getAllNews } from "@/lib/news";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
 import { getAllAds } from "@/lib/ads";
+// Generate sitemap at request time, not during Docker build
+export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://potok96.ru";
 
