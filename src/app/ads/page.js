@@ -10,6 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import Image from "next/image";
 
 import styles from "./ads.module.css";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
     title: "Объявления",

@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     init: true
     environment:
+      ADS_SOURCE: "hybrid"
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
       DATABASE_URL: "postgresql://potok96:${POSTGRES_PASSWORD:?Database password is required}@db:5432/potok96?schema=public"

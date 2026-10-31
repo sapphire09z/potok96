@@ -1,6 +1,10 @@
 import fs from "fs/promises";
 import path from "path";
 import matter from "gray-matter";
+import {
+    getPublishedDbAds,
+    getPublishedDbAdBySlug,
+} from "./dbAds";
 
 const ADS_DIR = path.join(process.cwd(), "content", "ads");
 
@@ -50,7 +54,7 @@ async function getAdFiles() {
     }
 }
 
-export async function getAllAds() {
+async function getMarkdownAds() {
     const files = await getAdFiles();
 
     const ads = await Promise.all(
@@ -66,8 +70,58 @@ export async function getAllAds() {
     return ads.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-export async function getAdBySlug(slug) {
-    const ads = await getAllAds();
 
-    return ads.find((ad) => ad.slug === slug) ?? null;
+function getAdsSource() {
+    return process.env.ADS_SOURCE ??
+        (process.env.NODE_ENV === "production"
+            ? "postgres"
+            : "markdown");
+}
+
+export async function getAllAds() {
+    const source = getAdsSource();
+
+    if (source === "markdown") {
+        return getMarkdownAds();
+    }
+
+    if (source === "postgres") {
+        return getPublishedDbAds();
+    }
+
+    if (source !== "hybrid") {
+        throw new Error("Invalid ADS_SOURCE configuration");
+    }
+
+    const [markdownAds, databaseAds] = await Promise.all([
+        getMarkdownAds(),
+        getPublishedDbAds(),
+    ]);
+
+    const bySlug = new Map(
+        markdownAds.map((ad) => [ad.slug, ad])
+    );
+
+    for (const ad of databaseAds) {
+        bySlug.set(ad.slug, ad);
+    }
+
+    return [...bySlug.values()].sort(
+        (a, b) => new Date(b.date) - new Date(a.date)
+    );
+}
+
+export async function getAdBySlug(slug) {
+    const source = getAdsSource();
+
+    if (source !== "markdown") {
+        const ad = await getPublishedDbAdBySlug(slug);
+
+        if (ad) return ad;
+        if (source === "postgres") return null;
+    }
+
+    const markdownAds = await getMarkdownAds();
+
+    return markdownAds.find((ad) => ad.slug === slug) ?? null;
 }

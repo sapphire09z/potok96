@@ -6,6 +6,7 @@ import { getAdBySlug } from "@/lib/ads";
 import styles from "./ad.module.css";
 import AdGallery from "./AdGallery";
 import { getAdCategoryTitle } from "@/lib/adCategories";
+export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
     const { slug } = await params;
     const ad = await getAdBySlug(slug);
