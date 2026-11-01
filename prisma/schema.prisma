@@ -36,6 +36,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   ads ClassifiedAd[]
+  sessions UserSession[]
 }
 
 model ClassifiedAd {
@@ -77,3 +78,16 @@ model AdPhoto {
 
   @@index([adId, sortOrder])
 }
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique @db.VarChar(64)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
