@@ -116,14 +116,17 @@ export default function LoginForm({ enabled }) {
 
                     const result = await response.json();
 
-                    if (!response.ok || result.verified !== true) {
-                        throw new Error("Verification rejected");
+                    if (
+                        !response.ok ||
+                        result.verified !== true ||
+                        result.authenticated !== true
+                    ) {
+                        throw new Error("Authentication rejected");
                     }
 
-                    setStage("verified");
-                    setMessage(
-                        `Номер ${result.phoneMasked} подтверждён.`
-                    );
+                    window.location.assign("/account");
+                    return;
+
                 } catch {
                     setStage("error");
                     setMessage(

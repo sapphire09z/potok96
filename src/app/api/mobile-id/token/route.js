@@ -1,10 +1,16 @@
-
+import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { NextResponse } from "next/server";
 import { mobileIdRequest } from "@/lib/mobileId";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
+    if (!hasTrustedOrigin(request)) {
+        return NextResponse.json(
+            { error: "Forbidden origin" },
+            { status: 403 }
+        );
+    }
     try {
         const body = await request.json().catch(() => null);
         const fingerprint = body?.fingerprint_hash;
