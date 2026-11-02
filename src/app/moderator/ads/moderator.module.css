@@ -1,0 +1,129 @@
+
+.page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 12px 0 60px;
+}
+
+.header {
+    margin-bottom: 32px;
+    border-bottom: 1px solid #ded8cf;
+    padding-bottom: 22px;
+}
+
+.kicker {
+    color: #6f6a63;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.header h1 {
+    margin: 12px 0;
+    font-size: clamp(30px, 5vw, 44px);
+    letter-spacing: -0.045em;
+}
+
+.header p {
+    color: #6f6a63;
+}
+
+.list {
+    display: grid;
+    gap: 20px;
+}
+
+.card, .empty {
+    background: #fff;
+    border: 1px solid #ded8cf;
+    padding: 24px;
+}
+
+.card h2 {
+    margin: 16px 0;
+    font-size: 24px;
+}
+
+.meta, .details {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: #6f6a63;
+    font-size: 13px;
+}
+
+.description {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.65;
+}
+
+.details {
+    margin: 20px 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ebe5dc;
+}
+
+.controls {
+    display: grid;
+    gap: 12px;
+}
+
+.controls label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.controls textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid #ded8cf;
+    padding: 12px;
+    font: inherit;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.actions button {
+    padding: 12px 18px;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.approve {
+    background: #151515;
+    color: #fff;
+    border: 1px solid #151515;
+}
+
+.reject {
+    background: transparent;
+    color: #151515;
+    border: 1px solid #151515;
+}
+
+.actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.error {
+    color: #a32323;
+}
+
+@media (max-width: 600px) {
+    .card, .empty {
+        padding: 16px;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+}
