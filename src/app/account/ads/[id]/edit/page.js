@@ -54,6 +54,14 @@ export default async function EditAdPage({ params }) {
 
             <h1>Редактирование объявления</h1>
 
+            {ad.status === "REJECTED" && ad.moderationReason && (
+                <div className={styles.rejection}>
+                    <strong>Что необходимо исправить</strong>
+                    <p>{ad.moderationReason}</p>
+                </div>
+            )}
+
+
             {editable ? (
                 <AdCreateForm initialAd={ad} />
             ) : (
