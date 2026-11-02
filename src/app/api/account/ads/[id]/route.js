@@ -147,6 +147,15 @@ export async function PATCH(request, { params }) {
                 slug: null,
                 publishedAt: null,
                 expiresAt: null,
+
+                ...(status === "PENDING"
+                    ? {
+                        moderationReason: null,
+                        moderatedAt: null,
+                        moderatedById: null,
+                    }
+                    : {}),
+
             },
         });
 

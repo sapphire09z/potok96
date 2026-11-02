@@ -171,3 +171,21 @@ textarea.input {
         padding: 18px;
     }
 }
+
+.rejection {
+    margin: 18px 0;
+    padding: 10px 0 10px 16px;
+    border-left: 3px solid #151515;
+}
+
+.rejection strong {
+    display: block;
+    font-size: 14px;
+}
+
+.rejection p {
+    margin: 8px 0 0;
+    line-height: 1.6;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}

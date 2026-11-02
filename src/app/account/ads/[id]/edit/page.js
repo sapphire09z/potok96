@@ -35,6 +35,7 @@ export default async function EditAdPage({ params }) {
             location: true,
             priceRub: true,
             status: true,
+            moderationReason: true
         },
     });
 

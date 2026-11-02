@@ -46,6 +46,7 @@ export default async function MyAdsPage() {
             status: true,
             priceRub: true,
             createdAt: true,
+            moderationReason: true,
         },
         orderBy: {
             createdAt: "desc",
@@ -110,6 +111,13 @@ export default async function MyAdsPage() {
                   )}
                 </span>
                             </div>
+
+                            {ad.status === "REJECTED" && ad.moderationReason && (
+                                <div className={styles.rejection}>
+                                    <strong>Причина отклонения</strong>
+                                    <p>{ad.moderationReason}</p>
+                                </div>
+                            )}
 
                             {ad.status === "PUBLISHED" && ad.slug && (
                                 <Link href={`/ads/${ad.slug}`}>
