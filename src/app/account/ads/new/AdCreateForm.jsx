@@ -6,16 +6,21 @@ import { useState } from "react";
 import { AD_CATEGORIES } from "@/lib/adCategories.js";
 import styles from "../ads.module.css";
 
-export default function AdCreateForm() {
+
+export default function AdCreateForm({ initialAd = null }) {
     const router = useRouter();
 
     const [form, setForm] = useState({
-        title: "",
-        category: "",
-        description: "",
-        price: "",
-        location: "Красноуфимск",
+        title: initialAd?.title ?? "",
+        category: initialAd?.category ?? "",
+        description: initialAd?.description ?? "",
+        price:
+            initialAd?.priceRub == null
+                ? ""
+                : String(initialAd.priceRub),
+        location: initialAd?.location ?? "Красноуфимск",
     });
+
 
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
@@ -57,8 +62,12 @@ export default function AdCreateForm() {
                 throw new Error("Укажите корректную цену.");
             }
 
-            const response = await fetch("/api/account/ads", {
-                method: "POST",
+            const endpoint = initialAd
+                ? `/api/account/ads/${encodeURIComponent(initialAd.id)}`
+                : "/api/account/ads";
+
+            const response = await fetch(endpoint, {
+                method: initialAd ? "PATCH" : "POST",
                 credentials: "same-origin",
                 headers: {
                     "Content-Type": "application/json",
@@ -88,6 +97,65 @@ export default function AdCreateForm() {
         } finally {
             setBusy(false);
         }
+    }
+
+    async function withdraw() {
+        if (!initialAd || busy) return;
+
+        setBusy(true);
+        setError("");
+
+        try {
+            const response = await fetch(
+                `/api/account/ads/${encodeURIComponent(initialAd.id)}`,
+                {
+                    method: "PATCH",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ action: "withdraw" }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.error || "Не удалось отозвать объявление."
+                );
+            }
+
+            router.refresh();
+        } catch (err) {
+            setError(err.message || "Ошибка отзыва.");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    if (initialAd?.status === "PENDING") {
+        return (
+            <div>
+                <p className={styles.notice}>
+                    Объявление находится на модерации.
+                    Чтобы изменить его, сначала отзовите
+                    заявку. После этого можно исправить
+                    текст и отправить повторно.
+                </p>
+
+                {error && <p role="alert" className={styles.error}>{error}</p>}
+
+                <button
+                    type="button"
+                    onClick={withdraw}
+                    disabled={busy}
+                    className={styles.secondary}
+                >
+                    {busy ? "Отзываем..." : "Отозвать с модерации"}
+                </button>
+            </div>
+        );
     }
 
     return (

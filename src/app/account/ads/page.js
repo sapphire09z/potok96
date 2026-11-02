@@ -116,6 +116,14 @@ export default async function MyAdsPage() {
                                     Посмотреть на сайте
                                 </Link>
                             )}
+
+                            {["DRAFT", "REJECTED", "PENDING"].includes(ad.status) && (
+                                <Link href={`/account/ads/${ad.id}/edit`}>
+                            {ad.status === "PENDING"
+                                ? "Отозвать с модерации"
+                                : "Редактировать объявление"}
+                        </Link>
+                        )}
                         </article>
                     ))}
                 </div>
