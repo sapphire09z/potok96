@@ -189,3 +189,48 @@ textarea.input {
     font-size: 14px;
     overflow-wrap: anywhere;
 }
+
+.photoEditor {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #ded8cf;
+}
+
+.photoEditor h2 {
+    margin: 0 0 18px;
+    font-size: 22px;
+}
+
+.photoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.photoTile {
+    border: 1px solid #ded8cf;
+    background: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.photoTile img {
+    display: block;
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.photoInputLabel {
+    display: inline-grid;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.photoInputLabel input {
+    font: inherit;
+    max-width: 100%;
+}

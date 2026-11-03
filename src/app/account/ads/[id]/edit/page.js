@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import AdCreateForm from "../../new/AdCreateForm";
 import styles from "../../ads.module.css";
+import AdPhotoUploader from "./AdPhotoUploader";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,15 @@ export default async function EditAdPage({ params }) {
             location: true,
             priceRub: true,
             status: true,
+            photos: {
+                select: {
+                    id: true,
+                    sortOrder: true,
+                },
+                orderBy: {
+                    sortOrder: "asc",
+                },
+            },
             moderationReason: true
         },
     });
@@ -70,6 +80,13 @@ export default async function EditAdPage({ params }) {
                     недоступно для редактирования.
                 </p>
             )}
+
+            <AdPhotoUploader
+                adId={ad.id}
+                photos={ad.photos}
+                canUpload={["DRAFT", "REJECTED"].includes(ad.status)}
+            />
+
         </div>
     );
 }
