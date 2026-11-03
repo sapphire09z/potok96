@@ -7,7 +7,7 @@ import {
     getAdCategoryTitle,
 } from "@/lib/adCategories";
 import EmptyState from "@/components/EmptyState";
-import Image from "next/image";
+import PublishedAdCover from "@/components/PublishedAdCover";
 
 import styles from "./ads.module.css";
 export const dynamic = "force-dynamic";
@@ -205,13 +205,7 @@ export default async function AdsPage({ searchParams }) {
 
                                 <div className={styles.adMedia}>
                                     {ad.photos.length > 0 ? (
-                                        <Image
-                                            src={ad.photos[0]}
-                                            alt={`Фото объявления: ${ad.title}`}
-                                            fill
-                                            sizes="(max-width: 759px) 100vw, 550px"
-                                            className={styles.adImage}
-                                        />
+                                        <PublishedAdCover ad={ad} className={styles.adImage} />
                                     ) : (
                                         <div className={styles.adPlaceholder}>
                                             <span>Поток 96</span>

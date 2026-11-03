@@ -70,7 +70,7 @@ export default async function AdPage({ params }) {
                     )}
                 </div>
             </header>
-            <AdGallery photos={ad.photos} title={ad.title} />
+            <AdGallery photos={ad.photos} title={ad.title} photoVariants={ad.photoVariants} />
 
             <section className={styles.content}>
                 <ReactMarkdown>{ad.content}</ReactMarkdown>

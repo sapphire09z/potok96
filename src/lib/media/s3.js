@@ -8,20 +8,15 @@ import {
 let client;
 
 function config() {
-  const keys = [
-    "S3_ENDPOINT",
-    "S3_REGION",
-    "S3_PRIVATE_BUCKET",
-    "S3_ACCESS_KEY_ID",
-    "S3_SECRET_ACCESS_KEY",
+  const required = [
+    "S3_ENDPOINT", "S3_REGION", "S3_PRIVATE_BUCKET",
+    "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY",
   ];
-
-  for (const key of keys) {
-    if (!process.env[key]) {
-      throw new Error(`Missing media configuration: ${key}`);
+  for (const name of required) {
+    if (!process.env[name]) {
+      throw new Error(`Missing media configuration: ${name}`);
     }
   }
-
   return {
     endpoint: process.env.S3_ENDPOINT,
     region: process.env.S3_REGION,
@@ -71,5 +66,32 @@ export async function deletePrivate(key) {
   await getMediaS3().send(new DeleteObjectCommand({
     Bucket: c.privateBucket,
     Key: key,
+  }));
+}
+
+function publicBucket() {
+  const bucket = process.env.S3_PUBLIC_BUCKET;
+  const base = process.env.MEDIA_PUBLIC_BASE_URL;
+  if (!bucket || !base || !/^https:\/\/[a-z0-9.-]+\/?$/i.test(base)) {
+    throw new Error("S3 public bucket or HTTPS CDN base URL is not configured");
+  }
+  return bucket;
+}
+
+export function publicMediaUrl(key) {
+  publicBucket();
+  if (!/^media\/(ads|news|events|orgs|site)\/[a-zA-Z0-9_/-]+\.webp$/.test(key)) {
+    throw new Error("Invalid public media key");
+  }
+  return `${process.env.MEDIA_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;
+}
+
+export async function putPublic(key, bytes, contentType = "image/webp") {
+  await getMediaS3().send(new PutObjectCommand({
+    Bucket: publicBucket(),
+    Key: key,
+    Body: bytes,
+    ContentType: contentType,
+    CacheControl: "public, max-age=31536000, immutable",
   }));
 }
