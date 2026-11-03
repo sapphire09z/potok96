@@ -19,10 +19,15 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
 
+
     env_file:
       - path: /opt/potok96-deploy/mobileid.env
         required: false
         format: raw
+      - path: /opt/potok96-deploy/s3.env
+        required: true
+        format: raw
+
 
     logging:
       driver: json-file
