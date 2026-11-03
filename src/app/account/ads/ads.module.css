@@ -234,3 +234,36 @@ textarea.input {
     font: inherit;
     max-width: 100%;
 }
+/* Add to the END of src/app/account/ads/ads.module.css */
+.photoCover {
+  display: block;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #f1eee8;
+}
+
+.photoActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+}
+
+.photoActions button {
+  border: 1px solid #d0cac2;
+  background: #fff;
+  color: #151515;
+  border-radius: 4px;
+  padding: 6px 9px;
+  min-height: 36px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.photoActions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
