@@ -1,8 +1,10 @@
 
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AD_CATEGORIES } from "@/lib/adCategories.js";
 import styles from "../ads.module.css";
 
@@ -24,6 +26,55 @@ export default function AdCreateForm({ initialAd = null }) {
 
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const [queuedPhotos, setQueuedPhotos] = useState([]);
+    const [progress, setProgress] = useState("");
+    const [recoveryAdId, setRecoveryAdId] = useState(null);
+    const previewsRef = useRef(new Set());
+
+    useEffect(() => {
+        const previews = previewsRef.current;
+        return () => {
+            for (const url of previews) URL.revokeObjectURL(url);
+            previews.clear();
+        };
+    }, []);
+
+    function addQueuedPhotos(event) {
+        const files = Array.from(event.target.files ?? []);
+        event.target.value = "";
+        if (busy || recoveryAdId || files.length === 0) return;
+
+        if (queuedPhotos.length + files.length > 8) {
+            setError("Не более 8 фотографий на объявление.");
+            return;
+        }
+        const invalid = files.find((file) =>
+            !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+            file.size === 0 || file.size > 5 * 1024 * 1024
+        );
+        if (invalid) {
+            setError("Поддерживаются JPEG, PNG и WebP размером до 5 МБ каждая.");
+            return;
+        }
+
+        setError("");
+        const next = files.map((file) => {
+            const preview = URL.createObjectURL(file);
+            previewsRef.current.add(preview);
+            return { key: crypto.randomUUID(), file, preview };
+        });
+        setQueuedPhotos((current) => [...current, ...next]);
+    }
+
+    function removeQueuedPhoto(key) {
+        if (busy || recoveryAdId) return;
+        const removed = queuedPhotos.find((photo) => photo.key === key);
+        if (!removed) return;
+        URL.revokeObjectURL(removed.preview);
+        previewsRef.current.delete(removed.preview);
+        setQueuedPhotos((current) => current.filter((photo) => photo.key !== key));
+    }
+
 
     function update(field, value) {
         setForm((current) => ({
@@ -34,67 +85,96 @@ export default function AdCreateForm({ initialAd = null }) {
 
     async function handleSubmit(event) {
         event.preventDefault();
+        if (busy || recoveryAdId) return;
 
-        if (busy) return;
-
-        const status =
-            event.nativeEvent.submitter?.value === "PENDING"
-                ? "PENDING"
-                : "DRAFT";
-
+        const desiredStatus = event.nativeEvent.submitter?.value === "PENDING"
+            ? "PENDING" : "DRAFT";
+        let createdAdId = null;
         setBusy(true);
         setError("");
+        setProgress("Сохраняем объявление...");
 
         try {
-            const priceRub =
-                form.price.trim() === ""
-                    ? null
-                    : Number(form.price);
-
-            if (
-                priceRub !== null &&
-                (
-                    !Number.isSafeInteger(priceRub) ||
-                    priceRub < 0 ||
-                    priceRub > 1000000000
-                )
-            ) {
+            const priceRub = form.price.trim() === "" ? null : Number(form.price);
+            if (priceRub !== null &&
+                (!Number.isSafeInteger(priceRub) || priceRub < 0 ||
+                    priceRub > 1000000000)) {
                 throw new Error("Укажите корректную цену.");
             }
 
+            const payload = {
+                title: form.title,
+                category: form.category,
+                description: form.description,
+                priceRub,
+                location: form.location,
+            };
+            // A new ad must remain DRAFT while private photos are uploading.
+            // Existing ad editing continues to use its current API and photo editor.
             const endpoint = initialAd
                 ? `/api/account/ads/${encodeURIComponent(initialAd.id)}`
                 : "/api/account/ads";
-
             const response = await fetch(endpoint, {
                 method: initialAd ? "PATCH" : "POST",
                 credentials: "same-origin",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    title: form.title,
-                    category: form.category,
-                    description: form.description,
-                    priceRub,
-                    location: form.location,
-                    status,
+                    ...payload,
+                    status: initialAd ? desiredStatus : "DRAFT",
                 }),
             });
-
             const result = await response.json();
-
             if (!response.ok) {
-                throw new Error(
-                    result.error || "Не удалось сохранить объявление."
-                );
+                throw new Error(result.error || "Не удалось сохранить объявление.");
+            }
+
+            if (!initialAd) {
+                createdAdId = result.ad?.id;
+                if (!createdAdId) {
+                    throw new Error("Сервер не вернул идентификатор объявления.");
+                }
+
+                for (const [index, photo] of queuedPhotos.entries()) {
+                    setProgress(`Загружаем фотографию ${index + 1} из ${queuedPhotos.length}...`);
+                    const data = new FormData();
+                    data.append("file", photo.file);
+                    const uploadResponse = await fetch(
+                        `/api/account/ads/${encodeURIComponent(createdAdId)}/photos`,
+                        { method: "POST", credentials: "same-origin", body: data }
+                    );
+                    const uploaded = await uploadResponse.json();
+                    if (!uploadResponse.ok) {
+                        throw new Error(uploaded.error ||
+                            `Не удалось загрузить фотографию ${index + 1}.`);
+                    }
+                }
+
+                if (desiredStatus === "PENDING") {
+                    setProgress("Отправляем объявление на модерацию...");
+                    const pendingResponse = await fetch(
+                        `/api/account/ads/${encodeURIComponent(createdAdId)}`,
+                        {
+                            method: "PATCH",
+                            credentials: "same-origin",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ...payload, status: "PENDING" }),
+                        }
+                    );
+                    const pendingResult = await pendingResponse.json();
+                    if (!pendingResponse.ok) {
+                        throw new Error(pendingResult.error ||
+                            "Не удалось отправить объявление на модерацию.");
+                    }
+                }
             }
 
             router.push("/account/ads");
             router.refresh();
         } catch (err) {
+            if (createdAdId) setRecoveryAdId(createdAdId);
             setError(err.message || "Ошибка сохранения.");
         } finally {
+            setProgress("");
             setBusy(false);
         }
     }
@@ -242,16 +322,70 @@ export default function AdCreateForm({ initialAd = null }) {
                 />
             </div>
 
+            {!initialAd && (
+                <section className={styles.photoEditor} aria-label="Фотографии объявления">
+                    <h2>Фотографии ({queuedPhotos.length}/8)</h2>
+                    {queuedPhotos.length > 0 && (
+                        <div className={styles.photoGrid}>
+                            {queuedPhotos.map((photo, index) => (
+                                <div className={styles.photoTile} key={photo.key}>
+                                    <Image
+                                        src={photo.preview}
+                                        alt={`Выбранная фотография ${index + 1}`}
+                                        width={160}
+                                        height={120}
+                                        unoptimized
+                                    />
+                                    <div className={styles.photoActions}>
+                                        <span>{index === 0 ? "Обложка" : `Фото ${index + 1}`}</span>
+                                        <button type="button"
+                                            onClick={() => removeQueuedPhoto(photo.key)}
+                                            disabled={busy || Boolean(recoveryAdId)}>
+                                            Удалить
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {queuedPhotos.length < 8 && (
+                        <label className={styles.photoInputLabel}>
+                            Добавить фотографии
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                multiple
+                                disabled={busy || Boolean(recoveryAdId)}
+                                onChange={addQueuedPhotos}
+                            />
+                        </label>
+                    )}
+                    <p className={styles.notice}>
+                        До 8 фотографий, JPEG/PNG/WebP, не более 5 МБ каждая.
+                        Первая фотография станет обложкой. Изображения загрузятся
+                        автоматически при сохранении объявления.
+                    </p>
+                </section>
+            )}
+
             <p className={styles.notice}>
-                Пока для сохранения черновика нужно заполнить
-                обязательные поля. Неполные черновики
-                добавим при реализации редактирования.
-                Загрузка фотографий будет подключена отдельно.
+                Для сохранения объявления заполните обязательные поля.
+                {initialAd && " Фотографии можно редактировать ниже."}
             </p>
 
+            {progress && <p role="status" className={styles.notice}>{progress}</p>}
             {error && (
                 <p role="alert" className={styles.error}>
                     {error}
+                </p>
+            )}
+            {recoveryAdId && (
+                <p className={styles.notice}>
+                    Объявление уже сохранено как черновик. Некоторые действия
+                    могли завершиться не полностью. <Link
+                        href={`/account/ads/${encodeURIComponent(recoveryAdId)}/edit`}>
+                        Открыть черновик и продолжить
+                    </Link>.
                 </p>
             )}
 
@@ -259,7 +393,7 @@ export default function AdCreateForm({ initialAd = null }) {
                 <button
                     type="submit"
                     value="DRAFT"
-                    disabled={busy}
+                    disabled={busy || Boolean(recoveryAdId)}
                     className={styles.secondary}
                 >
                     Сохранить черновик
@@ -268,10 +402,10 @@ export default function AdCreateForm({ initialAd = null }) {
                 <button
                     type="submit"
                     value="PENDING"
-                    disabled={busy}
+                    disabled={busy || Boolean(recoveryAdId)}
                     className={styles.primary}
                 >
-                    {busy ? "Сохраняем..." : "На модерацию"}
+                    {busy ? "Обрабатываем..." : "На модерацию"}
                 </button>
             </div>
         </form>
