@@ -103,6 +103,66 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ success: true });
         }
 
+        // Owner-only lifecycle transitions. Keep the original slug and
+        // publication date on pause/resume; a relist must be moderated again.
+        if (["pause", "resume", "close", "relist"].includes(body?.action)) {
+            const now = new Date();
+            const activeTerm = {
+                OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+            };
+            let where;
+            let data;
+
+            switch (body.action) {
+                case "pause":
+                    where = { id, ownerId: user.id, status: "PUBLISHED", ...activeTerm };
+                    data = { status: "PAUSED" };
+                    break;
+                case "resume":
+                    where = { id, ownerId: user.id, status: "PAUSED", ...activeTerm };
+                    data = { status: "PUBLISHED" };
+                    break;
+                case "close":
+                    where = {
+                        id, ownerId: user.id,
+                        status: { in: ["PUBLISHED", "PAUSED"] },
+                    };
+                    data = { status: "CLOSED", closedAt: now };
+                    break;
+                default: // relist
+                    where = {
+                        id, ownerId: user.id,
+                        OR: [
+                            { status: { in: ["CLOSED", "EXPIRED"] } },
+                            {
+                                status: { in: ["PUBLISHED", "PAUSED"] },
+                                expiresAt: { lte: now },
+                            },
+                        ],
+                    };
+                    data = {
+                        status: "DRAFT",
+                        slug: null,
+                        publishedAt: null,
+                        expiresAt: null,
+                        closedAt: null,
+                        moderatedAt: null,
+                        moderatedById: null,
+                        moderationReason: null,
+                    };
+            }
+
+            const updated = await prisma.classifiedAd.updateMany({ where, data });
+            if (updated.count !== 1) {
+                return NextResponse.json(
+                    { error: "Статус объявления изменился. Обновите страницу." },
+                    { status: 409 }
+                );
+            }
+            return NextResponse.json({ success: true, status: data.status },
+                { headers: { "Cache-Control": "no-store" } });
+        }
+
         const title = body?.title;
         const description = body?.description;
         const location = body?.location;

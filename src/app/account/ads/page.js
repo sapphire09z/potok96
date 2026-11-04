@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { getAdCategoryTitle } from "@/lib/adCategories";
 import styles from "./ads.module.css";
+import AdLifecycleActions from "./AdLifecycleActions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +48,15 @@ export default async function MyAdsPage() {
             priceRub: true,
             createdAt: true,
             moderationReason: true,
+            expiresAt: true,
         },
         orderBy: {
             createdAt: "desc",
         },
         take: 100,
     });
+
+    const now = new Date();
 
     return (
         <div className={styles.page}>
@@ -83,14 +87,18 @@ export default async function MyAdsPage() {
                 </div>
             ) : (
                 <div className={styles.list}>
-                    {ads.map((ad) => (
+                    {ads.map((ad) => {
+                        const expired = ["PUBLISHED", "PAUSED"].includes(ad.status) &&
+                            ad.expiresAt && ad.expiresAt <= now;
+                        const displayStatus = expired ? "EXPIRED" : ad.status;
+                        return (
                         <article key={ad.id} className={styles.card}>
                             <div className={styles.topline}>
                 <span className={styles.category}>
                   {getAdCategoryTitle(ad.category)}
                 </span>
                                 <span className={styles.status}>
-                  {statusLabels[ad.status] ?? ad.status}
+                  {statusLabels[displayStatus] ?? displayStatus}
                 </span>
                             </div>
 
@@ -119,7 +127,7 @@ export default async function MyAdsPage() {
                                 </div>
                             )}
 
-                            {ad.status === "PUBLISHED" && ad.slug && (
+                            {displayStatus === "PUBLISHED" && ad.slug && (
                                 <Link href={`/ads/${ad.slug}`}>
                                     Посмотреть на сайте
                                 </Link>
@@ -132,8 +140,13 @@ export default async function MyAdsPage() {
                                 : "Редактировать объявление"}
                         </Link>
                         )}
+
+                            {["PUBLISHED", "PAUSED", "CLOSED", "EXPIRED"].includes(displayStatus) && (
+                                <AdLifecycleActions adId={ad.id} status={displayStatus} />
+                            )}
                         </article>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
