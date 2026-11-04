@@ -10,7 +10,7 @@ export function publicAdPhotoVariant(storageKey, width) {
   if (!/^media\/ads\/[a-zA-Z0-9_-]{1,100}\/[0-9a-f-]{36}$/i.test(storageKey)) {
     throw new Error("Invalid ad photo storage key");
   }
-  return publicMediaUrl(`${storageKey}/${width}.webp`);
+  return publicMediaUrl(`${storageKey.replace(/^media\/ads\//, "media/listings/")}/${width}.webp`);
 }
 
 // Publish only processed, metadata-free WebP images, never the originals.
@@ -25,7 +25,7 @@ export async function publishAdPhotos(photos) {
       const source = await getPrivate(key);
       if (!source.Body) throw new Error(`Private image is missing: ${key}`);
       const bytes = Buffer.from(await source.Body.transformToByteArray());
-      await putPublic(key, bytes);
+      await putPublic(key.replace(/^media\/ads\//, "media/listings/"), bytes);
     }
   }
 }
