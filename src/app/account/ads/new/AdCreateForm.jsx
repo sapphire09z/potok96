@@ -75,6 +75,20 @@ export default function AdCreateForm({ initialAd = null }) {
         setQueuedPhotos((current) => current.filter((photo) => photo.key !== key));
     }
 
+    // Change only the order in the local queue. Photos are uploaded in this order
+    // after the draft is created, so the first item becomes the cover photo.
+    function moveQueuedPhoto(index, direction) {
+        if (busy || recoveryAdId) return;
+        setQueuedPhotos((current) => {
+            const target = index + direction;
+            if (index < 0 || index >= current.length ||
+                target < 0 || target >= current.length) return current;
+            const next = [...current];
+            [next[index], next[target]] = [next[target], next[index]];
+            return next;
+        });
+    }
+
 
     function update(field, value) {
         setForm((current) => ({
@@ -339,6 +353,20 @@ export default function AdCreateForm({ initialAd = null }) {
                                     <div className={styles.photoActions}>
                                         <span>{index === 0 ? "Обложка" : `Фото ${index + 1}`}</span>
                                         <button type="button"
+                                            onClick={() => moveQueuedPhoto(index, -1)}
+                                            disabled={busy || Boolean(recoveryAdId) || index === 0}
+                                            aria-label={`Переместить фото ${index + 1} влево`}
+                                            title="Переместить влево">
+                                            ←
+                                        </button>
+                                        <button type="button"
+                                            onClick={() => moveQueuedPhoto(index, 1)}
+                                            disabled={busy || Boolean(recoveryAdId) || index === queuedPhotos.length - 1}
+                                            aria-label={`Переместить фото ${index + 1} вправо`}
+                                            title="Переместить вправо">
+                                            →
+                                        </button>
+                                        <button type="button"
                                             onClick={() => removeQueuedPhoto(photo.key)}
                                             disabled={busy || Boolean(recoveryAdId)}>
                                             Удалить
@@ -362,8 +390,8 @@ export default function AdCreateForm({ initialAd = null }) {
                     )}
                     <p className={styles.notice}>
                         До 8 фотографий, JPEG/PNG/WebP, не более 5 МБ каждая.
-                        Первая фотография станет обложкой. Изображения загрузятся
-                        автоматически при сохранении объявления.
+                        Порядок можно изменить стрелками. Первая фотография станет
+                        обложкой. Изображения загрузятся при сохранении объявления.
                     </p>
                 </section>
             )}
