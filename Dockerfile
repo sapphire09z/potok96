@@ -30,6 +30,7 @@ COPY --from=builder --chown=node:node /app/.next ./.next
 COPY --from=builder --chown=node:node /app/generated ./generated
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/content ./content
+COPY --from=builder --chown=node:node /app/scripts ./scripts
 COPY --from=builder --chown=node:node /app/next.config.mjs ./next.config.mjs
 
 USER node

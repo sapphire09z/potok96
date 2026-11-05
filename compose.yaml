@@ -27,6 +27,9 @@ services:
       - path: /opt/potok96-deploy/s3.env
         required: true
         format: raw
+      - path: /opt/potok96-deploy/qa.env
+        required: false
+        format: raw
 
 
     logging:
