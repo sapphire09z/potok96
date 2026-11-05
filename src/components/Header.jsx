@@ -21,6 +21,7 @@ export default function Header() {
                     <Link href="/official">Официально</Link>
                     <Link href="/ads">Объявления</Link>
                     <Link href="/about">О проекте</Link>
+                    <Link href="/account">Личный кабинет</Link>
                 </nav>
 
                 <div className="mobile-header-spacer" aria-hidden="true" />

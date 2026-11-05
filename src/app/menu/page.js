@@ -66,6 +66,10 @@ export default function MenuPage() {
                     </div>
                 </details>
 
+                <Link href="/account" className={styles.about}>
+                    Личный кабинет
+                </Link>
+
                 <Link href="/about" className={styles.about}>
                     О проекте
                 </Link>
