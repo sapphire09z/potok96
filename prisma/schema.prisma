@@ -37,6 +37,7 @@ model User {
 
   ads ClassifiedAd[]
   sessions UserSession[]
+  newsPosts NewsPost[] @relation("NewsPostCreatedBy")
 }
 
 model ClassifiedAd {
@@ -94,5 +95,43 @@ model UserSession {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+
+// CMS: public news continues reading Markdown until the separate migration phase.
+enum NewsStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  UNPUBLISHED
+}
+
+model NewsPost {
+  id             String     @id @default(cuid())
+  slug           String     @unique @db.VarChar(160)
+  title          String     @db.VarChar(180)
+  summary        String     @default("") @db.VarChar(600)
+  body           String     @db.Text
+  status         NewsStatus @default(DRAFT)
+  category       String     @default("город") @db.VarChar(48)
+  authorName     String     @default("Редакция Поток 96") @db.VarChar(120)
+  orgSlug        String?    @db.VarChar(160)
+  tags           String[]   @default([])
+  crosspost      String[]   @default([])
+  cover          String?    @db.VarChar(512)
+  featured       Boolean    @default(false)
+  featuredOrder  Int        @default(99)
+  sourceName     String?    @db.VarChar(180)
+  sourceUrl      String?    @db.VarChar(2048)
+  sourceText     String?    @db.Text
+  createdById    String?
+  createdBy      User?      @relation("NewsPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  publishedAt    DateTime?
+
+  @@index([status, publishedAt])
+  @@index([updatedAt])
+  @@index([createdById, createdAt])
 }
 

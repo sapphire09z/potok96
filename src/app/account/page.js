@@ -117,6 +117,20 @@ export default async function AccountPage() {
                     доступны в полном списке.
                 </p>
             </section>
+
+            {["ADMIN", "MODERATOR"].includes(user.role) && (
+                <section className={styles.section} aria-labelledby="editor-heading">
+                    <h2 id="editor-heading">Редакция</h2>
+                    <div className={styles.actions}>
+                        <Link href="/editor/news" className={styles.secondary}>
+                            Управление новостями
+                        </Link>
+                        <Link href="/moderator/ads" className={styles.secondary}>
+                            Модерация объявлений
+                        </Link>
+                    </div>
+                </section>
+            )}
         </div>
     );
 }
