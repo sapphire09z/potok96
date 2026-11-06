@@ -81,6 +81,7 @@ export default async function EditorNewsPage({ searchParams }) {
                 <h1>Управление новостями</h1>
                 <p>Материалы в базе данных: {total}. Публикации из Markdown
                     пока остаются в старой ленте — перенос будет отдельным этапом.</p>
+                <Link href="/editor/news/new" className={styles.createLink}>+ Создать новость</Link>
             </header>
 
             <nav className={styles.filters} aria-label="Фильтр новостей">
@@ -102,7 +103,7 @@ export default async function EditorNewsPage({ searchParams }) {
                     <p>
                         {selected
                             ? "В выбранном статусе нет новостей."
-                            : "База CMS готова. Добавление и редактирование материалов подключим на этапе 5.2."}
+                            : "Создайте первый черновик через кнопку выше."}
                     </p>
                 </section>
             ) : (
@@ -113,7 +114,9 @@ export default async function EditorNewsPage({ searchParams }) {
                                 <span>{post.category}</span>
                                 <span className={styles.status}>{statusLabels[post.status]}</span>
                             </div>
-                            <h2>{post.title}</h2>
+                            <h2>{post.status === "DRAFT"
+                                ? <Link href={`/editor/news/${post.id}`}>{post.title}</Link>
+                                : post.title}</h2>
                             <div className={styles.meta}>
                                 <span>Обновлено {timeFormatter.format(post.updatedAt)}</span>
                                 {post.publishedAt && (
@@ -127,7 +130,7 @@ export default async function EditorNewsPage({ searchParams }) {
             )}
 
             {posts.length === 100 && (
-                <p className={styles.note}>Показаны первые 100 материалов. Постраничный просмотр добавим вместе с редактором.</p>
+                <p className={styles.note}>Показаны первые 100 материалов. Постраничный просмотр добавим отдельно.</p>
             )}
         </div>
     );
