@@ -106,6 +106,14 @@ enum NewsStatus {
   UNPUBLISHED
 }
 
+enum NewsSourceKind {
+  OWN
+  OFFICIAL
+  PRESS_RELEASE
+  THIRD_PARTY
+  OTHER
+}
+
 model NewsPost {
   id             String     @id @default(cuid())
   slug           String     @unique @db.VarChar(160)
@@ -124,6 +132,10 @@ model NewsPost {
   sourceName     String?    @db.VarChar(180)
   sourceUrl      String?    @db.VarChar(2048)
   sourceText     String?    @db.Text
+  sourceKind     NewsSourceKind @default(OWN)
+  rightsNote     String?    @db.VarChar(2000)
+  coverImageId   String?    @db.VarChar(36)
+  images         NewsImage[]
   createdById    String?
   createdBy      User?      @relation("NewsPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt      DateTime   @default(now())
@@ -135,3 +147,18 @@ model NewsPost {
   @@index([createdById, createdAt])
 }
 
+
+// Private news draft images. Public CDN promotion happens in stage 5.3.
+model NewsImage {
+  id         String   @id @db.VarChar(36)
+  postId     String
+  storageKey String   @db.VarChar(512)
+  sortOrder  Int      @default(0)
+  caption    String?  @db.VarChar(240)
+  credit     String?  @db.VarChar(240)
+  rightsNote String?  @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+  post       NewsPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, sortOrder])
+}

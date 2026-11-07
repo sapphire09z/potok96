@@ -21,6 +21,9 @@ export default async function EditNewsPage({ params }) {
             id: true, title: true, slug: true, summary: true, body: true,
             category: true, authorName: true, tags: true, cover: true,
             sourceName: true, sourceUrl: true, sourceText: true, status: true,
+            sourceKind: true, rightsNote: true, coverImageId: true,
+            images: { select: { id: true, caption: true, credit: true, rightsNote: true, sortOrder: true },
+                orderBy: [{ sortOrder: "asc" }, { id: "asc" }] },
         },
     });
 

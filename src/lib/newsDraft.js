@@ -32,11 +32,14 @@ export function validateNewsDraft(input) {
     const sourceName = optionalText(input.sourceName, 180);
     const sourceUrl = optionalText(input.sourceUrl, 2048);
     const sourceText = optionalText(input.sourceText, 20000);
+    const rightsNote = optionalText(input.rightsNote, 2000);
+    const sourceKind = input.sourceKind ?? "OWN";
 
     if (!title || !slug || !SLUG_PATTERN.test(slug) || !category ||
         authorName === undefined || summary === undefined || body === undefined ||
         cover === undefined || sourceName === undefined || sourceUrl === undefined ||
-        sourceText === undefined) {
+        sourceText === undefined || rightsNote === undefined ||
+        !["OWN", "OFFICIAL", "PRESS_RELEASE", "THIRD_PARTY", "OTHER"].includes(sourceKind)) {
         return { error: "Проверьте заголовок, адрес и заполнение полей." };
     }
 
@@ -73,6 +76,8 @@ export function validateNewsDraft(input) {
             sourceName,
             sourceUrl,
             sourceText,
+            sourceKind,
+            rightsNote,
             tags,
         },
     };
