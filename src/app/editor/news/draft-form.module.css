@@ -57,3 +57,13 @@
 .figure { margin: 18px 0; }
 .figure img { display: block; max-width: 100%; height: auto; }
 .figure figcaption { padding-top: 6px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* Phase 5.2.3: visual editor / Markdown source toggle */
+.editorField { display: grid; gap: 9px; }
+.editorModeHeading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; }
+.editorModeActions { display: flex; gap: 6px; }
+.editorModeActions button { font: inherit; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; background: white; padding: 8px 12px; color: var(--text); cursor: pointer; }
+.editorModeActions button[aria-pressed="true"] { color: white; background: var(--text); border-color: var(--text); }
+.editorField textarea { width: 100%; resize: vertical; padding: 16px; border: 1px solid var(--border); border-radius: 4px; background: white; font: inherit; font-size: 16px; line-height: 1.55; }
+.editorField .hint { margin: 0; }
+.editorModeActions button:disabled { opacity: .45; cursor: not-allowed; }

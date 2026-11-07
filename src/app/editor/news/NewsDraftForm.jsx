@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import NewsImageManager from "./NewsImageManager";
+import NewsRichTextEditor from "./NewsRichTextEditor";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import styles from "./draft-form.module.css";
@@ -50,6 +51,13 @@ export default function NewsDraftForm({ initialPost }) {
         tags: (initialPost?.tags ?? []).join(", "),
     }));
     const [mode, setMode] = useState("edit");
+    // Unsupported Markdown constructs remain editable through the source view.
+    const [formatMode, setFormatMode] = useState(() =>
+        /(?:^|\n)\s*\|[^\n]*\|\s*\n|<!--|<\/?[a-z][^>]*>/i.test(initialPost?.body ?? "")
+            ? "markdown"
+            : "visual"
+    );
+    const richEditorRef = useRef(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [saved, setSaved] = useState("");
@@ -59,13 +67,20 @@ export default function NewsDraftForm({ initialPost }) {
     const tagsForPreview = form.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
     const coverImage = images.find((item) => item.id === coverImageId);
     const verifiedSourceUrl = /^https:\/\/[^\s@]+$/i.test(form.sourceUrl.trim()) ? form.sourceUrl.trim() : "";
+    const complexMarkdown = /(?:^|\n)\s*\|[^\n]*\|\s*\n|<!--|<\/?[a-z][^>]*>/i.test(form.body);
 
     function insertImage(item) {
         if (!initialPost) return;
         const caption = (item.caption || "Фотография").replace(/[\[\]\n"\\]/g, " ");
         const address = `/api/editor/news/${initialPost.id}/images/${item.id}?size=960`;
         const title = item.caption ? ` "${caption}"` : "";
-        change("body", `${form.body.trimEnd()}\n\n![${caption}](${address}${title})\n`);
+        const editor = formatMode === "visual" ? richEditorRef.current : null;
+        if (editor) {
+            editor.chain().focus().setImage({ src: address, alt: caption, title: item.caption || null }).run();
+            change("body", editor.getMarkdown());
+        } else {
+            change("body", `${form.body.trimEnd()}\n\n![${caption}](${address}${title})\n`);
+        }
         setMode("edit");
     }
 
@@ -155,9 +170,34 @@ export default function NewsDraftForm({ initialPost }) {
                         <label>Краткий анонс
                             <textarea rows={3} maxLength={600} value={form.summary} onChange={(e) => change("summary", e.target.value)} />
                         </label>
-                        <label>Текст новости (Markdown)
-                            <textarea rows={16} maxLength={30000} value={form.body} onChange={(e) => change("body", e.target.value)} placeholder="Основной текст новости…" />
-                        </label>
+                        <section className={styles.editorField} aria-label="Текст новости">
+                            <div className={styles.editorModeHeading}>
+                                <strong>Текст новости</strong>
+                                <div className={styles.editorModeActions} role="group" aria-label="Способ редактирования текста">
+                                    <button type="button" aria-pressed={formatMode === "visual"}
+                                        disabled={complexMarkdown} title={complexMarkdown ? "Сложная разметка редактируется только в Markdown" : undefined}
+                                        onClick={() => setFormatMode("visual")}>Визуально</button>
+                                    <button type="button" aria-pressed={formatMode === "markdown"}
+                                        onClick={() => setFormatMode("markdown")}>Markdown</button>
+                                </div>
+                            </div>
+                            {formatMode === "visual" ? (
+                                <NewsRichTextEditor
+                                    value={form.body}
+                                    onChange={(value) => change("body", value)}
+                                    editorRef={richEditorRef}
+                                />
+                            ) : (
+                                <>
+                                    <textarea rows={16} maxLength={30000} value={form.body}
+                                        onChange={(event) => change("body", event.target.value)}
+                                        aria-label="Исходный Markdown статьи" placeholder="Основной текст новости…" />
+                                    <p className={styles.hint}>Режим Markdown сохраняет исходную разметку. Используй его для сложных блоков или проверки текста.</p>
+                                </>
+                            )}
+                            {complexMarkdown && <p className={styles.hint} role="status">Обнаружена таблица, HTML или специальная разметка. Для сохранения её без изменений используй режим Markdown.</p>}
+                            <p className={styles.hint}>Текст сохраняется только по кнопке «Сохранить черновик». Фотографии можно вставлять из галереи ниже.</p>
+                        </section>
                         <label>Автор
                             <input maxLength={120} value={form.authorName} onChange={(e) => change("authorName", e.target.value)} />
                         </label>
