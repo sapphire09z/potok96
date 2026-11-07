@@ -39,7 +39,16 @@ const blank = {
 
 export default function NewsDraftForm({ initialPost }) {
     const router = useRouter();
-    const [form, setForm] = useState(() => ({ ...blank, ...initialPost, tags: (initialPost?.tags ?? []).join(", ") }));
+    const [form, setForm] = useState(() => ({
+        ...blank,
+        ...initialPost,
+        ...Object.fromEntries(
+            Object.keys(blank)
+                .filter((key) => key !== "tags")
+                .map((key) => [key, initialPost?.[key] ?? blank[key]])
+        ),
+        tags: (initialPost?.tags ?? []).join(", "),
+    }));
     const [mode, setMode] = useState("edit");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
