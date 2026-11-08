@@ -296,7 +296,16 @@ export default function NewsDraftForm({ initialPost, storageScope }) {
                         ? "Изменения автоматически сохраняются через 2 секунды после ввода."
                         : "Первое сохранение — кнопкой ниже. Затем включится автосохранение."}</p>
                 </div>
-                <span className={styles.status}>Черновик</span>
+                <div>
+                    {initialPost && <Link href={`/editor/news/${initialPost.id}/review`}
+                        onClick={(event) => {
+                            if (dirty || busy || recovery) {
+                                event.preventDefault();
+                                setError("Сначала дождитесь сохранения всех изменений.");
+                            }
+                        }}>Проверка и история</Link>}
+                    <span className={styles.status}>Черновик</span>
+                </div>
             </div>
 
             <div className={styles.tabs} role="group" aria-label="Режим редактора">

@@ -38,6 +38,7 @@ model User {
   ads ClassifiedAd[]
   sessions UserSession[]
   newsPosts NewsPost[] @relation("NewsPostCreatedBy")
+  newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
 }
 
 model ClassifiedAd {
@@ -102,8 +103,16 @@ model UserSession {
 enum NewsStatus {
   DRAFT
   REVIEW
+  APPROVED
   PUBLISHED
   UNPUBLISHED
+}
+
+enum NewsWorkflowAction {
+  SUBMITTED
+  RETURNED
+  APPROVED
+  REOPENED
 }
 
 enum NewsSourceKind {
@@ -136,6 +145,7 @@ model NewsPost {
   rightsNote     String?    @db.VarChar(2000)
   coverImageId   String?    @db.VarChar(36)
   images         NewsImage[]
+  workflowEvents NewsWorkflowEvent[]
   createdById    String?
   createdBy      User?      @relation("NewsPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt      DateTime   @default(now())
@@ -161,4 +171,19 @@ model NewsImage {
   post       NewsPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, sortOrder])
+}
+
+// Record each editorial decision without publishing the article.
+model NewsWorkflowEvent {
+  id        String             @id @default(cuid())
+  postId    String
+  actorId   String?
+  action    NewsWorkflowAction
+  note      String?            @db.VarChar(1000)
+  createdAt DateTime           @default(now())
+
+  post      NewsPost           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  actor     User?              @relation("NewsWorkflowActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
 }

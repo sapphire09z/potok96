@@ -14,6 +14,7 @@ export const metadata = {
 const statusLabels = {
     DRAFT: "Черновик",
     REVIEW: "На проверке",
+    APPROVED: "Одобрено",
     PUBLISHED: "Опубликовано",
     UNPUBLISHED: "Снято с публикации",
 };
@@ -22,6 +23,7 @@ const filters = [
     { status: "", label: "Все" },
     { status: "DRAFT", label: "Черновики" },
     { status: "REVIEW", label: "На проверке" },
+    { status: "APPROVED", label: "Одобрено" },
     { status: "PUBLISHED", label: "Опубликованные" },
     { status: "UNPUBLISHED", label: "Снятые" },
 ];
@@ -114,10 +116,10 @@ export default async function EditorNewsPage({ searchParams }) {
                                 <span>{post.category}</span>
                                 <span className={styles.status}>{statusLabels[post.status]}</span>
                             </div>
-                            <h2>{post.status === "DRAFT"
-                                ? <Link href={`/editor/news/${post.id}`}>{post.title}</Link>
-                                : post.title}</h2>
+                            <h2><Link href={`/editor/news/${post.id}/review`}>{post.title}</Link></h2>
                             <div className={styles.meta}>
+                                {post.status === "DRAFT" && <Link href={`/editor/news/${post.id}`}>Редактировать</Link>}
+                                <Link href={`/editor/news/${post.id}/review`}>Проверка и история</Link>
                                 <span>Обновлено {timeFormatter.format(post.updatedAt)}</span>
                                 {post.publishedAt && (
                                     <span>Опубликовано {timeFormatter.format(post.publishedAt)}</span>
