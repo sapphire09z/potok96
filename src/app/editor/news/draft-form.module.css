@@ -67,3 +67,11 @@
 .editorField textarea { width: 100%; resize: vertical; padding: 16px; border: 1px solid var(--border); border-radius: 4px; background: white; font: inherit; font-size: 16px; line-height: 1.55; }
 .editorField .hint { margin: 0; }
 .editorModeActions button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Phase 5.2.4: tab recovery before overwriting server content */
+.recovery { margin: 18px 0; padding: 18px; border: 1px solid var(--border); background: #f7f3e9; }
+.recovery strong { font-size: 15px; }
+.recovery p { margin: 8px 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.recovery div { display: flex; gap: 8px; flex-wrap: wrap; }
+.recovery button { background: white; border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 13px; padding: 10px 12px; cursor: pointer; }
+.recovery button:first-child { background: var(--text); border-color: var(--text); color: white; }

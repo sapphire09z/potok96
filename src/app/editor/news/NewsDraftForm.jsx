@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import NewsImageManager from "./NewsImageManager";
 import NewsRichTextEditor from "./NewsRichTextEditor";
@@ -38,7 +38,36 @@ const blank = {
     sourceName: "", sourceUrl: "", sourceText: "", sourceKind: "OWN", rightsNote: "",
 };
 
-export default function NewsDraftForm({ initialPost }) {
+const AUTO_SAVE_IDLE_MS = 2000;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// The server remains the source of truth. Invalid intermediate input should
+// stay in the tab backup, not trigger an endless series of rejected requests.
+function validForAutosave(draft) {
+    const tags = draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
+    if (!draft.title.trim() || draft.title.trim().length > 180 ||
+        !SLUG.test(draft.slug) || draft.slug.length > 160 ||
+        !draft.category.trim() || draft.category.trim().length > 48 ||
+        draft.summary.length > 600 || draft.body.length > 30000 ||
+        draft.authorName.length > 120 || draft.sourceName.length > 180 ||
+        draft.sourceText.length > 20000 || draft.rightsNote.length > 2000 ||
+        draft.cover.length > 512 || tags.length > 12 ||
+        tags.some((tag) => tag.length > 40)) return false;
+    if (draft.sourceUrl) {
+        try {
+            const url = new URL(draft.sourceUrl);
+            if (url.protocol !== "https:" || url.username || url.password) return false;
+        } catch { return false; }
+    }
+    return true;
+}
+
+function payloadFrom(draft) {
+    const { id, status, images, coverImageId, ...fields } = draft;
+    return { ...fields, tags: draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean) };
+}
+
+export default function NewsDraftForm({ initialPost, storageScope }) {
     const router = useRouter();
     const [form, setForm] = useState(() => ({
         ...blank,
@@ -61,13 +90,96 @@ export default function NewsDraftForm({ initialPost }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [saved, setSaved] = useState("");
-    const [dirty, setDirty] = useState(false);
+    const [revision, setRevision] = useState(0);
+    const [savedRevision, setSavedRevision] = useState(0);
+    const [recovery, setRecovery] = useState(null);
+    const [editorEpoch, setEditorEpoch] = useState(0);
+    const [recoveryReady, setRecoveryReady] = useState(false);
+    const [backupFailed, setBackupFailed] = useState(false);
+    const inFlight = useRef(false);
+    const blockedRevision = useRef(-1);
+    const latestForm = useRef(form);
+    const latestRevision = useRef(revision);
+    latestForm.current = form;
+    latestRevision.current = revision;
+    const dirty = revision > savedRevision;
+    const backupKey = `potok96:news-draft:v1:${storageScope}:${initialPost?.id ?? "new"}`;
     const [images, setImages] = useState(initialPost?.images ?? []);
     const [coverImageId, setCoverImageId] = useState(initialPost?.coverImageId ?? null);
     const tagsForPreview = form.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
     const coverImage = images.find((item) => item.id === coverImageId);
     const verifiedSourceUrl = /^https:\/\/[^\s@]+$/i.test(form.sourceUrl.trim()) ? form.sourceUrl.trim() : "";
     const complexMarkdown = /(?:^|\n)\s*\|[^\n]*\|\s*\n|<!--|<\/?[a-z][^>]*>/i.test(form.body);
+
+    // Keep a tab-scoped recovery copy. Do not silently restore stale text
+    // over a newer server version: the editor must explicitly choose it.
+    useEffect(() => {
+        try {
+            const raw = window.sessionStorage.getItem(backupKey);
+            const backup = raw ? JSON.parse(raw) : null;
+            if (backup?.version === 1 && backup.form &&
+                typeof backup.form === "object" &&
+                Object.keys(blank).some((key) =>
+                    (backup.form[key] ?? "") !== (latestForm.current[key] ?? ""))) {
+                setRecovery(backup.form);
+            } else {
+                window.sessionStorage.removeItem(backupKey);
+            }
+        } catch {
+            setBackupFailed(true);
+        }
+        setRecoveryReady(true);
+    }, [backupKey]);
+
+    useEffect(() => {
+        if (!recoveryReady || recovery) return;
+        try {
+            if (dirty) {
+                const fields = Object.fromEntries(
+                    Object.keys(blank).map((key) => [key, form[key]])
+                );
+                window.sessionStorage.setItem(backupKey,
+                    JSON.stringify({ version: 1, form: fields, savedAt: Date.now() }));
+            } else {
+                window.sessionStorage.removeItem(backupKey);
+            }
+            setBackupFailed(false);
+        } catch {
+            setBackupFailed(true);
+        }
+    }, [backupKey, form, dirty, recovery, recoveryReady]);
+
+    useEffect(() => {
+        if (!dirty) return;
+        const warn = (event) => {
+            event.preventDefault();
+            event.returnValue = "";
+        };
+        window.addEventListener("beforeunload", warn);
+        return () => window.removeEventListener("beforeunload", warn);
+    }, [dirty]);
+
+    function resolveRecovery(restore) {
+        if (restore && recovery) {
+            const restored = Object.fromEntries(
+                Object.keys(blank).filter((key) => typeof recovery[key] === "string")
+                    .map((key) => [key, recovery[key]])
+            );
+            setForm((previous) => ({ ...previous, ...restored }));
+            // Tiptap reads its initial Markdown only when mounted.
+            setEditorEpoch((value) => value + 1);
+            if (/(?:^|\n)\s*\|[^\n]*\|\s*\n|<!--|<\/?[a-z][^>]*>/i.test(restored.body ?? "")) {
+                setFormatMode("markdown");
+            }
+            setRevision((value) => value + 1);
+            setSaved("");
+            setError("");
+        } else {
+            try { window.sessionStorage.removeItem(backupKey); }
+            catch { setBackupFailed(true); }
+        }
+        setRecovery(null);
+    }
 
     function insertImage(item) {
         if (!initialPost) return;
@@ -89,60 +201,100 @@ export default function NewsDraftForm({ initialPost }) {
         setForm((previous) => ({ ...previous, [name]: value }));
         setError("");
         setSaved("");
-        setDirty(true);
+        setRevision((value) => value + 1);
     }
 
-    async function save(event) {
-        event.preventDefault();
-        if (busy) return;
+    async function persist(auto = false) {
+        if (inFlight.current || !recoveryReady || recovery) return;
+        if (auto && (!initialPost || !validForAutosave(latestForm.current) ||
+            blockedRevision.current === latestRevision.current)) return;
+
+        const capturedRevision = latestRevision.current;
+        const capturedForm = latestForm.current;
+        inFlight.current = true;
         setBusy(true);
         setError("");
-        setSaved("");
-
-        const payload = {
-            ...form,
-            tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-        };
-        delete payload.id;
-        delete payload.status;
-        delete payload.images;
-        delete payload.coverImageId;
+        setSaved(auto ? "Автосохранение…" : "Сохраняем…");
 
         try {
-            const url = initialPost ? `/api/editor/news/${encodeURIComponent(initialPost.id)}` : "/api/editor/news";
+            const url = initialPost
+                ? `/api/editor/news/${encodeURIComponent(initialPost.id)}`
+                : "/api/editor/news";
             const response = await fetch(url, {
                 method: initialPost ? "PATCH" : "POST",
                 credentials: "same-origin",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payloadFrom(capturedForm)),
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Сохранение не удалось.");
-            setDirty(false);
+
             if (!initialPost) {
+                // If typing continued during creation, carry the newer copy
+                // to the new draft's recovery key before navigating.
+                const nextKey = `potok96:news-draft:v1:${storageScope}:${result.id}`;
+                try {
+                    if (latestRevision.current !== capturedRevision) {
+                        window.sessionStorage.setItem(nextKey, JSON.stringify({
+                            version: 1, savedAt: Date.now(),
+                            form: Object.fromEntries(Object.keys(blank).map(
+                                (key) => [key, latestForm.current[key]])),
+                        }));
+                    }
+                    window.sessionStorage.removeItem(backupKey);
+                } catch {
+                    setBackupFailed(true);
+                }
                 router.replace(`/editor/news/${encodeURIComponent(result.id)}`);
                 router.refresh();
             } else {
-                setSaved("Черновик сохранён.");
-                router.refresh();
+                setSavedRevision((value) => Math.max(value, capturedRevision));
+                const time = new Date().toLocaleTimeString("ru-RU", {
+                    hour: "2-digit", minute: "2-digit", second: "2-digit",
+                });
+                setSaved(latestRevision.current === capturedRevision
+                    ? `Сохранено в ${time}` : "Сохраняем новые изменения…");
             }
         } catch (err) {
-            setError(err.message || "Не удалось сохранить черновик.");
+            blockedRevision.current = capturedRevision;
+            setError(err.message || "Не удалось сохранить изменения.");
+            setSaved("Сохранение не удалось. Изменения остались в этой вкладке.");
         } finally {
+            inFlight.current = false;
             setBusy(false);
         }
+    }
+
+    const persistRef = useRef(persist);
+    persistRef.current = persist;
+    useEffect(() => {
+        if (!initialPost || !recoveryReady || recovery || !dirty || busy ||
+            blockedRevision.current === revision || !validForAutosave(form)) return;
+        const timer = window.setTimeout(() => persistRef.current(true), AUTO_SAVE_IDLE_MS);
+        return () => window.clearTimeout(timer);
+    }, [form, revision, savedRevision, initialPost, recoveryReady, recovery, dirty, busy]);
+
+    function save(event) {
+        event.preventDefault();
+        void persist(false);
     }
 
     return (
         <div className={styles.page}>
             <nav className={styles.back}>
-                <Link href="/editor/news">← Управление новостями</Link>
+                <Link href="/editor/news" onClick={(event) => {
+                    if (dirty && !window.confirm("Есть несохранённые изменения. Покинуть редактор?")) {
+                        event.preventDefault();
+                    }
+                }}>← Управление новостями</Link>
             </nav>
             <div className={styles.heading}>
                 <div>
                     <p className={styles.kicker}>Поток 96 / Редакция</p>
                     <h1>{initialPost ? "Редактирование новости" : "Новая новость"}</h1>
-                    <p>Сохраняется только черновик. Публичная новостная лента не меняется.</p>
+                    <p>Черновик не публикуется. {initialPost
+                        ? "Изменения автоматически сохраняются через 2 секунды после ввода."
+                        : "Первое сохранение — кнопкой ниже. Затем включится автосохранение."}</p>
                 </div>
                 <span className={styles.status}>Черновик</span>
             </div>
@@ -152,6 +304,17 @@ export default function NewsDraftForm({ initialPost }) {
                 <button type="button" aria-pressed={mode === "preview"} onClick={() => setMode("preview")}>Предпросмотр</button>
             </div>
 
+            {recovery && <section className={styles.recovery} role="alert">
+                <strong>Найдена несохранённая копия в этой вкладке</strong>
+                <p>Можно восстановить изменения после обновления страницы. Серверный черновик не заменяется без подтверждения.</p>
+                <div>
+                    <button type="button" onClick={() => resolveRecovery(true)}>Восстановить</button>
+                    <button type="button" onClick={() => resolveRecovery(false)}>Оставить серверную версию</button>
+                </div>
+            </section>}
+            {backupFailed && <p className={styles.error} role="alert">
+                Браузер не смог записать резервную копию во вкладке. Сохраняйте текст на сервер чаще.
+            </p>}
             <form onSubmit={save}>
                 {mode === "edit" ? (
                     <div className={styles.fields}>
@@ -183,6 +346,7 @@ export default function NewsDraftForm({ initialPost }) {
                             </div>
                             {formatMode === "visual" ? (
                                 <NewsRichTextEditor
+                                    key={editorEpoch}
                                     value={form.body}
                                     onChange={(value) => change("body", value)}
                                     editorRef={richEditorRef}
@@ -196,7 +360,7 @@ export default function NewsDraftForm({ initialPost }) {
                                 </>
                             )}
                             {complexMarkdown && <p className={styles.hint} role="status">Обнаружена таблица, HTML или специальная разметка. Для сохранения её без изменений используй режим Markdown.</p>}
-                            <p className={styles.hint}>Текст сохраняется только по кнопке «Сохранить черновик». Фотографии можно вставлять из галереи ниже.</p>
+                            <p className={styles.hint}>После первого сохранения изменения записываются автоматически при паузе в наборе. Фотографии можно вставлять из галереи ниже.</p>
                         </section>
                         <label>Автор
                             <input maxLength={120} value={form.authorName} onChange={(e) => change("authorName", e.target.value)} />
@@ -269,11 +433,15 @@ export default function NewsDraftForm({ initialPost }) {
                     </article>
                 )}
                 <div className={styles.actions}>
-                    <button type="submit" disabled={busy} className={styles.primary}>
-                        {busy ? "Сохраняем…" : "Сохранить черновик"}
+                    <button type="submit" disabled={busy || Boolean(recovery)} className={styles.primary}>
+                        {busy ? "Сохраняем…" : "Сохранить сейчас"}
                     </button>
-                    {dirty && <span className={styles.unsaved}>Есть несохранённые изменения</span>}
-                    {saved && <span role="status" className={styles.saved}>{saved}</span>}
+                    {dirty && !busy && <span className={styles.unsaved} role="status">
+                        {initialPost && !validForAutosave(form)
+                            ? "Есть несохранённые изменения — проверьте обязательные поля."
+                            : "Есть несохранённые изменения"}
+                    </span>}
+                    {saved && <span role="status" className={error ? styles.error : styles.saved}>{saved}</span>}
                     {error && <span role="alert" className={styles.error}>{error}</span>}
                 </div>
             </form>

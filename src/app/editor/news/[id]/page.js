@@ -28,5 +28,5 @@ export default async function EditNewsPage({ params }) {
     });
 
     if (!post || post.status !== "DRAFT") notFound();
-    return <NewsDraftForm initialPost={post} />;
+    return <NewsDraftForm initialPost={post} storageScope={user.id} />;
 }

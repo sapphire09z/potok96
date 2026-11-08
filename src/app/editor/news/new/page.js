@@ -11,5 +11,5 @@ export default async function NewNewsPage() {
     if (!user) redirect("/login");
     if (!isNewsEditor(user)) notFound();
 
-    return <NewsDraftForm />;
+    return <NewsDraftForm storageScope={user.id} />;
 }
