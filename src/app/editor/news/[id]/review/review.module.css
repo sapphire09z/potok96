@@ -39,3 +39,13 @@
 .readiness li { margin: 5px 0; }
 .readiness a { display: inline-block; margin-top: 5px; font-size: 14px; text-underline-offset: 3px; }
 .ready { color: #246438; font-size: 14px; }
+
+/* Phase 5.3.3: explicit front-page news selection. */
+.featurePanel { display: grid; justify-items: start; gap: 12px; margin-top: 18px; padding: clamp(16px,3vw,26px); border: 1px solid var(--border); background: var(--paper); }
+.featurePanel h2 { font-size: 21px; margin: 0; }
+.featurePanel p { margin: 0; line-height: 1.5; }
+.featureHint { color: var(--muted); font-size: 13px; }
+.featureButtons { display: flex; flex-wrap: wrap; gap: 10px; }
+.featureButtons button { padding: 10px 16px; border: 1px solid var(--text); background: var(--text); color: white; font: inherit; cursor: pointer; }
+.featureButtons button:disabled { opacity: .45; cursor: not-allowed; }
+.featureButtons .secondaryButton { color: var(--text); background: transparent; }

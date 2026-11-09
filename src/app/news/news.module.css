@@ -275,7 +275,7 @@
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-    max-height: 420px;
+    max-height: 260px;
     overflow: hidden;
     border-radius: 16px;
     background: #eae6e0;

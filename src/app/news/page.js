@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/date";
 import EmptyState from "@/components/EmptyState";
 import Image from "next/image";
-import { getAllNews } from "@/lib/news";
+import { getAllNews, getFeaturedNews } from "@/lib/news";
 
 import styles from "./news.module.css";
 
@@ -19,8 +19,9 @@ export default async function NewsPage() {
         .filter((post) => post.status === "published")
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const mainPost = publishedNews[0];
-    const otherPosts = publishedNews.slice(1);
+    // A headline is editorially selected, not merely the newest post.
+    const mainPost = getFeaturedNews(publishedNews)[0];
+    const otherPosts = publishedNews.filter((post) => post.slug !== mainPost?.slug);
 
     return (
         <div className={styles.page}>

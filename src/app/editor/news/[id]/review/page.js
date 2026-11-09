@@ -6,6 +6,7 @@ import { getPrisma } from "@/lib/prisma";
 import { isNewsEditor } from "@/lib/newsDraft";
 import { newsReviewIssues } from "@/lib/newsReviewIssues";
 import ReviewActions from "./ReviewActions";
+import FeaturedActions from "./FeaturedActions";
 import styles from "./review.module.css";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ export default async function NewsReviewPage({ params }) {
         select: {
             id: true, slug: true, title: true, summary: true, body: true, category: true,
             status: true, authorName: true, updatedAt: true, tags: true, sourceKind: true,
+            featured: true, featuredOrder: true,
             sourceName: true, sourceUrl: true, sourceText: true, rightsNote: true, coverImageId: true,
             images: {
                 select: { id: true, caption: true, credit: true, rightsNote: true },
@@ -60,6 +62,11 @@ export default async function NewsReviewPage({ params }) {
 
         <ReviewActions key={`${post.status}:${post.updatedAt.toISOString()}`} postId={post.id} status={post.status}
             updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} issues={issues} />
+
+        {post.status === "PUBLISHED" && user.role === "ADMIN" &&
+            <FeaturedActions key={`${post.id}:${post.updatedAt.toISOString()}`}
+                postId={post.id} updatedAt={post.updatedAt.toISOString()}
+                featured={post.featured} featuredOrder={post.featuredOrder} />}
 
         <section className={styles.article}>
             <p className={styles.kicker}>{post.status === "PUBLISHED" ? "Опубликованный материал" : "Предпросмотр материала (не опубликовано)"}</p>

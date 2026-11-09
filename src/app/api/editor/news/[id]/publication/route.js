@@ -85,14 +85,38 @@ export async function POST(request, { params }) {
         }
 
         const result = await prisma.$transaction(async (tx) => {
+            // Coordinate withdrawal with simultaneous featured-selection changes.
+            if (step.to === "UNPUBLISHED") {
+                const [lock] = await tx.$queryRaw`SELECT pg_try_advisory_xact_lock(953303) AS locked`;
+                if (!lock?.locked) return null;
+            }
             const updated = await tx.newsPost.updateMany({
                 where: { id, status: step.from, updatedAt: expectedAt },
                 data: {
                     status: step.to,
+                    // Re-publication never silently returns a story to the carousel.
+                    ...(step.to === "UNPUBLISHED" ? { featured: false, featuredOrder: 99 } : {}),
                     ...(step.to === "PUBLISHED" ? { publishedAt: post.publishedAt ?? new Date() } : {}),
                 },
             });
             if (updated.count !== 1) return null;
+            if (step.to === "UNPUBLISHED") {
+                // Renumber the remaining headlines after the withdrawn story leaves.
+                const remaining = await tx.newsPost.findMany({
+                    where: { status: "PUBLISHED", featured: true },
+                    orderBy: [{ featuredOrder: "asc" }, { publishedAt: "desc" }, { id: "asc" }],
+                    select: { id: true, featuredOrder: true },
+                });
+                for (const [index, item] of remaining.entries()) {
+                    if (index >= 3) {
+                        await tx.newsPost.update({ where: { id: item.id },
+                            data: { featured: false, featuredOrder: 99 } });
+                    } else if (item.featuredOrder !== index + 1) {
+                        await tx.newsPost.update({ where: { id: item.id },
+                            data: { featuredOrder: index + 1 } });
+                    }
+                }
+            }
             await tx.newsWorkflowEvent.create({
                 data: { postId: id, actorId: user.id, action: step.event, note: note || null },
             });

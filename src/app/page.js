@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getAllNews } from "@/lib/news";
+import { getAllNews, getFeaturedNews } from "@/lib/news";
 import { getAllEvents } from "@/lib/events";
 import { getAllOrgs } from "@/lib/orgs";
 import { formatDate, formatDateTime } from "@/lib/date";
@@ -23,18 +23,9 @@ export default async function HomePage() {
         .filter((post) => post.status === "published")
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const pinnedNews = publishedNews
-        .filter((post) => post.featured)
-        .sort((a, b) => a.featuredOrder - b.featuredOrder);
-
-    const regularNews = publishedNews.filter(
-        (post) => !post.featured
-    );
-
-    const featuredPosts = [
-        ...pinnedNews,
-        ...regularNews,
-    ].slice(0, 3);
+    // Only editorially selected stories enter the homepage carousel.
+    // New ordinary articles never displace them automatically.
+    const featuredPosts = getFeaturedNews(publishedNews);
 
     const featuredSlugs = new Set(
         featuredPosts.map((post) => post.slug)

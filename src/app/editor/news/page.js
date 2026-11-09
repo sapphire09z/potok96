@@ -55,6 +55,8 @@ export default async function EditorNewsPage({ searchParams }) {
                 status: true,
                 updatedAt: true,
                 publishedAt: true,
+                featured: true,
+                featuredOrder: true,
             },
             orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
             take: 100,
@@ -115,6 +117,8 @@ export default async function EditorNewsPage({ searchParams }) {
                             <div className={styles.itemTop}>
                                 <span>{post.category}</span>
                                 <span className={styles.status}>{statusLabels[post.status]}</span>
+                                {post.status === "PUBLISHED" && post.featured &&
+                                    <span className={styles.status}>★ В главных · №{post.featuredOrder}</span>}
                             </div>
                             <h2><Link href={`/editor/news/${post.id}/review`}>{post.title}</Link></h2>
                             <div className={styles.meta}>

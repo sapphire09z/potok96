@@ -53,7 +53,7 @@ function toPublicSummary(post) {
         summary: post.summary, status: "published", author: post.authorName,
         org: post.orgSlug || "", tags: post.tags,
         cover: publicNewsCover(post), featured: post.featured,
-        featuredOrder: post.featuredOrder,
+        featuredOrder: post.featuredOrder, editorialPriority: 0,
     };
 }
 
@@ -97,4 +97,15 @@ export async function getNewsBySlug(slug) {
         sourceUrl: post.sourceUrl || "",
         photoCredits,
     };
+}
+
+// Explicitly chosen CMS stories come first; legacy Markdown featured stories
+// remain eligible, but never outrank a newly promoted CMS article.
+export function getFeaturedNews(news) {
+    return news.filter((post) => post.status === "published" && post.featured)
+        .sort((a, b) => (a.editorialPriority ?? 1) - (b.editorialPriority ?? 1) ||
+            (a.featuredOrder ?? 99) - (b.featuredOrder ?? 99) ||
+            new Date(b.date).getTime() - new Date(a.date).getTime() ||
+            a.slug.localeCompare(b.slug))
+        .slice(0, 3);
 }
