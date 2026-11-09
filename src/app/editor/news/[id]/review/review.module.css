@@ -31,3 +31,11 @@
 .history span { font-size: 13px; color: var(--muted); }
 @media (max-width:600px) { .photo { flex-direction: column; } }
 .sourceText { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font: inherit; font-size: 13px; }
+
+/* Phase 5.3.1a: show completeness before submission, not at admin approval. */
+.readiness { width: 100%; box-sizing: border-box; padding: 14px 16px; border: 1px solid var(--border); background: #f6f2ea; line-height: 1.55; }
+.readiness strong { font-size: 14px; }
+.readiness ul { margin: 10px 0; padding-left: 22px; }
+.readiness li { margin: 5px 0; }
+.readiness a { display: inline-block; margin-top: 5px; font-size: 14px; text-underline-offset: 3px; }
+.ready { color: #246438; font-size: 14px; }

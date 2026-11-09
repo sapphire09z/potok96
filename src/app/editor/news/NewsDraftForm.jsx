@@ -296,8 +296,8 @@ export default function NewsDraftForm({ initialPost, storageScope }) {
                         ? "Изменения автоматически сохраняются через 2 секунды после ввода."
                         : "Первое сохранение — кнопкой ниже. Затем включится автосохранение."}</p>
                 </div>
-                <div>
-                    {initialPost && <Link href={`/editor/news/${initialPost.id}/review`}
+                <div className={styles.headingActions}>
+                    {initialPost && <Link className={styles.reviewLink} href={`/editor/news/${initialPost.id}/review`}
                         onClick={(event) => {
                             if (dirty || busy || recovery) {
                                 event.preventDefault();

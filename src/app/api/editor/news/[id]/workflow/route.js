@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { isNewsEditor } from "@/lib/newsDraft";
+import { newsReviewIssues } from "@/lib/newsReviewIssues";
 
 export const runtime = "nodejs";
 const POST_ID = /^c[a-z0-9]{10,40}$/;
@@ -15,29 +16,6 @@ const transition = {
 const fail = (message, status) => NextResponse.json({ error: message }, {
     status, headers: { "Cache-Control": "no-store" },
 });
-
-function approvalIssues(post) {
-    const issues = [];
-    if (!post.title.trim() || !post.body.trim() || !post.slug.trim()) {
-        issues.push("Нужны заголовок, адрес и текст новости.");
-    }
-    if (post.sourceKind !== "OWN" && (!post.sourceName?.trim() || !post.sourceUrl?.trim())) {
-        issues.push("Для внешнего материала укажите источник и прямую ссылку.");
-    }
-    if (["THIRD_PARTY", "OTHER"].includes(post.sourceKind) && !post.rightsNote?.trim()) {
-        issues.push("Для стороннего материала укажите основание использования.");
-    }
-    for (const image of post.images) {
-        if (!image.credit?.trim() || !image.rightsNote?.trim()) {
-            issues.push("Заполните автора и основание использования для каждой фотографии.");
-            break;
-        }
-    }
-    if (post.coverImageId && !post.images.some((image) => image.id === post.coverImageId)) {
-        issues.push("Выбранная обложка не найдена в фотогалерее.");
-    }
-    return issues;
-}
 
 export async function POST(request, { params }) {
     if (!hasTrustedOrigin(request)) return fail("Недопустимый источник запроса.", 403);
@@ -84,8 +62,10 @@ export async function POST(request, { params }) {
             });
             if (!post) return { error: "Новость не найдена.", status: 404 };
             if (post.status !== step.from) return { error: "Статус материала изменился. Обновите страницу.", status: 409 };
-            if (step.to === "APPROVED") {
-                const issues = approvalIssues(post);
+            // Обязательные сведения проверяем в момент отправки модератором.
+            // Перед одобрением администратором проверяем повторно как страховку.
+            if (step.to === "REVIEW" || step.to === "APPROVED") {
+                const issues = newsReviewIssues(post);
                 if (issues.length) return { error: issues.join(" "), status: 422 };
             }
             const updated = await tx.newsPost.updateMany({

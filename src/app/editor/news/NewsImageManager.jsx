@@ -115,7 +115,7 @@ export default function NewsImageManager({ postId, images, coverImageId, onImage
 
     return <section className={styles.photoPanel} aria-label="Фотографии новости">
         <h2>Фотографии ({images.length}/{MAX_PHOTOS})</h2>
-        <p className={styles.hint}>Файлы хранятся приватно до публикации. Выберите обложку, добавьте подписи и сведения о правах. Кнопка «В текст» вставит фотографию в конец статьи; затем сохраните черновик.</p>
+        <p className={styles.hint}>Файлы хранятся приватно до публикации. Для отправки на проверку у каждой фотографии нужны автор / правообладатель и основание использования. Заполните эти поля, нажмите «Сохранить подпись». Кнопка «В текст» вставляет фотографию в статью.</p>
         {images.length < MAX_PHOTOS && <label className={styles.photoAdd}>
             Добавить фотографии
             <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} onChange={upload}/>
@@ -128,11 +128,11 @@ export default function NewsImageManager({ postId, images, coverImageId, onImage
                     <input value={metadata[item.id]?.caption ?? ""} maxLength={240}
                         onChange={(e) => editMeta(item.id, "caption", e.target.value)} />
                 </label>
-                <label>Автор / правообладатель
+                <label>Автор / правообладатель (для отправки на проверку)
                     <input value={metadata[item.id]?.credit ?? ""} maxLength={240}
                         onChange={(e) => editMeta(item.id, "credit", e.target.value)} />
                 </label>
-                <label>Разрешение / лицензия (внутреннее поле)
+                <label>Основание использования / лицензия (для отправки на проверку)
                     <input value={metadata[item.id]?.rightsNote ?? ""} maxLength={1000}
                         onChange={(e) => editMeta(item.id, "rightsNote", e.target.value)} />
                 </label>

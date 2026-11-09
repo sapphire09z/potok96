@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { isNewsEditor } from "@/lib/newsDraft";
+import { newsReviewIssues } from "@/lib/newsReviewIssues";
 import ReviewActions from "./ReviewActions";
 import styles from "./review.module.css";
 
@@ -39,6 +40,7 @@ export default async function NewsReviewPage({ params }) {
     });
     if (!post) notFound();
     const cover = post.images.find((item) => item.id === post.coverImageId);
+    const issues = ["DRAFT", "REVIEW"].includes(post.status) ? newsReviewIssues(post) : [];
     const imagePath = (imageId, size) => `/api/editor/news/${post.id}/images/${imageId}?size=${size}`;
 
     return <main className={styles.page}>
@@ -51,7 +53,7 @@ export default async function NewsReviewPage({ params }) {
         </header>
 
         <ReviewActions key={`${post.status}:${post.updatedAt.toISOString()}`} postId={post.id} status={post.status}
-            updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} />
+            updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} issues={issues} />
 
         <section className={styles.article}>
             <p className={styles.kicker}>Предпросмотр материала (не опубликовано)</p>

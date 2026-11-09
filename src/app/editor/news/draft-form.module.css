@@ -3,6 +3,13 @@
 .heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; border-bottom: 1px solid var(--border); padding: 22px 0; }
 .heading h1 { margin: 0; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.05em; }
 .heading p:last-child { color: var(--muted); line-height: 1.5; }
+.heading > div:first-child { flex: 1 1 auto; min-width: 0; }
+.headingActions { flex: 0 0 auto; max-width: 100%; display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap; padding-top: 2px; }
+.reviewLink { display: inline-block; white-space: nowrap; font-size: 13px; line-height: 1.4; text-underline-offset: 3px; }
+@media (max-width: 700px) {
+    .heading { flex-direction: column; }
+    .headingActions { width: 100%; justify-content: flex-start; }
+}
 .kicker { color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .status { border: 1px solid var(--border); border-radius: 30px; padding: 7px 12px; font-size: 12px; white-space: nowrap; }
 .tabs { display: flex; gap: 8px; padding: 20px 0; }

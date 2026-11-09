@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./review.module.css";
 
-export default function ReviewActions({ postId, status, updatedAt, isAdmin }) {
+export default function ReviewActions({ postId, status, updatedAt, isAdmin, issues = [] }) {
     const router = useRouter();
     const [busy, setBusy] = useState(false);
     const [reason, setReason] = useState("");
@@ -30,13 +31,22 @@ export default function ReviewActions({ postId, status, updatedAt, isAdmin }) {
 
     return <section className={styles.actions} aria-label="Редакционное решение">
         {status === "DRAFT" && <>
-            <p>Сначала сохраните все изменения в редакторе. Отправленный материал станет недоступен для редактирования до возврата.</p>
-            <button type="button" disabled={busy} onClick={() => execute("submit")}>Отправить на проверку</button>
+            <p>Перед отправкой проверьте текст, источник и права на фотографии. Сохраните все изменения: после отправки материал будет закрыт для редактирования до возврата.</p>
+            {issues.length > 0 ? <div className={styles.readiness} role="alert">
+                <strong>Перед отправкой исправьте:</strong>
+                <ul>{issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+                <Link href={`/editor/news/${postId}`}>Перейти к исправлению черновика</Link>
+            </div> : <p className={styles.ready}>Обязательные сведения заполнены. Можно отправлять на проверку.</p>}
+            <button type="button" disabled={busy || issues.length > 0} onClick={() => execute("submit")}>Отправить на проверку</button>
         </>}
         {status === "REVIEW" && !isAdmin && <p>Материал ожидает решения администратора.</p>}
         {status === "REVIEW" && isAdmin && <>
-            <p>Перед одобрением проверьте текст, источник, права на фотографии и корректность ссылок. Одобрение пока не публикует статью на сайте.</p>
-            <button type="button" disabled={busy} onClick={() => execute("approve")}>Одобрить для публикации</button>
+            <p>Обязательные сведения уже проверялись перед отправкой. Оцените содержание, корректность ссылок и достоверность предоставленных разрешений. Одобрение пока не публикует статью на сайте.</p>
+            {issues.length > 0 && <div className={styles.readiness} role="alert">
+                <strong>Обнаружены недостающие сведения — верните материал на доработку:</strong>
+                <ul>{issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+            </div>}
+            <button type="button" disabled={busy || issues.length > 0} onClick={() => execute("approve")}>Одобрить для публикации</button>
             <label>Причина возврата на доработку (не менее 5 символов)
                 <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Что исправить в материале…" />
             </label>
