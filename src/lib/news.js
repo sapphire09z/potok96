@@ -39,6 +39,7 @@ async function readMarkdownNews() {
 }
 
 const summarySelect = {
+    id: true,
     slug: true, title: true, category: true, summary: true, tags: true,
     publishedAt: true, authorName: true, orgSlug: true, crosspost: true,
     featured: true, featuredOrder: true, cover: true, coverImageId: true,
