@@ -365,3 +365,8 @@
         margin-top: 26px;
     }
 }
+
+/* Phase 5.3.2: public source attribution, never show editorial rights notes. */
+.attribution { max-width: 760px; margin: 28px 0; border-top: 1px solid var(--border); padding-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.attribution p { margin: 6px 0; overflow-wrap: anywhere; }
+.attribution a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

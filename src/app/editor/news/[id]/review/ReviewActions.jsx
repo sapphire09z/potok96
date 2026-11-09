@@ -13,11 +13,17 @@ export default function ReviewActions({ postId, status, updatedAt, isAdmin, issu
 
     async function execute(action) {
         if (busy) return;
-        const description = { submit: "отправить на проверку", approve: "одобрить", return: "вернуть на доработку", reopen: "вернуть в черновики" }[action];
+        const description = {
+            submit: "отправить на проверку", approve: "одобрить", return: "вернуть на доработку",
+            reopen: "вернуть в черновики", reopen_unpublished: "отправить на доработку",
+            publish: "опубликовать на сайте", unpublish: "снять с публикации", republish: "повторно опубликовать",
+        }[action];
         if (!window.confirm(`Действительно ${description} этот материал?`)) return;
         setBusy(true); setError("");
         try {
-            const response = await fetch(`/api/editor/news/${encodeURIComponent(postId)}/workflow`, {
+            const publication = ["publish", "unpublish", "republish"].includes(action);
+            const endpoint = publication ? "publication" : "workflow";
+            const response = await fetch(`/api/editor/news/${encodeURIComponent(postId)}/${endpoint}`, {
                 method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action, reason, expectedUpdatedAt: updatedAt }),
             });
@@ -53,15 +59,35 @@ export default function ReviewActions({ postId, status, updatedAt, isAdmin, issu
             <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("return")}>Вернуть на доработку</button>
         </>}
         {status === "APPROVED" && <>
-            <p>Материал одобрен. Публикацию на сайте подключим на следующем этапе.</p>
+            <p>Материал одобрен, но ещё не опубликован. Только администратор может открыть его на сайте.</p>
             {isAdmin && <>
+                <button type="button" disabled={busy} onClick={() => execute("publish")}>Опубликовать на сайте</button>
                 <label>Причина возврата в черновики
                     <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
                 </label>
                 <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("reopen")}>Вернуть в черновики</button>
             </>}
         </>}
-        {!["DRAFT", "REVIEW", "APPROVED"].includes(status) && <p>Материал уже прошёл следующий этап редакционного процесса.</p>}
+        {status === "PUBLISHED" && <>
+            <p>Новость доступна на сайте.</p>
+            {isAdmin && <>
+                <label>Причина снятия с публикации (не менее 5 символов)
+                    <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
+                </label>
+                <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("unpublish")}>Снять с публикации</button>
+            </>}
+        </>}
+        {status === "UNPUBLISHED" && <>
+            <p>Новость скрыта из публичной ленты. Администратор может вернуть её без изменений либо отправить на доработку.</p>
+            {isAdmin && <>
+                <button type="button" disabled={busy} onClick={() => execute("republish")}>Повторно опубликовать</button>
+                <label>Причина возврата на доработку
+                    <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
+                </label>
+                <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("reopen_unpublished")}>Вернуть в черновики</button>
+            </>}
+        </>}
+
         {error && <p role="alert" className={styles.error}>{error}</p>}
     </section>;
 }

@@ -126,6 +126,15 @@ export default async function NewsItemPage({ params }) {
                 </section>
             )}
 
+            {(post.sourceName || post.photoCredits?.length > 0) && (
+                <section className={styles.attribution} aria-label="Источники материала">
+                    {post.sourceName && <p>Источник: {post.sourceUrl
+                        ? <a href={post.sourceUrl} target="_blank" rel="noopener noreferrer">{post.sourceName}</a>
+                        : post.sourceName}</p>}
+                    {post.photoCredits?.length > 0 && <p>Фото: {post.photoCredits.join(", ")}</p>}
+                </section>
+            )}
+
             {relatedPosts.length > 0 && (
                 <section className={styles.related}>
                     <div className={styles.sectionHeader}>

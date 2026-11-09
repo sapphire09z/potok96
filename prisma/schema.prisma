@@ -113,6 +113,9 @@ enum NewsWorkflowAction {
   RETURNED
   APPROVED
   REOPENED
+  PUBLISHED
+  UNPUBLISHED
+  REPUBLISHED
 }
 
 enum NewsSourceKind {

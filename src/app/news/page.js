@@ -5,6 +5,9 @@ import Image from "next/image";
 import { getAllNews } from "@/lib/news";
 
 import styles from "./news.module.css";
+
+// PostgreSQL-backed news must be read at request time, never frozen at build.
+export const dynamic = "force-dynamic";
 export const metadata = {
     title: "Новости",
     description: "Новости Красноуфимска и района на городском портале Поток 96.",

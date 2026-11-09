@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getAllNews } from "@/lib/news";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewsCategoryPage({ params }) {
     const { category: raw } = await params;
     const category = decodeURIComponent(raw);

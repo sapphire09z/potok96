@@ -12,6 +12,7 @@ const transition = {
     return: { from: "REVIEW", to: "DRAFT", event: "RETURNED", admin: true },
     approve: { from: "REVIEW", to: "APPROVED", event: "APPROVED", admin: true },
     reopen: { from: "APPROVED", to: "DRAFT", event: "REOPENED", admin: true },
+    reopen_unpublished: { from: "UNPUBLISHED", to: "DRAFT", event: "REOPENED", admin: true },
 };
 const fail = (message, status) => NextResponse.json({ error: message }, {
     status, headers: { "Cache-Control": "no-store" },
@@ -45,7 +46,7 @@ export async function POST(request, { params }) {
     if (input.reason !== undefined && typeof input.reason !== "string") return fail("Некорректный комментарий.", 400);
     const reason = (input.reason ?? "").trim();
     if (reason.length > 1000 || (input.action === "return" && reason.length < 5) ||
-        (input.action === "reopen" && reason.length < 5)) {
+        (["reopen", "reopen_unpublished"].includes(input.action) && reason.length < 5)) {
         return fail("Для возврата укажите причину от 5 до 1000 символов.", 400);
     }
 

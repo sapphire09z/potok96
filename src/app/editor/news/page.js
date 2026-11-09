@@ -81,8 +81,8 @@ export default async function EditorNewsPage({ searchParams }) {
             <header className={styles.heading}>
                 <p className={styles.kicker}>Поток 96 / Редакция</p>
                 <h1>Управление новостями</h1>
-                <p>Материалы в базе данных: {total}. Публикации из Markdown
-                    пока остаются в старой ленте — перенос будет отдельным этапом.</p>
+                <p>Материалы в базе данных: {total}. После публикации статьи из CMS
+                    появляются в общей новостной ленте вместе с существующими Markdown-материалами.</p>
                 <Link href="/editor/news/new" className={styles.createLink}>+ Создать новость</Link>
             </header>
 
