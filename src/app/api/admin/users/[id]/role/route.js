@@ -5,7 +5,7 @@ import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 
 export const runtime = "nodejs";
 
-const USER_ID = /^c[a-z0-9]{10,40}$/;
+const USER_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{2,99}$/;
 const ROLES = new Set(["USER", "MODERATOR", "ADMIN"]);
 
 function fail(error, status) {

@@ -203,3 +203,15 @@ model AdminRoleChange {
   @@index([targetId, createdAt])
   @@index([createdAt])
 }
+
+// Immutable audit of account session/grant revocations performed by ADMIN.
+model AdminSessionRevocation {
+  id           String   @id @default(cuid())
+  actorId      String
+  targetId     String
+  revokedCount Int
+  createdAt    DateTime @default(now())
+
+  @@index([targetId, createdAt])
+  @@index([createdAt])
+}

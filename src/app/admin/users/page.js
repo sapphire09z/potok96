@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import RoleEditor from "./RoleEditor";
+import SessionControls from "./SessionControls";
 import styles from "../admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function AdminUsersPage({ searchParams }) {
             { phone: { contains: search } },
             { email: { contains: search, mode: "insensitive" } },
         ];
-        if (/^c[a-z0-9]{10,40}$/.test(search)) where.OR.push({ id: search });
+        if (/^[A-Za-z0-9][A-Za-z0-9_-]{2,99}$/.test(search)) where.OR.push({ id: search });
     }
     const prisma = getPrisma();
     const [total, users, history] = await Promise.all([
@@ -50,13 +51,38 @@ export default async function AdminUsersPage({ searchParams }) {
         prisma.adminRoleChange.findMany({ orderBy: { createdAt: "desc" }, take: 15,
             select: { id: true, actorId: true, targetId: true, oldRole: true, newRole: true, createdAt: true } }),
     ]);
+    const ids = users.map((item) => item.id);
+    const [sessionRows, adRows, newsRows, actionRows, revocations] = await Promise.all([
+        ids.length ? prisma.userSession.groupBy({
+            by: ["userId"], where: { userId: { in: ids }, expiresAt: { gt: new Date() } },
+            _count: { _all: true },
+        }) : [],
+        ids.length ? prisma.classifiedAd.groupBy({
+            by: ["ownerId"], where: { ownerId: { in: ids } }, _count: { _all: true },
+        }) : [],
+        ids.length ? prisma.newsPost.groupBy({
+            by: ["createdById"], where: { createdById: { in: ids } }, _count: { _all: true },
+        }) : [],
+        ids.length ? prisma.newsWorkflowEvent.groupBy({
+            by: ["actorId"], where: { actorId: { in: ids } }, _count: { _all: true },
+        }) : [],
+        prisma.adminSessionRevocation.findMany({
+            orderBy: { createdAt: "desc" }, take: 10,
+            select: { id: true, actorId: true, targetId: true, revokedCount: true, createdAt: true },
+        }),
+    ]);
+    const counts = (rows, key) => new Map(rows.map((item) => [item[key], item._count._all]));
+    const sessions = counts(sessionRows, "userId");
+    const ads = counts(adRows, "ownerId");
+    const news = counts(newsRows, "createdById");
+    const editorial = counts(actionRows, "actorId");
     const formatter = new Intl.DateTimeFormat("ru-RU", { timeZone: "Asia/Yekaterinburg", dateStyle: "medium", timeStyle: "short" });
     const lastPage = Math.max(1, Math.ceil(total / PER_PAGE));
 
     return <main className={styles.content}>
         <div className={styles.sectionHeading}>
             <h2>Пользователи и роли</h2>
-            <p>Найдено: {total}. Роль назначается существующей учётной записи; телефон для смены роли не требуется.</p>
+            <p>Найдено: {total}. Роли и неистёкшие записи доступа (сессии и одноразовые ссылки). Удаление учётной записи с историей и материалами пока недоступно.</p>
         </div>
         <form action="/admin/users" method="get" className={styles.filters}>
             <label>Поиск по телефону, e-mail или ID
@@ -79,11 +105,17 @@ export default async function AdminUsersPage({ searchParams }) {
                         {user.phone && user.email && <span>{user.email}</span>}
                         <code title={user.id}>ID: {user.id}</code>
                         <span>Создан: {formatter.format(user.createdAt)}</span>
+                        <span className={styles.userAssets}>Связано: объявлений {ads.get(user.id) ?? 0} · новостей {news.get(user.id) ?? 0} · редакционных действий {editorial.get(user.id) ?? 0}</span>
                         {user.id === me.id && <span className={styles.selfMark}>Текущий администратор (вы)</span>}
                     </div>
-                    <RoleEditor key={`${user.id}:${user.role}:${user.updatedAt.toISOString()}`}
-                        userId={user.id} role={user.role} updatedAt={user.updatedAt.toISOString()}
-                        isSelf={user.id === me.id} />
+                    <div>
+                        <RoleEditor key={`${user.id}:${user.role}:${user.updatedAt.toISOString()}`}
+                            userId={user.id} role={user.role} updatedAt={user.updatedAt.toISOString()}
+                            isSelf={user.id === me.id} />
+                        <SessionControls userId={user.id} role={user.role}
+                            updatedAt={user.updatedAt.toISOString()} activeCount={sessions.get(user.id) ?? 0}
+                            isSelf={user.id === me.id} />
+                    </div>
                 </article>
             )}</div>}
         <div className={styles.pager}>
@@ -99,6 +131,16 @@ export default async function AdminUsersPage({ searchParams }) {
                     <time>{formatter.format(item.createdAt)}</time>
                     <span>{item.oldRole} → <strong>{item.newRole}</strong></span>
                     <code title={`Цель: ${item.targetId}; Администратор: ${item.actorId}`}>ID: {item.targetId.slice(0, 12)}…</code>
+                </li>)}</ol>}
+        </section>
+        <section className={styles.panel}>
+            <h2>Журнал завершения сессий</h2>
+            <p className={styles.muted}>Учёт всех отзывов доступа через эту панель. Количество включает сессии и неиспользованные одноразовые ссылки.</p>
+            {revocations.length === 0 ? <p className={styles.muted}>Отзывов пока нет.</p> :
+                <ol className={styles.history}>{revocations.map((item) => <li key={item.id}>
+                    <time>{formatter.format(item.createdAt)}</time>
+                    <span>Отозвано: <strong>{item.revokedCount}</strong></span>
+                    <code title={`Цель: ${item.targetId}; Администратор: ${item.actorId}`}>ID: {item.targetId.slice(0, 20)}…</code>
                 </li>)}</ol>}
         </section>
     </main>;
