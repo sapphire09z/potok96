@@ -190,3 +190,16 @@ model NewsWorkflowEvent {
 
   @@index([postId, createdAt])
 }
+
+// Immutable journal of administrator role changes. IDs remain after account deletion.
+model AdminRoleChange {
+  id        String   @id @default(cuid())
+  actorId   String
+  targetId  String
+  oldRole   UserRole
+  newRole   UserRole
+  createdAt DateTime @default(now())
+
+  @@index([targetId, createdAt])
+  @@index([createdAt])
+}
