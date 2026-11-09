@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import styles from "./account.module.css";
+import ProfileForm from "./ProfileForm";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,9 @@ export default async function AccountPage() {
     const prisma = getPrisma();
     const now = new Date();
 
-    const [groups, expiredPublished] = await Promise.all([
+    const [profile, groups, expiredPublished] = await Promise.all([
+        prisma.user.findUnique({ where: { id: user.id },
+            select: { displayName: true, email: true, updatedAt: true } }),
         prisma.classifiedAd.groupBy({
             by: ["status"],
             where: { ownerId: user.id },
@@ -38,6 +41,8 @@ export default async function AccountPage() {
             },
         }),
     ]);
+
+    if (!profile) redirect("/login");
 
     const counts = Object.fromEntries(
         groups.map((group) => [group.status, group._count._all])
@@ -76,12 +81,18 @@ export default async function AccountPage() {
             </header>
 
             <section className={styles.profile} aria-labelledby="profile-heading">
-                <div>
-                    <h2 id="profile-heading">Мой профиль</h2>
-                    <p className={styles.profileLabel}>Подтверждённый телефон</p>
-                    <p className={styles.phone}>{user.phone ?? "Не указан"}</p>
+                <div className={styles.profileHeader}>
+                    <div>
+                        <h2 id="profile-heading">Мой профиль</h2>
+                        <p className={styles.profileIntro}>Основные сведения учётной записи.</p>
+                    </div>
+                    <span className={styles.profileMark}>Аккаунт</span>
                 </div>
-                <span className={styles.profileMark}>Аккаунт</span>
+                <ProfileForm
+                    profile={{ displayName: profile.displayName || "", email: profile.email || "",
+                        updatedAt: profile.updatedAt.toISOString() }}
+                    phone={user.phone} role={user.role} userId={user.id}
+                />
             </section>
 
             <section className={styles.section} aria-labelledby="ads-heading">

@@ -37,6 +37,7 @@ export default async function AdminUsersPage({ searchParams }) {
         where.OR = [
             { phone: { contains: search } },
             { email: { contains: search, mode: "insensitive" } },
+            { displayName: { contains: search, mode: "insensitive" } },
         ];
         if (/^[A-Za-z0-9][A-Za-z0-9_-]{2,99}$/.test(search)) where.OR.push({ id: search });
     }
@@ -44,7 +45,7 @@ export default async function AdminUsersPage({ searchParams }) {
     const [total, users, history] = await Promise.all([
         prisma.user.count({ where }),
         prisma.user.findMany({ where,
-            select: { id: true, phone: true, email: true, role: true, createdAt: true, updatedAt: true },
+            select: { id: true, displayName: true, phone: true, email: true, role: true, createdAt: true, updatedAt: true },
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             take: PER_PAGE, skip: (page - 1) * PER_PAGE,
         }),
@@ -82,11 +83,11 @@ export default async function AdminUsersPage({ searchParams }) {
     return <main className={styles.content}>
         <div className={styles.sectionHeading}>
             <h2>Пользователи и роли</h2>
-            <p>Найдено: {total}. Роли и неистёкшие записи доступа (сессии и одноразовые ссылки). Удаление учётной записи с историей и материалами пока недоступно.</p>
+            <p>Найдено: {total}. Поиск по имени, телефону, e-mail или ID. Учётные записи с материалами пока не удаляются.</p>
         </div>
         <form action="/admin/users" method="get" className={styles.filters}>
-            <label>Поиск по телефону, e-mail или ID
-                <input type="search" name="q" maxLength={80} defaultValue={search} placeholder="Телефон, почта, ID" />
+            <label>Поиск по имени, телефону, e-mail или ID
+                <input type="search" name="q" maxLength={80} defaultValue={search} placeholder="Имя, телефон, почта, ID" />
             </label>
             <label>Роль
                 <select name="role" defaultValue={role}>
@@ -101,8 +102,9 @@ export default async function AdminUsersPage({ searchParams }) {
             <div className={styles.userList}>{users.map((user) =>
                 <article key={user.id} className={styles.userCard}>
                     <div className={styles.userInfo}>
-                        <strong>{user.phone || user.email || "Учётная запись без контактов"}</strong>
-                        {user.phone && user.email && <span>{user.email}</span>}
+                        <strong>{user.displayName || user.phone || user.email || "Учётная запись без контактов"}</strong>
+                        {user.displayName && user.phone && <span>{user.phone}</span>}
+                        {user.email && (user.displayName || user.phone) && <span>{user.email}</span>}
                         <code title={user.id}>ID: {user.id}</code>
                         <span>Создан: {formatter.format(user.createdAt)}</span>
                         <span className={styles.userAssets}>Связано: объявлений {ads.get(user.id) ?? 0} · новостей {news.get(user.id) ?? 0} · редакционных действий {editorial.get(user.id) ?? 0}</span>

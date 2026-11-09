@@ -213,3 +213,31 @@
         display: grid;
     }
 }
+
+/* Stage 5.3.5c — compact, accessible account profile. */
+.profile { display: block; }
+.profileHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.profileIntro { margin: 7px 0 0; font-size: 14px; color: var(--muted); }
+.profileForm { margin-top: 24px; display: grid; gap: 20px; }
+.profileGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.profileField { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.profileField > span { font-size: 13px; font-weight: 700; }
+.profileField input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; background: #fff; color: var(--text); font: inherit; }
+.profileField input:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.profileField small, .profileReadonly small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.profileReadonly { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding-top: 17px; border-top: 1px solid var(--border); }
+.profileReadonly > div { display: grid; gap: 7px; min-width: 0; }
+.profileReadonly span { color: var(--muted); font-size: 13px; }
+.profileReadonly strong { font-size: 16px; overflow-wrap: anywhere; }
+.profileId { margin: -8px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.profileId code { font-size: 12px; }
+.profileControls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.profileControls button { min-height: 42px; padding: 9px 16px; border: 1px solid var(--text); border-radius: 4px; background: var(--text); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.profileControls button:disabled { cursor: not-allowed; opacity: .45; }
+.profileSuccess, .profileError { font-size: 13px; }
+.profileSuccess { color: #246438; }
+.profileError { color: #a32323; }
+@media (max-width: 640px) {
+    .profileGrid, .profileReadonly { grid-template-columns: 1fr; }
+    .profile { padding: 18px; }
+}
