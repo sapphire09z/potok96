@@ -35,8 +35,64 @@ export async function createUserSession(phone) {
             where: { phone },
             create: { phone },
             update: {},
-            select: { id: true },
+            select: { id: true, role: true },
         });
+
+        // Staff privileges are activated only after the provider has verified
+        // ownership of this exact phone. QA grants never reach this function.
+        if (user.role === "USER") {
+            const now = new Date();
+            const invitation = await tx.staffInvitation.findFirst({
+                where: {
+                    phone,
+                    consumedAt: null,
+                    revokedAt: null,
+                    expiresAt: { gt: now },
+                },
+                orderBy: { createdAt: "desc" },
+                select: { id: true, createdById: true },
+            });
+            if (invitation) {
+                const claimed = await tx.staffInvitation.updateMany({
+                    where: {
+                        id: invitation.id,
+                        consumedAt: null,
+                        revokedAt: null,
+                        expiresAt: { gt: now },
+                    },
+                    data: { consumedAt: now, acceptedById: user.id },
+                });
+                if (claimed.count !== 1) {
+                    throw new Error("Staff invitation was concurrently claimed");
+                }
+                const promoted = await tx.user.updateMany({
+                    where: { id: user.id, role: "USER" },
+                    data: { role: "MODERATOR" },
+                });
+                if (promoted.count !== 1) {
+                    throw new Error("Staff role changed during invitation acceptance");
+                }
+                // Remove all pre-existing access tokens when the account gains privileges.
+                const revoked = await tx.userSession.deleteMany({ where: { userId: user.id } });
+                if (revoked.count > 0) {
+                    await tx.adminSessionRevocation.create({
+                        data: {
+                            actorId: invitation.createdById,
+                            targetId: user.id,
+                            revokedCount: revoked.count,
+                        },
+                    });
+                }
+                await tx.adminRoleChange.create({
+                    data: {
+                        actorId: invitation.createdById,
+                        targetId: user.id,
+                        oldRole: "USER",
+                        newRole: "MODERATOR",
+                    },
+                });
+            }
+        }
 
         await tx.userSession.create({
             data: {
@@ -45,7 +101,7 @@ export async function createUserSession(phone) {
                 expiresAt,
             },
         });
-    });
+    }, { isolationLevel: "Serializable", timeout: 10000 });
 
     return { token, expiresAt };
 }

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import RoleEditor from "./RoleEditor";
 import SessionControls from "./SessionControls";
+import StaffInvitationManager from "./StaffInvitationManager";
 import styles from "../admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export default async function AdminUsersPage({ searchParams }) {
         if (/^[A-Za-z0-9][A-Za-z0-9_-]{2,99}$/.test(search)) where.OR.push({ id: search });
     }
     const prisma = getPrisma();
-    const [total, users, history] = await Promise.all([
+    const [total, users, history, invitations] = await Promise.all([
         prisma.user.count({ where }),
         prisma.user.findMany({ where,
             select: { id: true, displayName: true, phone: true, email: true, role: true, createdAt: true, updatedAt: true },
@@ -51,6 +52,8 @@ export default async function AdminUsersPage({ searchParams }) {
         }),
         prisma.adminRoleChange.findMany({ orderBy: { createdAt: "desc" }, take: 15,
             select: { id: true, actorId: true, targetId: true, oldRole: true, newRole: true, createdAt: true } }),
+        prisma.staffInvitation.findMany({ orderBy: { createdAt: "desc" }, take: 20,
+            select: { id: true, phone: true, expiresAt: true, consumedAt: true, revokedAt: true } }),
     ]);
     const ids = users.map((item) => item.id);
     const [sessionRows, adRows, newsRows, actionRows, revocations] = await Promise.all([
@@ -98,6 +101,11 @@ export default async function AdminUsersPage({ searchParams }) {
             <button type="submit">Найти</button>
             <Link href="/admin/users">Сбросить</Link>
         </form>
+        <StaffInvitationManager invitations={invitations.map(item => ({
+            id: item.id, phone: item.phone, expiresAt: item.expiresAt.toISOString(),
+            consumedAt: item.consumedAt?.toISOString() || null,
+            revokedAt: item.revokedAt?.toISOString() || null,
+        }))} />
         {users.length === 0 ? <section className={styles.panel}><p>Пользователи не найдены.</p></section> :
             <div className={styles.userList}>{users.map((user) =>
                 <article key={user.id} className={styles.userCard}>

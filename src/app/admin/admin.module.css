@@ -59,3 +59,17 @@
 .sessionControls .error { color: #a32323; }
 .sessionControls .success { color: #246438; }
 .userAssets { font-size: 12px; line-height: 1.5; color: var(--muted); }
+
+/* Stage 5.3.5d — staff invitations. */
+.staffInviteForm { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.staffInviteForm label { flex: 1 1 250px; display: grid; gap: 8px; font-size: 13px; font-weight: 700; }
+.staffInviteForm input { box-sizing: border-box; min-height: 42px; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--text); padding: 10px 12px; font: inherit; }
+.staffInviteForm button { min-height: 42px; border: 1px solid var(--text); background: var(--text); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 10px 14px; cursor: pointer; }
+.staffInviteForm button:disabled, .staffInviteRow button:disabled { opacity: .45; cursor: not-allowed; }
+.staffInviteList { display: grid; gap: 0; }
+.staffInviteRow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+.staffInviteRow > div { display: grid; gap: 5px; min-width: 0; }
+.staffInviteRow strong { font-size: 14px; overflow-wrap: anywhere; }
+.staffInviteRow small { color: var(--muted); font-size: 12px; }
+.staffInviteRow button { min-height: 36px; padding: 8px 12px; font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--paper); color: var(--text); cursor: pointer; }
+@media (max-width: 450px) { .staffInviteForm { display: grid; } }

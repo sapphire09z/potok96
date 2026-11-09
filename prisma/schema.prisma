@@ -217,3 +217,19 @@ model AdminSessionRevocation {
   @@index([targetId, createdAt])
   @@index([createdAt])
 }
+
+// A phone-only invitation does not give permissions until verified Mobile ID login.
+// Keep audit IDs as strings, not foreign keys, for historical accuracy.
+model StaffInvitation {
+  id           String   @id @default(cuid())
+  phone        String   @db.VarChar(24)
+  createdById  String
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  revokedAt    DateTime?
+  acceptedById String?
+
+  @@index([phone, createdAt])
+  @@index([createdAt])
+}
