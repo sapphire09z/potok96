@@ -82,3 +82,21 @@
 .recovery div { display: flex; gap: 8px; flex-wrap: wrap; }
 .recovery button { background: white; border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 13px; padding: 10px 12px; cursor: pointer; }
 .recovery button:first-child { background: var(--text); border-color: var(--text); color: white; }
+
+/* Stage 5.4.2 — opt-in AI editorial suggestions. */
+.aiPanel { border: 1px solid var(--border); background: var(--paper); padding: clamp(14px, 2vw, 22px); display: grid; gap: 13px; min-width: 0; }
+.aiPanel h2 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+.aiPanel h3 { font-size: 17px; margin: 0; }
+.aiButtons { display: flex; flex-wrap: wrap; gap: 8px; }
+.aiButtons button { font: inherit; font-size: 13px; padding: 10px 12px; border: 1px solid var(--text); border-radius: 4px; background: var(--text); color: white; cursor: pointer; }
+.aiButtons button + button { background: transparent; color: var(--text); }
+.aiButtons button:disabled { cursor: not-allowed; opacity: .45; }
+.aiResults { display: grid; gap: 14px; border-top: 1px solid var(--border); padding-top: 15px; }
+.aiResult { display: grid; gap: 9px; border-top: 1px solid var(--border); padding-top: 12px; }
+.aiSelect { display: flex !important; flex-direction: row !important; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; }
+.aiSelect input { width: 17px !important; height: 17px; }
+.aiComparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.aiComparison > div { min-width: 0; background: #fff; border: 1px solid var(--border); padding: 12px; }
+.aiComparison strong { font-size: 12px; }
+.aiComparison pre { margin: 8px 0 0; font: inherit; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow-y: auto; }
+@media (max-width: 700px) { .aiComparison { grid-template-columns: 1fr; } }

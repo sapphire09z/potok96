@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import NewsImageManager from "./NewsImageManager";
 import NewsRichTextEditor from "./NewsRichTextEditor";
+import NewsAiAssistant from "./NewsAiAssistant";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import styles from "./draft-form.module.css";
@@ -197,6 +198,18 @@ export default function NewsDraftForm({ initialPost, storageScope }) {
     }
 
 
+    function applyAiEdits(replacements) {
+        const allowed = Object.fromEntries(Object.entries(replacements).filter(
+            ([key, value]) => ["title", "summary", "body"].includes(key) && typeof value === "string"));
+        if (Object.keys(allowed).length === 0) return;
+        setForm((previous) => ({ ...previous, ...allowed }));
+        // Tiptap reads its initial Markdown on mount; remount after a chosen replacement.
+        if (Object.prototype.hasOwnProperty.call(allowed, "body")) setEditorEpoch((value) => value + 1);
+        setRevision((value) => value + 1);
+        setSaved("");
+        setError("");
+    }
+
     function change(name, value) {
         setForm((previous) => ({ ...previous, [name]: value }));
         setError("");
@@ -371,6 +384,9 @@ export default function NewsDraftForm({ initialPost, storageScope }) {
                             {complexMarkdown && <p className={styles.hint} role="status">Обнаружена таблица, HTML или специальная разметка. Для сохранения её без изменений используй режим Markdown.</p>}
                             <p className={styles.hint}>После первого сохранения изменения записываются автоматически при паузе в наборе. Фотографии можно вставлять из галереи ниже.</p>
                         </section>
+                        <NewsAiAssistant draft={{ title: form.title, summary: form.summary, body: form.body }}
+                            disabled={busy || Boolean(recovery) || !recoveryReady}
+                            onApply={applyAiEdits} />
                         <label>Автор
                             <input maxLength={120} value={form.authorName} onChange={(e) => change("authorName", e.target.value)} />
                         </label>
