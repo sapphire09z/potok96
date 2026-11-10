@@ -33,6 +33,7 @@ model User {
   displayName String? @db.VarChar(80)
   phone String?  @unique @db.VarChar(24)
   role  UserRole @default(USER)
+  archivedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -231,5 +232,18 @@ model StaffInvitation {
   acceptedById String?
 
   @@index([phone, createdAt])
+  @@index([createdAt])
+}
+
+// Immutable audit of user archival/restoration; actor/target IDs outlive accounts.
+model AdminUserArchive {
+  id           String   @id @default(cuid())
+  actorId      String
+  targetId     String
+  action       String   @db.VarChar(12)
+  revokedCount Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([targetId, createdAt])
   @@index([createdAt])
 }

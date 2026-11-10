@@ -50,10 +50,11 @@ export async function POST(request) {
                 where: { tokenHash: grantHash },
                 select: {
                     id: true, userId: true, expiresAt: true,
-                    user: { select: { phone: true, role: true } },
+                    user: { select: { phone: true, role: true, archivedAt: true } },
                 },
             });
             if (!grant || grant.expiresAt <= new Date() ||
+                grant.user.archivedAt ||
                 grant.user.role !== "ADMIN" ||
                 grant.user.phone !== process.env.STAGING_OWNER_PHONE) {
                 return null;

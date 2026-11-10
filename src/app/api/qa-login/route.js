@@ -59,13 +59,14 @@ export async function POST(request) {
                     id: true,
                     userId: true,
                     expiresAt: true,
-                    user: { select: { role: true } },
+                    user: { select: { role: true, archivedAt: true } },
                 },
             });
 
             if (
                 !grant ||
                 grant.expiresAt <= new Date() ||
+                grant.user.archivedAt ||
                 !["USER", "MODERATOR"].includes(grant.user.role)
             ) {
                 return null;

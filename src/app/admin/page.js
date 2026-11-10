@@ -12,7 +12,7 @@ export default async function AdminHomePage() {
     if (user.role !== "ADMIN") notFound();
     const prisma = getPrisma();
     const [users, posts, ads, latestRoles] = await Promise.all([
-        prisma.user.groupBy({ by: ["role"], _count: { _all: true } }),
+        prisma.user.groupBy({ by: ["role"], where: { archivedAt: null }, _count: { _all: true } }),
         prisma.newsPost.groupBy({ by: ["status"], _count: { _all: true } }),
         prisma.classifiedAd.groupBy({ by: ["status"], _count: { _all: true } }),
         prisma.adminRoleChange.findMany({ orderBy: { createdAt: "desc" }, take: 5,

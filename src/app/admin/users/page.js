@@ -5,6 +5,7 @@ import { getPrisma } from "@/lib/prisma";
 import RoleEditor from "./RoleEditor";
 import SessionControls from "./SessionControls";
 import StaffInvitationManager from "./StaffInvitationManager";
+import ArchiveControls from "./ArchiveControls";
 import styles from "../admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +14,11 @@ const PER_PAGE = 25;
 const ROLES = ["USER", "MODERATOR", "ADMIN"];
 const labels = { USER: "Пользователь", MODERATOR: "Модератор", ADMIN: "Администратор" };
 
-function pageUrl({ search, role, page }) {
+function pageUrl({ search, role, page, archived = false }) {
     const params = new URLSearchParams();
     if (search) params.set("q", search);
     if (role) params.set("role", role);
+    if (archived) params.set("archived", "1");
     if (page > 1) params.set("page", String(page));
     const suffix = params.toString();
     return `/admin/users${suffix ? `?${suffix}` : ""}`;
@@ -30,10 +32,11 @@ export default async function AdminUsersPage({ searchParams }) {
     const params = await searchParams;
     const search = typeof params?.q === "string" ? params.q.trim().slice(0, 80) : "";
     const role = ROLES.includes(params?.role) ? params.role : "";
+    const archived = params?.archived === "1";
     const requestedPage = Number(params?.page ?? 1);
     const page = Number.isSafeInteger(requestedPage) && requestedPage >= 1 && requestedPage <= 10000
         ? requestedPage : 1;
-    const where = role ? { role } : {};
+    const where = { ...(role ? { role } : {}), archivedAt: archived ? { not: null } : null };
     if (search) {
         where.OR = [
             { phone: { contains: search } },
@@ -46,7 +49,7 @@ export default async function AdminUsersPage({ searchParams }) {
     const [total, users, history, invitations] = await Promise.all([
         prisma.user.count({ where }),
         prisma.user.findMany({ where,
-            select: { id: true, displayName: true, phone: true, email: true, role: true, createdAt: true, updatedAt: true },
+            select: { id: true, displayName: true, phone: true, email: true, role: true, createdAt: true, updatedAt: true, archivedAt: true },
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             take: PER_PAGE, skip: (page - 1) * PER_PAGE,
         }),
@@ -86,9 +89,14 @@ export default async function AdminUsersPage({ searchParams }) {
     return <main className={styles.content}>
         <div className={styles.sectionHeading}>
             <h2>Пользователи и роли</h2>
-            <p>Найдено: {total}. Поиск по имени, телефону, e-mail или ID. Учётные записи с материалами пока не удаляются.</p>
+            <p>{archived ? "Архивные аккаунты не могут входить. История материалов сохраняется." : `Активных аккаунтов найдено: ${total}. Поиск по имени, телефону, e-mail или ID.`}</p>
         </div>
+        <nav className={styles.archiveTabs} aria-label="Состояние аккаунтов">
+            <Link href={pageUrl({ search, role, page: 1, archived: false })} aria-current={!archived ? "page" : undefined}>Активные</Link>
+            <Link href={pageUrl({ search, role, page: 1, archived: true })} aria-current={archived ? "page" : undefined}>Архив</Link>
+        </nav>
         <form action="/admin/users" method="get" className={styles.filters}>
+            {archived && <input type="hidden" name="archived" value="1" />}
             <label>Поиск по имени, телефону, e-mail или ID
                 <input type="search" name="q" maxLength={80} defaultValue={search} placeholder="Имя, телефон, почта, ID" />
             </label>
@@ -117,21 +125,27 @@ export default async function AdminUsersPage({ searchParams }) {
                         <span>Создан: {formatter.format(user.createdAt)}</span>
                         <span className={styles.userAssets}>Связано: объявлений {ads.get(user.id) ?? 0} · новостей {news.get(user.id) ?? 0} · редакционных действий {editorial.get(user.id) ?? 0}</span>
                         {user.id === me.id && <span className={styles.selfMark}>Текущий администратор (вы)</span>}
+                        {user.archivedAt && <span className={styles.archivedMark}>В архиве с {formatter.format(user.archivedAt)}</span>}
                     </div>
                     <div>
-                        <RoleEditor key={`${user.id}:${user.role}:${user.updatedAt.toISOString()}`}
+                        {!user.archivedAt && <>
+                            <RoleEditor key={`${user.id}:${user.role}:${user.updatedAt.toISOString()}`}
+                                userId={user.id} role={user.role} updatedAt={user.updatedAt.toISOString()}
+                                isSelf={user.id === me.id} />
+                            <SessionControls userId={user.id} role={user.role}
+                                updatedAt={user.updatedAt.toISOString()} activeCount={sessions.get(user.id) ?? 0}
+                                isSelf={user.id === me.id} />
+                        </>}
+                        <ArchiveControls key={`${user.id}:${user.updatedAt.toISOString()}`}
                             userId={user.id} role={user.role} updatedAt={user.updatedAt.toISOString()}
-                            isSelf={user.id === me.id} />
-                        <SessionControls userId={user.id} role={user.role}
-                            updatedAt={user.updatedAt.toISOString()} activeCount={sessions.get(user.id) ?? 0}
-                            isSelf={user.id === me.id} />
+                            archived={!!user.archivedAt} isSelf={user.id === me.id} />
                     </div>
                 </article>
             )}</div>}
         <div className={styles.pager}>
-            {page > 1 ? <Link href={pageUrl({ search, role, page: page - 1 })}>← Назад</Link> : <span />}
+            {page > 1 ? <Link href={pageUrl({ search, role, page: page - 1, archived })}>← Назад</Link> : <span />}
             <span>Страница {page} из {lastPage}</span>
-            {page < lastPage ? <Link href={pageUrl({ search, role, page: page + 1 })}>Далее →</Link> : <span />}
+            {page < lastPage ? <Link href={pageUrl({ search, role, page: page + 1, archived })}>Далее →</Link> : <span />}
         </div>
         <section className={styles.panel}>
             <h2>Журнал изменений ролей</h2>

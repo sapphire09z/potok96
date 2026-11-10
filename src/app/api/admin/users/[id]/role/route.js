@@ -43,8 +43,9 @@ export async function POST(request, { params }) {
             const actor = await tx.user.findUnique({ where: { id: admin.id }, select: { role: true } });
             if (actor?.role !== "ADMIN") return { error: "Права администратора изменились.", status: 403 };
             const target = await tx.user.findUnique({ where: { id },
-                select: { id: true, role: true, updatedAt: true } });
+                select: { id: true, role: true, updatedAt: true, archivedAt: true } });
             if (!target) return { error: "Пользователь не найден.", status: 404 };
+            if (target.archivedAt) return { error: "Архивному аккаунту нельзя менять роль. Сначала восстановите его.", status: 409 };
             if (target.role !== body.expectedRole || target.updatedAt.getTime() !== expected.getTime()) {
                 return { error: "Данные пользователя изменились. Обновите страницу.", status: 409 };
             }

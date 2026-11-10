@@ -35,8 +35,12 @@ export async function createUserSession(phone) {
             where: { phone },
             create: { phone },
             update: {},
-            select: { id: true, role: true },
+            select: { id: true, role: true, archivedAt: true },
         });
+
+        if (user.archivedAt) {
+            throw new Error("Archived account cannot sign in");
+        }
 
         // Staff privileges are activated only after the provider has verified
         // ownership of this exact phone. QA grants never reach this function.
@@ -151,12 +155,13 @@ export async function getCurrentUser() {
                     id: true,
                     phone: true,
                     role: true,
+                    archivedAt: true,
                 },
             },
         },
     });
 
-    if (!session || session.expiresAt <= new Date()) {
+    if (!session || session.expiresAt <= new Date() || session.user.archivedAt) {
         return null;
     }
 
