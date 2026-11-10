@@ -254,6 +254,12 @@ enum OrgStatus {
   PUBLISHED
 }
 
+// Stage 5.6.3: optional extended placement. Effective access requires a future date.
+enum OrgPlacement {
+  BASIC
+  EXTENDED
+}
+
 model Organization {
   id           String   @id @default(cuid())
   slug         String   @unique @db.VarChar(160)
@@ -280,6 +286,8 @@ model Organization {
   images       OrgImage[]
   content      String   @default("") @db.Text
   status       OrgStatus @default(DRAFT)
+  placement    OrgPlacement @default(BASIC)
+  extendedUntil DateTime?
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -287,6 +295,7 @@ model Organization {
 
   @@index([status, title])
   @@index([category, area])
+  @@index([placement, extendedUntil])
 }
 
 // Stage 5.6.2: original and responsive versions are private until publication.

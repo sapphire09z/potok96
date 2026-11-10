@@ -17,5 +17,6 @@ export default async function EditOrganizationPage({ params }) {
     return <OrganizationForm key={`${item.id}:${item.updatedAt.toISOString()}`} initial={{
         ...item, createdAt: item.createdAt.toISOString(), updatedAt: item.updatedAt.toISOString(),
         publishedAt: item.publishedAt?.toISOString() || null,
+        extendedUntil: item.extendedUntil?.toISOString() || null,
     }} />;
 }

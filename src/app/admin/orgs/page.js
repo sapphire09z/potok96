@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getPrisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { getOrgCategoryTitle } from "@/lib/orgCategories";
+import { isExtendedPlacement, placementDateInYekat } from "@/lib/orgPlacement";
 import styles from "./orgs-admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,8 @@ export default async function OrganizationsAdminPage({ searchParams }) {
         prisma.organization.count({ where }),
         prisma.organization.findMany({ where, orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
             skip: (page - 1) * SIZE, take: SIZE,
-            select: { id: true, title: true, slug: true, category: true, locality: true, status: true, updatedAt: true } }),
+            select: { id: true, title: true, slug: true, category: true, locality: true, status: true, updatedAt: true,
+                placement: true, extendedUntil: true } }),
     ]);
     const pages = Math.max(1, Math.ceil(count / SIZE));
 
@@ -61,7 +63,11 @@ export default async function OrganizationsAdminPage({ searchParams }) {
         </form>
         {items.length === 0 ? <section className={styles.empty}>Карточек по выбранным условиям пока нет.</section> :
             <div className={styles.items}>{items.map(item => <article key={item.id} className={styles.item}>
-                <div className={styles.row}><span>{getOrgCategoryTitle(item.category)}</span><span className={styles.pill}>{item.status === "PUBLISHED" ? "Опубликовано" : "Черновик"}</span></div>
+                <div className={styles.row}><span>{getOrgCategoryTitle(item.category)}</span>
+                    <span className={styles.pill}>{item.status === "PUBLISHED" ? "Опубликовано" : "Черновик"}</span>
+                    {item.placement === "EXTENDED" && <span className={styles.pill}>
+                        {isExtendedPlacement(item) ? `Расширенная до ${placementDateInYekat(item.extendedUntil)}` : "Расширенная: срок истёк"}
+                    </span>}</div>
                 <h3><Link href={`/admin/orgs/${item.id}`}>{item.title}</Link></h3>
                 <div className={styles.meta}><span>{item.locality || "Красноуфимск"}</span><span>/{item.slug}</span><span>Изменено {formatter.format(item.updatedAt)}</span>
                     {item.status === "PUBLISHED" && <Link href={`/orgs/${item.slug}`}>На сайте</Link>}</div>

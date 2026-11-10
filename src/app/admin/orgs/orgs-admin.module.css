@@ -53,3 +53,13 @@
 .mediaButtons { display: flex; gap: 6px; flex-wrap: wrap; }
 .mediaButtons button { padding: 7px 9px; font: inherit; font-size: 12px; border: 1px solid var(--border); color: var(--text); background: white; cursor: pointer; }
 .mediaButtons button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Stage 5.6.3 — extended organization placement (admin-only). */
+.placementPanel { display: grid; justify-items: start; gap: 13px; border: 1px solid var(--border); background: var(--paper); padding: 18px; }
+.placementPanel h3 { margin: 0; font-size: 20px; }
+.placementChoices { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.placementChoices label { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+.placementChoices input { accent-color: var(--text); }
+.placementDate { display: grid; gap: 8px; font-size: 13px; font-weight: 700; min-width: min(100%, 260px); }
+.placementDate input { font: inherit; padding: 10px 12px; border: 1px solid var(--border); background: white; color: var(--text); width: 100%; }
+.placementPanel p { margin: 0; }
