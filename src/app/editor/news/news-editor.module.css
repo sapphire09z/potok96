@@ -87,3 +87,16 @@
 
 .createLink { display: inline-flex; margin-top: 10px; padding: 12px 17px; border: 1px solid var(--text); border-radius: 4px; color: #fff; background: var(--text); font-size: 14px; font-weight: 700; text-decoration: none; }
 .item h2 a { color: inherit; text-underline-offset: 3px; }
+
+/* Stage 5.4.1: searchable and paginated editorial news list. */
+.searchForm { display: grid; gap: 9px; margin-top: 20px; }
+.searchForm label { font-size: 13px; font-weight: 700; }
+.searchRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.searchRow input[type="search"] { min-width: 0; flex: 1 1 260px; min-height: 43px; border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; background: white; color: var(--text); font: inherit; font-size: 15px; }
+.searchRow button { min-height: 43px; padding: 10px 17px; background: var(--text); color: white; border: 1px solid var(--text); border-radius: 4px; font: inherit; cursor: pointer; }
+.searchRow a { font-size: 14px; color: inherit; text-underline-offset: 3px; }
+.resultsCount { margin: 0 0 16px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; font-size: 13px; }
+.pagination a { color: inherit; text-underline-offset: 3px; }
+.pagination > span { color: var(--muted); }
+@media (max-width: 600px) { .searchRow button { flex: 0 0 auto; } .pagination { gap: 7px; flex-wrap: wrap; } }
