@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ORG_CATEGORIES } from "@/lib/orgCategories";
 import OrganizationMediaManager from "./OrganizationMediaManager";
 import OrganizationPlacementControls from "./OrganizationPlacementControls";
+import OrganizationPremiumControls from "./OrganizationPremiumControls";
 import styles from "./orgs-admin.module.css";
 
 const defaults = {
@@ -38,6 +39,8 @@ export default function OrganizationForm({ initial }) {
     const [busy, setBusy] = useState(false);
     const [mediaBusy, setMediaBusy] = useState(false);
     const [placementBusy, setPlacementBusy] = useState(false);
+    const [premiumBusy, setPremiumBusy] = useState(false);
+    const [premiumDirty, setPremiumDirty] = useState(false);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
     const [dirty, setDirty] = useState(false);
@@ -59,7 +62,7 @@ export default function OrganizationForm({ initial }) {
 
     async function save(event) {
         event.preventDefault();
-        if (busy || mediaBusy || placementBusy || published) return;
+        if (busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || published) return;
         setBusy(true); setError(""); setNotice("");
         try {
             const response = await fetch(initial ? `/api/admin/orgs/${encodeURIComponent(initial.id)}` : "/api/admin/orgs", {
@@ -82,7 +85,7 @@ export default function OrganizationForm({ initial }) {
     }
 
     async function setPublication(action) {
-        if (!initial || busy || mediaBusy || placementBusy || dirty || !version) return;
+        if (!initial || busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || dirty || !version) return;
         if (!window.confirm(action === "publish" ? "Опубликовать карточку в городском справочнике?" :
             "Снять карточку с публикации? Она временно исчезнет с сайта.")) return;
         setBusy(true); setError(""); setNotice("");
@@ -113,7 +116,7 @@ export default function OrganizationForm({ initial }) {
         </header>
         {published && initial && <p className={styles.info}><Link href={`/orgs/${initial.slug}`}>Открыть карточку на сайте</Link></p>}
         <form onSubmit={save} className={styles.form}>
-            <fieldset disabled={busy || mediaBusy || placementBusy || published} className={styles.fieldset}>
+            <fieldset disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || published} className={styles.fieldset}>
                 <div className={styles.two}>
                     <label>Название организации *<input required maxLength={160} value={form.title} onChange={e => update("title", e.target.value)} /></label>
                     <label>Slug (латиница, через дефис) *<input required maxLength={160} minLength={3} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={form.slug} onChange={e => update("slug", e.target.value)} placeholder="primer-organizatsii" /></label>
@@ -159,17 +162,24 @@ export default function OrganizationForm({ initial }) {
             {initial ? <OrganizationMediaManager
                 orgId={initial.id} images={initial.images ?? []}
                 logoImageId={initial.logoImageId} coverImageId={initial.coverImageId}
-                disabled={busy || placementBusy || dirty || published} onBusy={setMediaBusy}
+                disabled={busy || placementBusy || premiumBusy || premiumDirty || dirty || published} onBusy={setMediaBusy}
                 onUpdated={() => router.refresh()} /> :
                 <p className={styles.help}>Для загрузки фотографий сначала сохраните карточку организации.</p>}
             {initial && <OrganizationPlacementControls
                 orgId={initial.id} initialPlacement={initial.placement}
                 initialExtendedUntil={initial.extendedUntil} version={version}
-                disabled={busy || mediaBusy || dirty} onBusy={setPlacementBusy}
+                disabled={busy || mediaBusy || premiumBusy || premiumDirty || dirty} onBusy={setPlacementBusy}
                 onVersion={setVersion} onUpdated={() => router.refresh()} />}
+            {initial && <OrganizationPremiumControls
+                orgId={initial.id} initialContent={{
+                    priceItems: initial.priceItems, specialOffers: initial.specialOffers, extraLinks: initial.extraLinks,
+                }} version={version} onVersion={setVersion}
+                disabled={busy || mediaBusy || placementBusy || dirty}
+                onBusy={setPremiumBusy} onDirty={setPremiumDirty}
+                onUpdated={() => router.refresh()} />}
             <div className={styles.actions}>
-                {!published && <button type="submit" className={styles.primary} disabled={busy || mediaBusy || placementBusy}>{busy ? "Сохраняем…" : "Сохранить черновик"}</button>}
-                {initial && <button type="button" disabled={busy || mediaBusy || placementBusy || dirty} className={styles.secondary}
+                {!published && <button type="submit" className={styles.primary} disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty}>{busy ? "Сохраняем…" : "Сохранить черновик"}</button>}
+                {initial && <button type="button" disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || dirty} className={styles.secondary}
                     onClick={() => setPublication(published ? "unpublish" : "publish")}>{published ? "Снять с публикации" : "Опубликовать"}</button>}
                 {dirty && <span className={styles.help}>Есть несохранённые изменения. Сначала сохраните.</span>}
             </div>

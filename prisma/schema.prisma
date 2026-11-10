@@ -288,6 +288,9 @@ model Organization {
   status       OrgStatus @default(DRAFT)
   placement    OrgPlacement @default(BASIC)
   extendedUntil DateTime?
+  priceItems    Json @default("[]")
+  specialOffers Json @default("[]")
+  extraLinks    Json @default("[]")
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

@@ -463,3 +463,20 @@
         border-radius: 12px;
     }
 }
+
+/* Stage 5.6.4 — clean, optional extended content blocks. */
+.premiumContent { display: grid; gap: 28px; }
+.priceList { border-top: 1px solid var(--soft-border); }
+.priceRow { display: flex; justify-content: space-between; align-items: start; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--soft-border); }
+.priceRow h3 { margin: 0; font-size: 17px; letter-spacing: -.025em; }
+.priceRow p { margin: 5px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.priceRow strong { white-space: nowrap; font-size: 15px; }
+.offersGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.offer { border: 1px solid var(--border); background: var(--paper); border-radius: 14px; padding: 18px; min-width: 0; }
+.offer h3 { margin: 0 0 7px; font-size: 17px; letter-spacing: -.02em; }
+.offer p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.premiumLinks { display: flex; flex-wrap: wrap; gap: 10px; }
+.premiumLinks a { display: inline-flex; align-items: center; min-height: 44px; border-radius: 10px; padding: 10px 16px; border: 1px solid var(--text); background: var(--text); color: white; text-decoration: none; font-size: 14px; font-weight: 700; }
+.premiumLinks a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+@media (max-width:700px) { .offersGrid { grid-template-columns: 1fr; } .premiumLinks { flex-direction: column; } .premiumLinks a { justify-content: center; } }
+@media (max-width:450px) { .priceRow { display: grid; gap: 7px; } }

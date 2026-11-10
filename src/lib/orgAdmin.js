@@ -5,6 +5,7 @@ import { getPrisma } from "@/lib/prisma";
 import { ORG_CATEGORIES } from "@/lib/orgCategories";
 import { organizationImageUrl } from "@/lib/orgMedia";
 import { effectiveOrgPlacement } from "@/lib/orgPlacement";
+import { publicOrgPremium } from "@/lib/orgPremium";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE = /^\/media\/orgs\/[a-zA-Z0-9/_-]+\.(?:jpe?g|png|webp|avif)$/i;
@@ -116,5 +117,6 @@ export function organizationToPublic(row) {
                 alt: image.caption || `Фотография: ${row.title}` })),
         content: row.content, status: "published",
         placement: effectiveOrgPlacement(row),
+        ...publicOrgPremium(row),
     };
 }

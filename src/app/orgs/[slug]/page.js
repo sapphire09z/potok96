@@ -6,6 +6,7 @@ import { getAllEvents } from "@/lib/events";
 import { getAllNews } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
 import Image from "next/image";
+import OrgPremium from "./OrgPremium";
 
 import styles from "./org.module.css";
 
@@ -261,6 +262,8 @@ export default async function OrgPage({ params }) {
                 )}
 
             </section>
+
+            <OrgPremium priceItems={org.priceItems} specialOffers={org.specialOffers} extraLinks={org.extraLinks} />
 
             {org.gallery?.length > 0 && (
                 <section className={styles.section}>
