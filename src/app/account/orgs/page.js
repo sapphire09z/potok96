@@ -30,7 +30,7 @@ export default async function AccountOrganizations({ searchParams }) {
         <header className={styles.heading}>
             <p className={styles.kicker}>Поток 96 / Бизнес</p>
             <h1>Мои организации</h1>
-            <p>Здесь можно запросить управление карточкой организации. Заявку проверяет администратор. После одобрения право управления сохраняется за вашей учётной записью, но редактирование пока не включено.</p>
+            <p>Здесь можно запросить управление карточкой организации. Заявку проверяет администратор. После одобрения можно подготовить изменения и отправить их редакции. Опубликованная карточка до проверки не меняется.</p>
         </header>
         {selected && !existing && !alreadyManaged && <OrgClaimForm organization={selected} />}
         {selected && alreadyManaged && !existing && <section className={styles.panel}><p>У этой организации уже есть подтверждённый представитель. Для смены представителя обратитесь в редакцию.</p></section>}
@@ -46,7 +46,7 @@ export default async function AccountOrganizations({ searchParams }) {
                 <article key={item.id} className={styles.item}>
                     <div><strong>{item.organization.title}</strong><span>{item.roleDescription}</span></div>
                     <div className={styles.status}>{CLAIM_STATUS_RU[item.status] ?? item.status}</div>
-                    {item.status === "APPROVED" && <p>Полномочия подтверждены. Интерфейс отправки правок появится следующим этапом.</p>}
+                    {item.status === "APPROVED" && <p>Полномочия подтверждены. <Link href={`/account/orgs/${item.orgId}/edit`}>Изменить сведения организации →</Link></p>}
                     {item.status === "REJECTED" && <p>Для уточнения причины отказа свяжитесь с редакцией.</p>}
                 </article>)}</div>}
         </section>

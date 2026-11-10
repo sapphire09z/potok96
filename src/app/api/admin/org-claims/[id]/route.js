@@ -43,7 +43,15 @@ export async function POST(request, { params }) {
                 ? { revokedAt: now, revokedById: actor.id, revocationNote: input.note }
                 : { reviewedAt: now, reviewedById: actor.id, reviewNote: input.note };
             const change = await tx.orgClaim.updateMany({ where: { id, status: from }, data: { status: to, ...fields } });
-            return change.count === 1 ? { status: to } : { error: "Заявка изменилась. Обновите страницу.", status: 409 };
+            if (change.count !== 1) return { error: "Заявка изменилась. Обновите страницу.", status: 409 };
+            if (input.action === "revoke") {
+                // Revoke cancels any unpublished draft/submission atomically, including
+                // proposals saved in a concurrent session. No lingering access.
+                await tx.orgEditProposal.updateMany({ where: {
+                    claimId: claim.id, status: { in: ["DRAFT", "SUBMITTED"] },
+                }, data: { status: "CANCELLED" } });
+            }
+            return { status: to };
         }, { isolationLevel: "Serializable", timeout: 10000 });
         if (result.error) return respond({ error: result.error }, result.status);
         return respond({ success: true, status: result.status });

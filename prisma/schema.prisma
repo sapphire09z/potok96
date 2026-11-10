@@ -42,6 +42,7 @@ model User {
   sessions UserSession[]
   newsPosts NewsPost[] @relation("NewsPostCreatedBy")
   orgClaims OrgClaim[] @relation("OrgClaimRequester")
+  orgEditProposals OrgEditProposal[] @relation("OrgEditProposalRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
 }
 
@@ -286,6 +287,7 @@ model Organization {
   coverImageId String?  @db.VarChar(36)
   images       OrgImage[]
   orgClaims    OrgClaim[]
+  orgEditProposals OrgEditProposal[]
   content      String   @default("") @db.Text
   status       OrgStatus @default(DRAFT)
   placement    OrgPlacement @default(BASIC)
@@ -344,8 +346,45 @@ model OrgClaim {
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
   requester    User         @relation("OrgClaimRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  editProposals OrgEditProposal[]
 
   @@index([status, createdAt])
   @@index([requesterId, createdAt])
   @@index([orgId, status])
+}
+
+// Stage 5.6.5b1: drafts and proposals are separate from publicly visible cards.
+// Review and application to the public card are deferred to stage 5.6.5b2.
+enum OrgEditProposalStatus {
+  DRAFT
+  SUBMITTED
+  RETURNED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model OrgEditProposal {
+  id                String @id @default(cuid())
+  orgId             String
+  requesterId       String
+  claimId           String
+  status            OrgEditProposalStatus @default(DRAFT)
+  baseOrgUpdatedAt  DateTime
+  baseFields        Json
+  fields            Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  submittedAt       DateTime?
+  reviewedAt        DateTime?
+  reviewedById      String?
+  reviewNote        String? @db.VarChar(1000)
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
+  requester    User         @relation("OrgEditProposalRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  claim        OrgClaim     @relation(fields: [claimId], references: [id], onDelete: Restrict)
+
+  @@index([requesterId, createdAt])
+  @@index([orgId, status])
+  @@index([status, submittedAt])
 }
