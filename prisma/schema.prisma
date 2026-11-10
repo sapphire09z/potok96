@@ -41,6 +41,7 @@ model User {
   ads ClassifiedAd[]
   sessions UserSession[]
   newsPosts NewsPost[] @relation("NewsPostCreatedBy")
+  orgClaims OrgClaim[] @relation("OrgClaimRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
 }
 
@@ -284,6 +285,7 @@ model Organization {
   logoImageId  String?  @db.VarChar(36)
   coverImageId String?  @db.VarChar(36)
   images       OrgImage[]
+  orgClaims    OrgClaim[]
   content      String   @default("") @db.Text
   status       OrgStatus @default(DRAFT)
   placement    OrgPlacement @default(BASIC)
@@ -314,4 +316,36 @@ model OrgImage {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId, sortOrder])
+}
+
+// Stage 5.6.5a: representative claims are reviewed manually.
+// An approved claim grants NO moderator or administrator role.
+enum OrgClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+model OrgClaim {
+  id              String         @id @default(cuid())
+  orgId           String
+  requesterId     String
+  roleDescription String         @db.VarChar(120)
+  evidenceNote    String         @db.VarChar(1000)
+  status          OrgClaimStatus @default(PENDING)
+  reviewNote      String?        @db.VarChar(500)
+  reviewedById    String?
+  reviewedAt      DateTime?
+  revocationNote  String?        @db.VarChar(500)
+  revokedById     String?
+  revokedAt       DateTime?
+  createdAt       DateTime       @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
+  requester    User         @relation("OrgClaimRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([requesterId, createdAt])
+  @@index([orgId, status])
 }

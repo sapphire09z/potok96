@@ -117,6 +117,7 @@ export function organizationToPublic(row) {
                 alt: image.caption || `Фотография: ${row.title}` })),
         content: row.content, status: "published",
         placement: effectiveOrgPlacement(row),
+        claimable: true,
         ...publicOrgPremium(row),
     };
 }

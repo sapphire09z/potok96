@@ -129,6 +129,17 @@ export default async function AccountPage() {
                 </p>
             </section>
 
+            <section className={styles.section} aria-labelledby="orgs-heading">
+                <div className={styles.sectionTitle}>
+                    <div><h2 id="orgs-heading">Мои организации</h2>
+                        <p>Заявки на управление карточками бизнеса.</p></div>
+                    <Link href="/account/orgs" className={styles.textLink}>Мои заявки →</Link>
+                </div>
+                <div className={styles.actions}><Link href="/account/orgs" className={styles.secondary}>
+                    Управление организациями
+                </Link></div>
+            </section>
+
             {["ADMIN", "MODERATOR"].includes(user.role) && (
                 <section className={styles.section} aria-labelledby="editor-heading">
                     <h2 id="editor-heading">Редакция</h2>

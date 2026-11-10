@@ -236,6 +236,10 @@ export default async function OrgPage({ params }) {
                     </nav>
                 )}
 
+                {org.claimable && <div className={styles.actions}>
+                    <Link href={`/account/orgs?organization=${encodeURIComponent(org.slug)}`}
+                        className={styles.secondaryAction}>Я представляю организацию</Link>
+                </div>}
             </header>
 
             <section className={styles.content}>
