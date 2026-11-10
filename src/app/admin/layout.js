@@ -26,6 +26,7 @@ export default async function AdminLayout({ children }) {
         <nav className={styles.nav} aria-label="Разделы администрирования">
             <Link href="/admin">Обзор</Link>
             <Link href="/admin/users">Пользователи и роли</Link>
+            <Link href="/admin/orgs">Организации</Link>
             <Link href="/editor/news">Редакция новостей</Link>
             <Link href="/moderator/ads">Модерация объявлений</Link>
         </nav>

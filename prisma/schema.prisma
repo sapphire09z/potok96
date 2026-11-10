@@ -247,3 +247,41 @@ model AdminUserArchive {
   @@index([targetId, createdAt])
   @@index([createdAt])
 }
+
+// Stage 5.6.1: PostgreSQL-backed organization cards; legacy Markdown remains read-only.
+enum OrgStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Organization {
+  id           String   @id @default(cuid())
+  slug         String   @unique @db.VarChar(160)
+  title        String   @db.VarChar(160)
+  type         String   @default("") @db.VarChar(120)
+  category     String   @default("other") @db.VarChar(32)
+  area         String   @default("city") @db.VarChar(12)
+  locality     String   @default("Красноуфимск") @db.VarChar(120)
+  address      String   @default("") @db.VarChar(240)
+  phone        String   @default("") @db.VarChar(100)
+  hours        String   @default("") @db.VarChar(600)
+  tags         String[] @default([])
+  services     String[] @default([])
+  website      String   @default("") @db.VarChar(2048)
+  email        String   @default("") @db.VarChar(254)
+  mapUrl       String   @default("") @db.VarChar(2048)
+  vkUrl        String   @default("") @db.VarChar(2048)
+  okUrl        String   @default("") @db.VarChar(2048)
+  maxUrl       String   @default("") @db.VarChar(2048)
+  logo         String   @default("") @db.VarChar(512)
+  cover        String   @default("") @db.VarChar(512)
+  content      String   @default("") @db.Text
+  status       OrgStatus @default(DRAFT)
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  publishedAt  DateTime?
+
+  @@index([status, title])
+  @@index([category, area])
+}

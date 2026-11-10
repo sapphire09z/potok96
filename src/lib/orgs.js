@@ -1,10 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
+import { getPrisma } from "@/lib/prisma";
+import { organizationToPublic } from "@/lib/orgAdmin";
 
 const ORGS_DIR = path.join(process.cwd(), "content", "orgs");
 
-export async function getAllOrgs() {
+async function getAllMarkdownOrgs() {
     const files = await fs.readdir(ORGS_DIR);
 
     const items = await Promise.all(
@@ -44,7 +46,7 @@ export async function getAllOrgs() {
     return items.filter((o) => o.status === "published");
 }
 
-export async function getOrgBySlug(slug) {
+async function getMarkdownOrgBySlug(slug) {
     const files = await fs.readdir(ORGS_DIR);
 
     for (const filename of files) {
@@ -106,4 +108,21 @@ export async function getOrgBySlug(slug) {
     }
 
     return null;
+}
+
+// Hybrid read: existing Markdown cards take precedence over new CMS cards.
+export async function getAllOrgs() {
+    const [legacy, cards] = await Promise.all([
+        getAllMarkdownOrgs(),
+        getPrisma().organization.findMany({ where: { status: "PUBLISHED" } }),
+    ]);
+    const reserved = new Set(legacy.map(item => item.slug));
+    return [...legacy, ...cards.filter(item => !reserved.has(item.slug)).map(organizationToPublic)];
+}
+
+export async function getOrgBySlug(slug) {
+    const legacy = await getMarkdownOrgBySlug(slug);
+    if (legacy) return legacy;
+    const card = await getPrisma().organization.findUnique({ where: { slug } });
+    return card?.status === "PUBLISHED" ? organizationToPublic(card) : null;
 }
