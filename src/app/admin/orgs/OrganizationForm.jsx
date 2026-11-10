@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ORG_CATEGORIES } from "@/lib/orgCategories";
+import OrganizationMediaManager from "./OrganizationMediaManager";
 import styles from "./orgs-admin.module.css";
 
 const defaults = {
@@ -34,6 +35,7 @@ export default function OrganizationForm({ initial }) {
     const [status, setStatus] = useState(initial?.status ?? "DRAFT");
     const [version, setVersion] = useState(initial?.updatedAt ?? "");
     const [busy, setBusy] = useState(false);
+    const [mediaBusy, setMediaBusy] = useState(false);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
     const [dirty, setDirty] = useState(false);
@@ -55,7 +57,7 @@ export default function OrganizationForm({ initial }) {
 
     async function save(event) {
         event.preventDefault();
-        if (busy || published) return;
+        if (busy || mediaBusy || published) return;
         setBusy(true); setError(""); setNotice("");
         try {
             const response = await fetch(initial ? `/api/admin/orgs/${encodeURIComponent(initial.id)}` : "/api/admin/orgs", {
@@ -78,7 +80,7 @@ export default function OrganizationForm({ initial }) {
     }
 
     async function setPublication(action) {
-        if (!initial || busy || dirty || !version) return;
+        if (!initial || busy || mediaBusy || dirty || !version) return;
         if (!window.confirm(action === "publish" ? "Опубликовать карточку в городском справочнике?" :
             "Снять карточку с публикации? Она временно исчезнет с сайта.")) return;
         setBusy(true); setError(""); setNotice("");
@@ -109,7 +111,7 @@ export default function OrganizationForm({ initial }) {
         </header>
         {published && initial && <p className={styles.info}><Link href={`/orgs/${initial.slug}`}>Открыть карточку на сайте</Link></p>}
         <form onSubmit={save} className={styles.form}>
-            <fieldset disabled={busy || published} className={styles.fieldset}>
+            <fieldset disabled={busy || mediaBusy || published} className={styles.fieldset}>
                 <div className={styles.two}>
                     <label>Название организации *<input required maxLength={160} value={form.title} onChange={e => update("title", e.target.value)} /></label>
                     <label>Slug (латиница, через дефис) *<input required maxLength={160} minLength={3} pattern="[a-z0-9]+(-[a-z0-9]+)*" value={form.slug} onChange={e => update("slug", e.target.value)} placeholder="primer-organizatsii" /></label>
@@ -150,11 +152,17 @@ export default function OrganizationForm({ initial }) {
                     <label>Логотип (путь /media/orgs/…)<input maxLength={512} value={form.logo} onChange={e => update("logo", e.target.value)} placeholder="/media/orgs/logo.webp" /></label>
                     <label>Обложка (путь /media/orgs/…)<input maxLength={512} value={form.cover} onChange={e => update("cover", e.target.value)} placeholder="/media/orgs/cover.webp" /></label>
                 </div>
-                <p className={styles.help}>Загрузка изображений будет отдельным этапом. Сейчас можно использовать только существующие файлы внутри /media/orgs/.</p>
+                <p className={styles.help}>Пути из /media/orgs/ используются как резервный вариант, если не выбран загруженный логотип или обложка.</p>
             </fieldset>
+            {initial ? <OrganizationMediaManager
+                orgId={initial.id} images={initial.images ?? []}
+                logoImageId={initial.logoImageId} coverImageId={initial.coverImageId}
+                disabled={busy || dirty || published} onBusy={setMediaBusy}
+                onUpdated={() => router.refresh()} /> :
+                <p className={styles.help}>Для загрузки фотографий сначала сохраните карточку организации.</p>}
             <div className={styles.actions}>
-                {!published && <button type="submit" className={styles.primary} disabled={busy}>{busy ? "Сохраняем…" : "Сохранить черновик"}</button>}
-                {initial && <button type="button" disabled={busy || dirty} className={styles.secondary}
+                {!published && <button type="submit" className={styles.primary} disabled={busy || mediaBusy}>{busy ? "Сохраняем…" : "Сохранить черновик"}</button>}
+                {initial && <button type="button" disabled={busy || mediaBusy || dirty} className={styles.secondary}
                     onClick={() => setPublication(published ? "unpublish" : "publish")}>{published ? "Снять с публикации" : "Опубликовать"}</button>}
                 {dirty && <span className={styles.help}>Есть несохранённые изменения. Сначала сохраните.</span>}
             </div>

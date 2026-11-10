@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { getPrisma } from "@/lib/prisma";
 import { organizationSlugExists } from "@/lib/orgAdmin";
+import { promoteOrganizationImages } from "@/lib/orgMedia";
 
 export const runtime = "nodejs";
 const ID = /^c[a-z0-9]{10,40}$/;
@@ -33,12 +34,28 @@ export async function POST(request, { params }) {
     const prisma = getPrisma();
     try {
         const item = await prisma.organization.findUnique({ where: { id },
-            select: { id: true, slug: true, title: true, status: true, publishedAt: true } });
+            select: { id: true, slug: true, title: true, status: true, publishedAt: true,
+                logoImageId: true, coverImageId: true,
+                images: { select: { id: true, storageKey: true, credit: true, rightsNote: true } } } });
         if (!item) return fail("Организация не найдена.", 404);
         if (item.status !== from) return fail("Статус организации уже изменён.", 409);
         if (to === "PUBLISHED") {
             if (!item.title.trim()) return fail("Укажите название организации.", 422);
             if (await organizationSlugExists(item.slug, item.id)) return fail("Адрес страницы занят другой организацией.", 409);
+            if (item.images.some(image => !image.credit?.trim() || !image.rightsNote?.trim())) {
+                return fail("Для публикации заполните автора и основание использования у каждой фотографии.", 422);
+            }
+            const ids = new Set(item.images.map(image => image.id));
+            if ((item.logoImageId && !ids.has(item.logoImageId)) ||
+                (item.coverImageId && !ids.has(item.coverImageId))) {
+                return fail("Выбранный логотип или обложка отсутствует в галерее.", 422);
+            }
+            try {
+                await promoteOrganizationImages(item);
+            } catch (error) {
+                console.error("Organization CDN promotion failed", { id, code: error?.code ?? "unknown" });
+                return fail("Не удалось опубликовать изображения в CDN. Повторите после проверки S3.", 503);
+            }
         }
         const changed = await prisma.organization.updateMany({
             where: { id, status: from, updatedAt: new Date(input.expectedUpdatedAt) },

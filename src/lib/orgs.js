@@ -114,7 +114,8 @@ async function getMarkdownOrgBySlug(slug) {
 export async function getAllOrgs() {
     const [legacy, cards] = await Promise.all([
         getAllMarkdownOrgs(),
-        getPrisma().organization.findMany({ where: { status: "PUBLISHED" } }),
+        getPrisma().organization.findMany({ where: { status: "PUBLISHED" },
+            include: { images: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } } }),
     ]);
     const reserved = new Set(legacy.map(item => item.slug));
     return [...legacy, ...cards.filter(item => !reserved.has(item.slug)).map(organizationToPublic)];
@@ -123,6 +124,7 @@ export async function getAllOrgs() {
 export async function getOrgBySlug(slug) {
     const legacy = await getMarkdownOrgBySlug(slug);
     if (legacy) return legacy;
-    const card = await getPrisma().organization.findUnique({ where: { slug } });
+    const card = await getPrisma().organization.findUnique({ where: { slug },
+        include: { images: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } } });
     return card?.status === "PUBLISHED" ? organizationToPublic(card) : null;
 }

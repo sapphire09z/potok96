@@ -275,6 +275,9 @@ model Organization {
   maxUrl       String   @default("") @db.VarChar(2048)
   logo         String   @default("") @db.VarChar(512)
   cover        String   @default("") @db.VarChar(512)
+  logoImageId  String?  @db.VarChar(36)
+  coverImageId String?  @db.VarChar(36)
+  images       OrgImage[]
   content      String   @default("") @db.Text
   status       OrgStatus @default(DRAFT)
   createdById  String
@@ -284,4 +287,19 @@ model Organization {
 
   @@index([status, title])
   @@index([category, area])
+}
+
+// Stage 5.6.2: original and responsive versions are private until publication.
+model OrgImage {
+  id         String   @id @db.VarChar(36)
+  orgId      String
+  storageKey String   @db.VarChar(512)
+  sortOrder  Int      @default(0)
+  caption    String?  @db.VarChar(240)
+  credit     String?  @db.VarChar(240)
+  rightsNote String?  @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, sortOrder])
 }

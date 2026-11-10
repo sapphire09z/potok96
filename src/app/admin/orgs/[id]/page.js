@@ -11,7 +11,8 @@ export default async function EditOrganizationPage({ params }) {
     if (me.role !== "ADMIN") notFound();
     const { id } = await params;
     if (!/^c[a-z0-9]{10,40}$/.test(id)) notFound();
-    const item = await getPrisma().organization.findUnique({ where: { id } });
+    const item = await getPrisma().organization.findUnique({ where: { id },
+        include: { images: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } } });
     if (!item) notFound();
     return <OrganizationForm key={`${item.id}:${item.updatedAt.toISOString()}`} initial={{
         ...item, createdAt: item.createdAt.toISOString(), updatedAt: item.updatedAt.toISOString(),

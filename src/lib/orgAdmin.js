@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { getPrisma } from "@/lib/prisma";
 import { ORG_CATEGORIES } from "@/lib/orgCategories";
+import { organizationImageUrl } from "@/lib/orgMedia";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE = /^\/media\/orgs\/[a-zA-Z0-9/_-]+\.(?:jpe?g|png|webp|avif)$/i;
@@ -97,12 +98,21 @@ export async function organizationSlugExists(slug, exceptId = null) {
 }
 
 export function organizationToPublic(row) {
+    const images = row.images ?? [];
+    const byId = (id) => images.find(image => image.id === id);
+    const logoImage = byId(row.logoImageId);
+    const coverImage = byId(row.coverImageId);
     return {
         slug: row.slug, title: row.title, type: row.type, category: row.category,
         area: row.area, locality: row.locality, address: row.address, phone: row.phone,
         hours: row.hours, tags: row.tags, services: row.services,
-        logo: row.logo, cover: row.cover, website: row.website, email: row.email,
-        mapUrl: row.mapUrl, socials: { vk: row.vkUrl, ok: row.okUrl, max: row.maxUrl },
-        gallery: [], content: row.content, status: "published",
+        logo: logoImage ? organizationImageUrl(row.id, logoImage, 320) : row.logo,
+        cover: coverImage ? organizationImageUrl(row.id, coverImage, 960) : row.cover,
+        website: row.website, email: row.email, mapUrl: row.mapUrl,
+        socials: { vk: row.vkUrl, ok: row.okUrl, max: row.maxUrl },
+        gallery: images.filter(image => image.id !== row.logoImageId && image.id !== row.coverImageId)
+            .map(image => ({ src: organizationImageUrl(row.id, image, 960),
+                alt: image.caption || `Фотография: ${row.title}` })),
+        content: row.content, status: "published",
     };
 }
