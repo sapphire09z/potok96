@@ -425,6 +425,7 @@ model EventPost {
   pushkinProofUrl String @default("") @db.VarChar(2048)
   summary         String @default("") @db.VarChar(600)
   cover           String @default("") @db.VarChar(512)
+  coverImageId    String? @db.VarChar(36)
   orgSlug         String @default("") @db.VarChar(160)
   video           String @default("") @db.VarChar(2048)
   content         String @default("") @db.Text
@@ -434,8 +435,25 @@ model EventPost {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   publishedAt     DateTime?
+  images          EventImage[]
 
   @@index([status, startAt])
   @@index([category, startAt])
   @@index([createdById, createdAt])
+}
+
+// Stage 5.7.2: source objects and variants are private until promotion.
+model EventImage {
+  id         String @id @db.VarChar(36)
+  eventId    String
+  storageKey String @db.VarChar(512)
+  sortOrder  Int @default(0)
+  caption    String? @db.VarChar(240)
+  credit     String? @db.VarChar(240)
+  rightsNote String? @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+
+  event EventPost @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, sortOrder])
 }

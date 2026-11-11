@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EVENT_CATEGORIES } from "@/lib/eventCategories";
+import EventMediaManager from "./EventMediaManager";
 import styles from "./events-admin.module.css";
 
 const defaults = {
@@ -21,6 +22,7 @@ export default function EventForm({ initial }) {
     const [status, setStatus] = useState(initial?.status ?? "DRAFT");
     const [version, setVersion] = useState(initial?.updatedAt ?? "");
     const [busy, setBusy] = useState(false);
+    const [mediaBusy, setMediaBusy] = useState(false);
     const [dirty, setDirty] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -55,7 +57,7 @@ export default function EventForm({ initial }) {
     }
     async function save(event) {
         event.preventDefault();
-        if (busy) return;
+        if (busy || mediaBusy) return;
         setBusy(true); setError(""); setMessage("");
         try {
             const result = await request(initial ? `/api/admin/events/${encodeURIComponent(initial.id)}` : "/api/admin/events",
@@ -74,7 +76,7 @@ export default function EventForm({ initial }) {
         finally { setBusy(false); }
     }
     async function publish(action) {
-        if (!initial || busy || dirty || !version) return;
+        if (!initial || busy || mediaBusy || dirty || !version) return;
         if (!window.confirm(action === "publish" ? "Опубликовать мероприятие в афише?" :
             "Снять мероприятие с публикации? Оно исчезнет из афиши.")) return;
         setBusy(true); setMessage(""); setError("");
@@ -99,7 +101,7 @@ export default function EventForm({ initial }) {
         {initial && status === "PUBLISHED" && <p className={styles.info}>
             <Link href={`/events/${form.slug}`}>Открыть мероприятие на сайте</Link></p>}
         <form className={styles.form} onSubmit={save}>
-            <fieldset className={styles.fieldset} disabled={busy}>
+            <fieldset className={styles.fieldset} disabled={busy || mediaBusy}>
                 <div className={styles.two}>
                     <label>Название *<input required maxLength={180} value={form.title}
                         onChange={e => update("title", e.target.value)} /></label>
@@ -151,8 +153,8 @@ export default function EventForm({ initial }) {
                 <p className={styles.help}>На этапе 5.7.1 загрузка обложек через интерфейс ещё не предусмотрена. Можно указать существующий файл из /media/events/ либо оставить поле пустым.</p>
             </fieldset>
             <div className={styles.actions}>
-                <button className={styles.primary} type="submit" disabled={busy}>{busy ? "Сохраняем…" : "Сохранить"}</button>
-                {initial && <button type="button" className={styles.secondary} disabled={busy || dirty}
+                <button className={styles.primary} type="submit" disabled={busy || mediaBusy}>{busy ? "Сохраняем…" : "Сохранить"}</button>
+                {initial && <button type="button" className={styles.secondary} disabled={busy || mediaBusy || dirty}
                     onClick={() => publish(status === "PUBLISHED" ? "unpublish" : "publish")}>
                     {status === "PUBLISHED" ? "Снять с публикации" : "Опубликовать"}</button>}
                 {dirty && <span className={styles.help}>Есть несохранённые изменения — сохраните их перед публикацией.</span>}
@@ -160,5 +162,9 @@ export default function EventForm({ initial }) {
             {error && <p role="alert" className={styles.error}>{error}</p>}
             {message && <p role="status" className={styles.success}>{message}</p>}
         </form>
+        {initial && <EventMediaManager eventId={initial.id} version={version}
+            images={initial.images ?? []} coverImageId={initial.coverImageId}
+            disabled={busy || dirty || mediaBusy} onBusy={setMediaBusy}
+            onUpdated={() => router.refresh()} />}
     </main>;
 }

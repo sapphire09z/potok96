@@ -78,6 +78,15 @@ function publicBucket() {
   return bucket;
 }
 
+// Best-effort object deletion after a cover is detached from an event. CDN
+// edge caches may continue to serve an immutable URL until their TTL expires.
+export async function deletePublic(key) {
+  await getMediaS3().send(new DeleteObjectCommand({
+    Bucket: publicBucket(),
+    Key: key,
+  }));
+}
+
 export function publicMediaUrl(key) {
   publicBucket();
   if (!/^media\/(listings|news|events|orgs|site)\/[a-zA-Z0-9_/-]+\.webp$/.test(key)) {

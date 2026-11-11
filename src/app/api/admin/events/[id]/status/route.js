@@ -4,6 +4,8 @@ import { getPrisma } from "@/lib/prisma";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { EVENT_ID, isEventVersion } from "@/lib/eventAdmin.mjs";
 import { eventSlugExists, isActiveAdmin } from "@/lib/eventCms";
+import { canDisplayEventImage } from "@/lib/eventMediaPolicy.mjs";
+import { promoteEventImage } from "@/lib/eventMedia";
 
 export const runtime = "nodejs";
 const reply = (data, status = 200) => NextResponse.json(data, {
@@ -36,6 +38,8 @@ export async function POST(request, { params }) {
         const existing = await db.eventPost.findUnique({ where: { id }, select: {
             slug: true, status: true, title: true, startAt: true, endAt: true,
             pushkinCard: true, pushkinProofUrl: true, publishedAt: true,
+            coverImageId: true, updatedAt: true,
+            images: { select: { id: true, eventId: true, storageKey: true, credit: true, rightsNote: true } },
         } });
         if (!existing) return reply({ error: "Мероприятие не найдено." }, 404);
         if (existing.status !== from) return reply({ error: "Статус уже изменился. Обновите страницу." }, 409);
@@ -46,6 +50,18 @@ export async function POST(request, { params }) {
                 return reply({ error: "Заполните дату, название и подтверждение Пушкинской карты." }, 422);
             if (await eventSlugExists(existing.slug, id))
                 return reply({ error: "Адрес страницы занят старым мероприятием." }, 409);
+            if (existing.updatedAt.toISOString() !== input.expectedUpdatedAt)
+                return reply({ error: "Карточка изменилась. Обновите страницу." }, 409);
+            if (existing.coverImageId) {
+                const cover = existing.images.find(img => img.id === existing.coverImageId);
+                if (!canDisplayEventImage({ id }, cover))
+                    return reply({ error: "Укажите автора и основание использования выбранной афиши." }, 422);
+                try { await promoteEventImage(id, cover); }
+                catch (error) {
+                    console.error("Event cover CDN promotion failed", { code: error?.code ?? "unknown" });
+                    return reply({ error: "Не удалось разместить обложку в CDN. Мероприятие не опубликовано." }, 503);
+                }
+            }
         }
         const changed = await db.eventPost.updateMany({ where: {
             id, status: from, updatedAt: new Date(input.expectedUpdatedAt),
