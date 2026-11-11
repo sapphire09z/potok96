@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
+import { getPrisma } from "@/lib/prisma";
+import { eventToPublic } from "@/lib/eventAdmin.mjs";
 
 const EVENTS_DIR = path.join(process.cwd(), "content", "events");
 
@@ -33,9 +35,12 @@ export async function getAllEvents() {
             })
     );
 
-    // показываем только published и сортируем по времени начала (сначала ближайшие)
-    return items
-        .filter((e) => e.status === "published")
+    // Preserve legacy priority, including draft slugs that must not be shadowed.
+    const reserved = new Set(items.map(item => item.slug).filter(Boolean));
+    const cards = await getPrisma().eventPost.findMany({ where: { status: "PUBLISHED" },
+        orderBy: [{ startAt: "asc" }, { id: "asc" }] });
+    return [...items.filter(e => e.status === "published"),
+        ...cards.filter(item => !reserved.has(item.slug)).map(eventToPublic)]
         .sort((a, b) => new Date(a.startAt) - new Date(b.startAt));
 }
 
@@ -70,5 +75,6 @@ export async function getEventBySlug(slug) {
         }
     }
 
-    return null;
+    const card = await getPrisma().eventPost.findUnique({ where: { slug } });
+    return card?.status === "PUBLISHED" ? eventToPublic(card) : null;
 }

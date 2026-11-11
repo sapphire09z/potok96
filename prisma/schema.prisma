@@ -41,6 +41,7 @@ model User {
   ads ClassifiedAd[]
   sessions UserSession[]
   newsPosts NewsPost[] @relation("NewsPostCreatedBy")
+  eventPosts EventPost[] @relation("EventCreatedBy")
   orgClaims OrgClaim[] @relation("OrgClaimRequester")
   orgEditProposals OrgEditProposal[] @relation("OrgEditProposalRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
@@ -402,4 +403,39 @@ model OrgProposalReviewEvent {
   proposal   OrgEditProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
 
   @@index([proposalId, createdAt])
+}
+
+// Stage 5.7.1: new events live in PostgreSQL; legacy Markdown stays read-only.
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model EventPost {
+  id              String @id @default(cuid())
+  slug            String @unique @db.VarChar(160)
+  title           String @db.VarChar(180)
+  category        String @default("other") @db.VarChar(32)
+  startAt         DateTime
+  endAt           DateTime?
+  location        String @default("") @db.VarChar(240)
+  price           String @default("") @db.VarChar(80)
+  isFree          Boolean @default(false)
+  pushkinCard     Boolean @default(false)
+  pushkinProofUrl String @default("") @db.VarChar(2048)
+  summary         String @default("") @db.VarChar(600)
+  cover           String @default("") @db.VarChar(512)
+  orgSlug         String @default("") @db.VarChar(160)
+  video           String @default("") @db.VarChar(2048)
+  content         String @default("") @db.Text
+  status          EventStatus @default(DRAFT)
+  createdById     String
+  createdBy       User @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  publishedAt     DateTime?
+
+  @@index([status, startAt])
+  @@index([category, startAt])
+  @@index([createdById, createdAt])
 }

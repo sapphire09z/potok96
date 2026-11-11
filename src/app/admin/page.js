@@ -49,10 +49,11 @@ export default async function AdminHomePage() {
             <div className={styles.links}>
                 <Link href="/admin/users">Учётные записи и права доступа</Link>
                 <Link href="/admin/orgs">Управление организациями</Link>
+                <Link href="/admin/events">Управление мероприятиями</Link>
                 <Link href="/editor/news">Создание, проверка и публикация новостей</Link>
                 <Link href="/moderator/ads">Очередь модерации объявлений</Link>
             </div>
-            <p className={styles.muted}>Управление киноафишей и настройками портала добавим отдельными этапами.</p>
+            <p className={styles.muted}>Киноафишу, официальные материалы и настройки портала добавим отдельными этапами.</p>
         </section>
         <section className={styles.panel}>
             <h2>Последние изменения ролей</h2>
