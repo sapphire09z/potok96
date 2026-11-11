@@ -48,7 +48,7 @@ export async function PUT(request, { params }) {
         const result = await getPrisma().$transaction(async tx => {
             const access = await context(tx, id, actor);
             if (!access) return { error: "Нет подтверждённых полномочий на эту организацию.", status: 403 };
-            const existing = await tx.orgEditProposal.findFirst({ where: { orgId: id, status: { in: ["DRAFT", "SUBMITTED"] } },
+            const existing = await tx.orgEditProposal.findFirst({ where: { orgId: id, status: { in: ["DRAFT", "SUBMITTED", "RETURNED"] } },
                 orderBy: { createdAt: "desc" } });
             if (existing && (existing.requesterId !== actor.id || existing.claimId !== access.claim.id)) {
                 return { error: "Карточка уже имеет активное предложение изменений.", status: 409 };
@@ -59,8 +59,8 @@ export async function PUT(request, { params }) {
                     return { error: "Черновик изменился в другой вкладке. Обновите страницу.", status: 409 };
                 }
                 const changed = await tx.orgEditProposal.updateMany({ where: {
-                    id: existing.id, updatedAt: existing.updatedAt, status: "DRAFT",
-                }, data: { fields } });
+                    id: existing.id, updatedAt: existing.updatedAt, status: { in: ["DRAFT", "RETURNED"] },
+                }, data: { fields, status: "DRAFT" } });
                 if (changed.count !== 1) return { error: "Черновик изменился. Обновите страницу.", status: 409 };
                 const updated = await tx.orgEditProposal.findUnique({ where: { id: existing.id }, select: { updatedAt: true } });
                 return { id: existing.id, updatedAt: updated.updatedAt.toISOString(), status: "DRAFT" };
@@ -101,7 +101,7 @@ export async function DELETE(request, { params }) {
             if (!access) return { error: "Нет подтверждённых полномочий.", status: 403 };
             const changed = await tx.orgEditProposal.updateMany({ where: {
                 orgId: id, claimId: access.claim.id, requesterId: actor.id,
-                status: "DRAFT", updatedAt: new Date(data.expectedProposalUpdatedAt),
+                status: { in: ["DRAFT", "RETURNED"] }, updatedAt: new Date(data.expectedProposalUpdatedAt),
             }, data: { status: "CANCELLED" } });
             return changed.count === 1 ? { success: true } : { error: "Черновик изменился. Обновите страницу.", status: 409 };
         }, { isolationLevel: "Serializable", timeout: 10000 });

@@ -28,6 +28,7 @@ export default function OrgProposalEditor({ orgId, original, proposal }) {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const submitted = status === "SUBMITTED";
+    const returned = status === "RETURNED";
 
     useEffect(() => {
         if (!dirty) return;
@@ -72,7 +73,7 @@ export default function OrgProposalEditor({ orgId, original, proposal }) {
         finally { setBusy(false); }
     }
     async function cancel() {
-        if (busy || status !== "DRAFT" || !version) return;
+        if (busy || !["DRAFT", "RETURNED"].includes(status) || !version) return;
         if (!window.confirm("Удалить текущий черновик и вернуться к данным опубликованной карточки?")) return;
         setBusy(true); setError(""); setMessage("");
         try {
@@ -96,8 +97,9 @@ export default function OrgProposalEditor({ orgId, original, proposal }) {
     return <section className={styles.panel}>
         <div className={styles.status} role="status">{submitted
             ? "На рассмотрении — редактирование заблокировано"
-            : status === "DRAFT" ? "Сохранённый черновик" : "Новый черновик"}</div>
-        {submitted && <p>Предложение ожидает проверки редакцией. В этом этапе решение пока не принимается; интерфейс рассмотрения добавим в 5.6.5b2.</p>}
+            : returned ? "Возвращено на доработку" : status === "DRAFT" ? "Сохранённый черновик" : "Новый черновик"}</div>
+        {submitted && <p>Предложение ожидает решения редакции. Публичная карточка не изменяется.</p>}
+        {returned && <p role="status">Комментарий редакции: {proposal?.reviewNote || "Требуется уточнение данных."} Исправьте поля, сохраните черновик и отправьте его повторно. Если карточка на сайте изменилась, удалите старый черновик и создайте новый.</p>}
         <form onSubmit={save} className={styles.form}>
             <div className={styles.two}>
                 {entry("title", "Название *", 160, { required: true })}
@@ -126,7 +128,7 @@ export default function OrgProposalEditor({ orgId, original, proposal }) {
             <p className={styles.help}>Изменение адреса страницы (slug), платного размещения, фотографий и статуса публикации представителю недоступно.</p>
             <div className={styles.actions}>
                 <button type="submit" disabled={busy || submitted}>{busy ? "Сохраняем…" : "Сохранить черновик"}</button>
-                <button type="button" className={styles.secondary} disabled={busy || submitted || dirty || !version}
+                <button type="button" className={styles.secondary} disabled={busy || submitted || returned || dirty || !version}
                     onClick={submit}>Отправить на проверку</button>
                 <button type="button" className={styles.secondary} disabled={busy || submitted || !version}
                     onClick={cancel}>Удалить черновик</button>

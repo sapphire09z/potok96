@@ -28,6 +28,7 @@ export default async function AdminLayout({ children }) {
             <Link href="/admin/users">Пользователи и роли</Link>
             <Link href="/admin/orgs">Организации</Link>
             <Link href="/admin/org-claims">Заявки представителей</Link>
+            <Link href="/admin/org-proposals">Предложения организаций</Link>
             <Link href="/editor/news">Редакция новостей</Link>
             <Link href="/moderator/ads">Модерация объявлений</Link>
         </nav>

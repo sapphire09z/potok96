@@ -379,6 +379,7 @@ model OrgEditProposal {
   reviewedAt        DateTime?
   reviewedById      String?
   reviewNote        String? @db.VarChar(1000)
+  reviewEvents      OrgProposalReviewEvent[]
 
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
   requester    User         @relation("OrgEditProposalRequester", fields: [requesterId], references: [id], onDelete: Restrict)
@@ -387,4 +388,18 @@ model OrgEditProposal {
   @@index([requesterId, createdAt])
   @@index([orgId, status])
   @@index([status, submittedAt])
+}
+
+// Stage 5.6.5b2: immutable audit of editorial decisions; never discard history on resubmission.
+model OrgProposalReviewEvent {
+  id         String @id @default(cuid())
+  proposalId String
+  reviewerId String
+  action     String @db.VarChar(16)
+  note       String @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+
+  proposal   OrgEditProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+
+  @@index([proposalId, createdAt])
 }

@@ -25,10 +25,10 @@ export default async function OrgProposalEditPage({ params }) {
         } }),
         db.orgClaim.findFirst({ where: { orgId: id, requesterId: actor.id, status: "APPROVED" },
             select: { id: true, orgId: true, requesterId: true, status: true } }),
-        db.orgEditProposal.findFirst({ where: { orgId: id, status: { in: ["DRAFT", "SUBMITTED"] } },
+        db.orgEditProposal.findFirst({ where: { orgId: id, status: { in: ["DRAFT", "SUBMITTED", "RETURNED"] } },
             orderBy: { createdAt: "desc" }, select: {
                 id: true, claimId: true, requesterId: true, status: true, updatedAt: true,
-                fields: true, baseOrgUpdatedAt: true, submittedAt: true,
+                fields: true, baseOrgUpdatedAt: true, submittedAt: true, reviewNote: true,
             } }),
     ]);
     if (!canEditOrgProposal({ actor: account, org, claim })) notFound();
@@ -42,7 +42,8 @@ export default async function OrgProposalEditPage({ params }) {
             <p>Организация: <strong>{org.title}</strong>. Поправки сохраняются отдельно и не меняют опубликованную страницу до решения редакции.</p>
             <Link href={`/orgs/${org.slug}`}>Посмотреть опубликованную карточку</Link>
         </header>
-        <OrgProposalEditor orgId={id} original={snapshotOrgFields(org)} proposal={proposal ? {
+        <OrgProposalEditor key={proposal ? `${proposal.id}:${proposal.updatedAt.toISOString()}` : "new"}
+            orgId={id} original={snapshotOrgFields(org)} proposal={proposal ? {
             ...proposal, updatedAt: proposal.updatedAt.toISOString(),
             baseOrgUpdatedAt: proposal.baseOrgUpdatedAt.toISOString(),
             submittedAt: proposal.submittedAt?.toISOString() ?? null,

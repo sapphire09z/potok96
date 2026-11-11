@@ -16,12 +16,15 @@ export default async function AccountOrganizations({ searchParams }) {
     const slug = typeof params?.organization === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(params.organization)
         ? params.organization.slice(0, 160) : "";
     const prisma = getPrisma();
-    const [requests, selected] = await Promise.all([
+    const [requests, selected, proposals] = await Promise.all([
         prisma.orgClaim.findMany({ where: { requesterId: me.id }, orderBy: { createdAt: "desc" }, take: 100,
             include: { organization: { select: { title: true, slug: true } } } }),
         slug ? prisma.organization.findFirst({ where: { slug, status: "PUBLISHED" },
             select: { id: true, title: true, slug: true, orgClaims: { where: { status: "APPROVED" }, select: { id: true } } } }) : Promise.resolve(null),
+        prisma.orgEditProposal.findMany({ where: { requesterId: me.id, status: { in: ["DRAFT", "SUBMITTED", "RETURNED"] } },
+            select: { orgId: true, status: true, reviewNote: true } }),
     ]);
+    const proposalsByOrg = new Map(proposals.map(p => [p.orgId, p]));
     const existing = selected && requests.some(item => item.orgId === selected.id &&
         ["PENDING", "APPROVED"].includes(item.status));
     const alreadyManaged = Boolean(selected?.orgClaims.length);
@@ -46,7 +49,10 @@ export default async function AccountOrganizations({ searchParams }) {
                 <article key={item.id} className={styles.item}>
                     <div><strong>{item.organization.title}</strong><span>{item.roleDescription}</span></div>
                     <div className={styles.status}>{CLAIM_STATUS_RU[item.status] ?? item.status}</div>
-                    {item.status === "APPROVED" && <p>Полномочия подтверждены. <Link href={`/account/orgs/${item.orgId}/edit`}>Изменить сведения организации →</Link></p>}
+                    {item.status === "APPROVED" && <p>Полномочия подтверждены. <Link href={`/account/orgs/${item.orgId}/edit`}>Изменить сведения организации →</Link>
+                        {proposalsByOrg.get(item.orgId)?.status === "RETURNED" && <span> · Возвращено на доработку. Комментарий редакции: {proposalsByOrg.get(item.orgId)?.reviewNote || "Уточните сведения."}</span>}
+                        {proposalsByOrg.get(item.orgId)?.status === "SUBMITTED" && <span> · Предложение на рассмотрении.</span>}
+                    </p>}
                     {item.status === "REJECTED" && <p>Для уточнения причины отказа свяжитесь с редакцией.</p>}
                 </article>)}</div>}
         </section>

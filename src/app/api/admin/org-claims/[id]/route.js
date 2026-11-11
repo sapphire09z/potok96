@@ -48,7 +48,7 @@ export async function POST(request, { params }) {
                 // Revoke cancels any unpublished draft/submission atomically, including
                 // proposals saved in a concurrent session. No lingering access.
                 await tx.orgEditProposal.updateMany({ where: {
-                    claimId: claim.id, status: { in: ["DRAFT", "SUBMITTED"] },
+                    claimId: claim.id, status: { in: ["DRAFT", "SUBMITTED", "RETURNED"] },
                 }, data: { status: "CANCELLED" } });
             }
             return { status: to };
