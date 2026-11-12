@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getAllOfficialNotices } from "@/lib/officialNotices";
 import styles from "./notices.module.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
     title: "Сообщения администрации и ведомств",
     description:
@@ -26,7 +28,7 @@ export default async function OfficialNoticesPage({
     const query = getParam(params?.q).trim();
     const issuer = getParam(params?.issuer);
 
-    const allNotices = getAllOfficialNotices();
+    const allNotices = await getAllOfficialNotices();
 
     const issuers = [
         ...new Set(allNotices.map((item) => item.issuer)),

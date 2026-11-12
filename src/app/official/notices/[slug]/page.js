@@ -5,6 +5,8 @@ import ReactMarkdown from "react-markdown";
 import { getOfficialNoticeBySlug } from "@/lib/officialNotices";
 import styles from "../notices.module.css";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(date) {
     const [y, m, d] = date.split("-");
     return `${d}.${m}.${y}`;
@@ -23,7 +25,7 @@ function safeExternalUrl(value) {
 
 export async function generateMetadata({ params }) {
     const { slug } = await params;
-    const item = getOfficialNoticeBySlug(slug);
+    const item = await getOfficialNoticeBySlug(slug);
 
     if (!item) return { title: "Сообщение не найдено" };
 
@@ -35,7 +37,7 @@ export async function generateMetadata({ params }) {
 
 export default async function OfficialNoticePage({ params }) {
     const { slug } = await params;
-    const item = getOfficialNoticeBySlug(slug);
+    const item = await getOfficialNoticeBySlug(slug);
 
     if (!item) notFound();
 
