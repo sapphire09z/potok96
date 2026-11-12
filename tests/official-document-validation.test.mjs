@@ -1,4 +1,5 @@
 import test from "node:test";
+import { draftPdfPreviewHeaders } from "../src/lib/media/officialDocumentPreviewHeaders.mjs";
 import assert from "node:assert/strict";
 import {
     validateOfficialDocument, DOCUMENT_ID, isValidPdf, validPdfUploadFile,
@@ -58,4 +59,18 @@ test("validates upload size, extension and browser MIME", () => {
     assert.ok(!validPdfUploadFile(mock("act.exe", "application/pdf", pdf.length)));
     assert.ok(!validPdfUploadFile(mock("act.pdf", "text/html", pdf.length)));
     assert.ok(!validPdfUploadFile(mock("act.pdf", "application/pdf", PDF_MAX_BYTES + 1)));
+});
+
+test("private draft PDF can be viewed inline but must not be cached or framed", () => {
+    const h = draftPdfPreviewHeaders(4096);
+    assert.equal(h["Content-Type"], "application/pdf");
+    assert.match(h["Content-Disposition"], /^inline;/);
+    assert.match(h["Cache-Control"], /no-store/);
+    assert.equal(h["Cross-Origin-Resource-Policy"], "same-origin");
+    assert.equal(h["X-Frame-Options"], "DENY");
+    assert.equal(h["Content-Length"], "4096");
+});
+test("private preview rejects invalid PDF lengths", () => {
+    for (const size of [0, -1, Number.NaN, 15 * 1024 * 1024 + 1])
+        assert.throws(() => draftPdfPreviewHeaders(size), RangeError);
 });

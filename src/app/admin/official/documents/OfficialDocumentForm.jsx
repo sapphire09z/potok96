@@ -141,6 +141,11 @@ export default function OfficialDocumentForm({ initial }) {
         {initial && status === "DRAFT" && <section className={styles.form}>
             <h3>PDF документа</h3>
             <p className={styles.help}>{hasPdf ? "PDF загружен. Можно заменить, выбрав другой файл." : "PDF ещё не загружен."}</p>
+            {hasPdf && <div className={styles.info}>
+                <a href={`/api/admin/official/documents/${encodeURIComponent(initial.id)}/pdf`}
+                    target="_blank" rel="noopener noreferrer">Просмотреть загруженный PDF ↗</a>
+                <p className={styles.help}>Предпросмотр доступен только администратору. Черновик не опубликован.</p>
+            </div>}
             <div className={styles.actions}>
                 <input ref={picker} type="file" accept=".pdf,application/pdf" disabled={busy}
                     onChange={e => setFile(e.target.files?.[0] ?? null)} />

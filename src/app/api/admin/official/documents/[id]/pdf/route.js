@@ -1,6 +1,12 @@
 import { authenticateDocumentRequest, documentReply, documentVersionHeader, nextDocumentVersion } from "@/lib/officialDocumentApi";
 import { PDF_MAX_BYTES, isValidPdf, validPdfUploadFile } from "@/lib/officialDocumentValidation.mjs";
-import { privateDocumentPdfKey, uploadPrivateDocumentPdf, discardPrivateDocumentPdf } from "@/lib/media/officialDocumentPdf";
+import { privateDocumentPdfKey, uploadPrivateDocumentPdf, discardPrivateDocumentPdf,
+    loadPrivateDocumentPdf } from "@/lib/media/officialDocumentPdf";
+import { draftPdfPreviewHeaders } from "@/lib/media/officialDocumentPreviewHeaders.mjs";
+import { getCurrentUser } from "@/lib/session";
+import { getPrisma } from "@/lib/prisma";
+import { isOfficialAdmin } from "@/lib/officialDocumentCms";
+import { DOCUMENT_ID } from "@/lib/officialDocumentValidation.mjs";
 
 export const runtime = "nodejs";
 export async function POST(request, { params }) {
@@ -52,5 +58,30 @@ export async function POST(request, { params }) {
         if (key) await discardPrivateDocumentPdf(key).catch(() => {});
         console.error("Official document PDF upload failed", { code: error?.code ?? "unknown" });
         return documentReply({ error: "Не удалось загрузить PDF." }, 503);
+    }
+}
+
+// Viewing draft PDFs is a read-only, administrator-only operation. Top-level
+// browser navigation does not send Origin, so do not use the write-only
+// authenticateDocumentRequest helper (which deliberately requires Origin).
+export async function GET(_request, { params }) {
+    const actor = await getCurrentUser();
+    if (!actor) return documentReply({ error: "Войдите в аккаунт." }, 401);
+    const db = getPrisma();
+    if (!(await isOfficialAdmin(db, actor)))
+        return documentReply({ error: "Доступ запрещён." }, 403);
+    const { id } = await params;
+    if (!DOCUMENT_ID.test(id)) return documentReply({ error: "Документ не найден." }, 404);
+    try {
+        const item = await db.officialDocument.findUnique({
+            where: { id }, select: { status: true, privatePdfKey: true },
+        });
+        if (!item || item.status !== "DRAFT" || !item.privatePdfKey)
+            return documentReply({ error: "Черновик PDF не найден." }, 404);
+        const bytes = await loadPrivateDocumentPdf(item.privatePdfKey);
+        return new Response(bytes, { status: 200, headers: draftPdfPreviewHeaders(bytes.length) });
+    } catch (error) {
+        console.error("Official document draft preview failed", { code: error?.code ?? "unknown" });
+        return documentReply({ error: "Не удалось открыть PDF." }, 503);
     }
 }
