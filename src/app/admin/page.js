@@ -51,10 +51,11 @@ export default async function AdminHomePage() {
                 <Link href="/admin/orgs">Управление организациями</Link>
                 <Link href="/admin/events">Управление мероприятиями</Link>
                 <Link href="/admin/official/notices">Официальные сообщения администрации и ведомств</Link>
+                <Link href="/admin/official/documents">Нормативные правовые акты (НПА)</Link>
                 <Link href="/editor/news">Создание, проверка и публикация новостей</Link>
                 <Link href="/moderator/ads">Очередь модерации объявлений</Link>
             </div>
-            <p className={styles.muted}>Интеграцию киноафиши, CMS нормативных документов, городские службы и настройки портала добавим отдельными этапами.</p>
+            <p className={styles.muted}>Интеграцию киноафиши, городские службы и настройки портала добавим отдельными этапами.</p>
         </section>
         <section className={styles.panel}>
             <h2>Последние изменения ролей</h2>

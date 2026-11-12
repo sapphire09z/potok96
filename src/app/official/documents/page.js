@@ -1,8 +1,9 @@
 
 import Link from "next/link";
-import { getAllOfficialDocuments } from "@/lib/officialDocuments";
+import { getAllOfficialDocumentsHybrid } from "@/lib/officialDocumentsHybrid";
 import styles from "./documents.module.css";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
     title: "Нормативные правовые акты",
     description:
@@ -33,7 +34,7 @@ export default async function DocumentsPage({ searchParams }) {
     const type = getParam(params.type);
     const year = getParam(params.year);
 
-    const allDocuments = getAllOfficialDocuments();
+    const allDocuments = await getAllOfficialDocumentsHybrid();
 
     const types = [...new Set(allDocuments.map((doc) => doc.type))]
         .filter(Boolean)
@@ -155,6 +156,7 @@ export default async function DocumentsPage({ searchParams }) {
                                 </div>
 
                                 <h3>{doc.title}</h3>
+                                {doc.description && <p className={styles.issuer}>{doc.description}</p>}
 
                                 {doc.issuer && (
                                     <p className={styles.issuer}>{doc.issuer}</p>

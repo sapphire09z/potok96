@@ -43,6 +43,7 @@ model User {
   newsPosts NewsPost[] @relation("NewsPostCreatedBy")
   eventPosts EventPost[] @relation("EventCreatedBy")
   officialNotices OfficialNotice[] @relation("OfficialNoticeCreatedBy")
+  officialDocuments OfficialDocument[] @relation("OfficialDocumentCreatedBy")
   orgClaims OrgClaim[] @relation("OrgClaimRequester")
   orgEditProposals OrgEditProposal[] @relation("OrgEditProposalRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
@@ -481,6 +482,35 @@ model OfficialNotice {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   publishedAt DateTime?
+
+  @@index([status, date])
+  @@index([createdById, createdAt])
+}
+
+// Stage 5.9.2: normative documents. Legacy Markdown remains read-only.
+enum OfficialDocumentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model OfficialDocument {
+  id            String @id @default(cuid())
+  slug          String @unique @db.VarChar(160)
+  title         String @db.VarChar(300)
+  type          String @db.VarChar(100)
+  number        String @default("") @db.VarChar(100)
+  date          String @db.VarChar(10)
+  issuer        String @db.VarChar(240)
+  description   String @default("") @db.Text
+  sourceUrl     String @default("") @db.VarChar(2048)
+  privatePdfKey String? @db.VarChar(512)
+  publicPdfKey  String? @db.VarChar(512)
+  status        OfficialDocumentStatus @default(DRAFT)
+  createdById   String
+  createdBy     User @relation("OfficialDocumentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  publishedAt   DateTime?
 
   @@index([status, date])
   @@index([createdById, createdAt])
