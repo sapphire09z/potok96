@@ -85,6 +85,12 @@ function AlertCard({ alert }) {
                         <strong>{formatTime(alert.expectedEndAt)}</strong>
                     </div>
                 )}
+                {alert.state === "restored" && alert.restoredAt && (
+                    <div>
+                        <span>Фактическое восстановление</span>
+                        <strong>{formatTime(alert.restoredAt)}</strong>
+                    </div>
+                )}
             </div>
 
             {alert.content && (

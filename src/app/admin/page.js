@@ -52,6 +52,7 @@ export default async function AdminHomePage() {
                 <Link href="/admin/events">Управление мероприятиями</Link>
                 <Link href="/admin/official/notices">Официальные сообщения администрации и ведомств</Link>
                 <Link href="/admin/official/documents">Нормативные правовые акты (НПА)</Link>
+                <Link href="/admin/alerts">Сообщения городских служб</Link>
                 <Link href="/editor/news">Создание, проверка и публикация новостей</Link>
                 <Link href="/moderator/ads">Очередь модерации объявлений</Link>
             </div>

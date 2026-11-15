@@ -1,0 +1,7 @@
+.select { box-sizing: border-box; width: 100%; min-height: 44px; padding: 11px 13px;
+    border: 1px solid var(--border); background: #fff; border-radius: 3px;
+    color: var(--text); font: inherit; font-size: 15px; }
+.confirmRow { display: flex !important; align-items: flex-start; flex-direction: row !important;
+    gap: 10px !important; font-size: 14px !important; line-height: 1.5; }
+.confirmRow input[type="checkbox"] { width: 18px !important; height: 18px; margin-top: 1px;
+    flex: 0 0 18px; accent-color: var(--text); }

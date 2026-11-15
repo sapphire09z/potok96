@@ -5,6 +5,10 @@ import Footer from "@/components/Footer";
 import SiteAlert from "@/components/SiteAlert";
 import { getCurrentAlerts } from "@/lib/alerts";
 
+// City service alerts are backed by live PostgreSQL data.
+// Avoid querying the database while prerendering otherwise-static pages.
+export const dynamic = "force-dynamic";
+
 export const metadata = {
     metadataBase: new URL("https://potok96.ru"),
     title: {

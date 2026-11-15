@@ -44,6 +44,7 @@ model User {
   eventPosts EventPost[] @relation("EventCreatedBy")
   officialNotices OfficialNotice[] @relation("OfficialNoticeCreatedBy")
   officialDocuments OfficialDocument[] @relation("OfficialDocumentCreatedBy")
+  serviceAlerts ServiceAlert[] @relation("ServiceAlertCreatedBy")
   orgClaims OrgClaim[] @relation("OrgClaimRequester")
   orgEditProposals OrgEditProposal[] @relation("OrgEditProposalRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
@@ -513,5 +514,37 @@ model OfficialDocument {
   publishedAt   DateTime?
 
   @@index([status, date])
+  @@index([createdById, createdAt])
+}
+
+// Stage 5.9.3: city service alerts. Legacy Markdown remains read-only.
+enum ServiceAlertStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ServiceAlert {
+  id            String @id @default(cuid())
+  slug          String @unique @db.VarChar(160)
+  title         String @db.VarChar(200)
+  service       String @db.VarChar(32)
+  state         String @db.VarChar(24)
+  urgency       String @default("normal") @db.VarChar(16)
+  confirmed     Boolean @default(false)
+  startAt       DateTime
+  expectedEndAt DateTime?
+  restoredAt    DateTime?
+  addresses     String @default("") @db.VarChar(1000)
+  source        String @default("") @db.VarChar(240)
+  sourceUrl     String @default("") @db.VarChar(2048)
+  content       String @default("") @db.Text
+  status        ServiceAlertStatus @default(DRAFT)
+  createdById   String
+  createdBy     User @relation("ServiceAlertCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  publishedAt   DateTime?
+
+  @@index([status, state, startAt])
   @@index([createdById, createdAt])
 }
