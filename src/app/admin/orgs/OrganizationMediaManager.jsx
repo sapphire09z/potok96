@@ -8,10 +8,12 @@ const LIMIT = 12;
 const MAX_SIZE = 5 * 1024 * 1024;
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export default function OrganizationMediaManager({ orgId, images, logoImageId, coverImageId, disabled, onBusy, onUpdated }) {
+export default function OrganizationMediaManager({ orgId, images, logoImageId, coverImageId, published, disabled, onBusy, onUpdated }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const [uploadCredit, setUploadCredit] = useState("");
+    const [uploadRightsNote, setUploadRightsNote] = useState("");
     const [metadata, setMetadata] = useState(() => Object.fromEntries(images.map(image => [image.id, {
         caption: image.caption ?? "", credit: image.credit ?? "", rightsNote: image.rightsNote ?? "",
     }])));
@@ -42,6 +44,10 @@ export default function OrganizationMediaManager({ orgId, images, logoImageId, c
         const files = Array.from(event.target.files || []);
         event.target.value = "";
         if (!files.length || locked) return;
+        if (published && (!uploadCredit.trim() || !uploadRightsNote.trim())) {
+            setError("Для новых фотографий опубликованной карточки укажите автора и основание использования.");
+            return;
+        }
         if (files.length + images.length > LIMIT) {
             setError(`Не более ${LIMIT} фотографий на организацию.`); return;
         }
@@ -53,6 +59,10 @@ export default function OrganizationMediaManager({ orgId, images, logoImageId, c
             try {
                 for (const file of files) {
                     const body = new FormData(); body.append("file", file);
+                    if (published) {
+                        body.append("credit", uploadCredit.trim());
+                        body.append("rightsNote", uploadRightsNote.trim());
+                    }
                     await json(fetch(`/api/admin/orgs/${orgId}/images`, {
                         method: "POST", credentials: "same-origin", body,
                     }));
@@ -88,15 +98,24 @@ export default function OrganizationMediaManager({ orgId, images, logoImageId, c
 
     return <section className={styles.mediaPanel} aria-label="Фотографии организации">
         <h3>Фотографии и оформление ({images.length}/{LIMIT})</h3>
-        <p className={styles.help}>Сначала сохраните карточку. Загруженные фотографии остаются закрытыми до публикации.
-            Для публикации у каждой фотографии заполните автора/правообладателя и основание использования.
+        <p className={styles.help}>{published ?
+            "Фотографии опубликованной карточки появляются на сайте сразу после загрузки. Для каждой новой фотографии обязательны автор и основание использования." :
+            "Загруженные фотографии остаются закрытыми до публикации. Для публикации заполните автора и основание использования у каждой фотографии."}
             Один снимок можно назначить логотипом или обложкой, остальные появятся в галерее.</p>
+        {published && !disabled && images.length < LIMIT && <div className={styles.two}>
+            <label className={styles.mediaUpload}>Автор / правообладатель новых фотографий
+                <input value={uploadCredit} maxLength={240} disabled={locked} onChange={e => setUploadCredit(e.target.value)} />
+            </label>
+            <label className={styles.mediaUpload}>Основание использования новых фотографий
+                <input value={uploadRightsNote} maxLength={1000} disabled={locked} onChange={e => setUploadRightsNote(e.target.value)} />
+            </label>
+        </div>}
         {!disabled && images.length < LIMIT && <label className={styles.mediaUpload}>
             Добавить фотографии (JPEG, PNG, WebP до 5 МБ)
             <input type="file" multiple accept="image/jpeg,image/png,image/webp"
                 disabled={locked} onChange={upload} />
         </label>}
-        {disabled && <p className={styles.help}>Для изменения фотографий снимите карточку с публикации и сохраните несохранённые поля.</p>}
+        {disabled && <p className={styles.help}>Для изменения фотографий сначала сохраните остальные несохранённые поля.</p>}
         <div className={styles.mediaGrid}>
             {images.map(image => <div key={image.id} className={styles.mediaCard}>
                 <Image src={`/api/admin/orgs/${orgId}/images/${image.id}?size=320`}

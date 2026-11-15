@@ -3,7 +3,9 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { InvalidMediaError, cleanupPrivateKeys, uploadPrivateImageSet } from "@/lib/media/images";
-import { ORG_IMAGE_LIMIT } from "@/lib/orgMedia";
+import { ORG_IMAGE_LIMIT, ORG_IMAGE_SIZES, promoteOrganizationImages } from "@/lib/orgMedia";
+import { deletePublic } from "@/lib/media/s3";
+import { isEditableOrgStatus, validPublishedOrgImageRights } from "@/lib/orgLiveEdit.mjs";
 
 export const runtime = "nodejs";
 const ID = /^c[a-z0-9]{10,40}$/;
@@ -25,28 +27,47 @@ export async function POST(request, { params }) {
     try {
         const org = await prisma.organization.findUnique({ where: { id }, select: { status: true } });
         if (!org) return fail("Организация не найдена.", 404);
-        if (org.status !== "DRAFT") return fail("Сначала снимите карточку с публикации.", 409);
+        if (!isEditableOrgStatus(org.status)) return fail("Карточка недоступна для редактирования.", 409);
         const data = await request.formData();
         const file = data.get("file");
         if (!file || typeof file.arrayBuffer !== "function" || typeof file.size !== "number" ||
             file.size < 1 || file.size > MAX_SIZE) return fail("JPEG, PNG или WebP до 5 МБ.", 400);
+        const published = org.status === "PUBLISHED";
+        const credit = data.get("credit");
+        const rightsNote = data.get("rightsNote");
+        if (published && !validPublishedOrgImageRights(credit, rightsNote)) {
+            return fail("Укажите автора и основание использования фотографии.", 422);
+        }
         const stored = await uploadPrivateImageSet({ bytes: Buffer.from(await file.arrayBuffer()), area: "orgs", entityId: id });
         try {
+            // Upload immutable public variants BEFORE inserting a published gallery item.
+            // Failure leaves the existing published card unchanged.
+            if (published) await promoteOrganizationImages({ id,
+                images: [{ id: stored.photoId, storageKey: stored.baseKey }],
+            });
             const result = await prisma.$transaction(async (tx) => {
                 const changed = await tx.organization.updateMany({
-                    where: { id, status: "DRAFT" }, data: { updatedAt: new Date() },
+                    where: { id, status: org.status }, data: { updatedAt: new Date() },
                 });
-                if (changed.count !== 1) throw new InvalidMediaError("Карточка уже опубликована.");
+                if (changed.count !== 1) throw new InvalidMediaError("Карточка изменила статус. Обновите страницу.");
                 const count = await tx.orgImage.count({ where: { orgId: id } });
                 if (count >= ORG_IMAGE_LIMIT) throw new InvalidMediaError("Допустимо не более 12 изображений.");
                 const image = await tx.orgImage.create({
-                    data: { id: stored.photoId, orgId: id, storageKey: stored.baseKey, sortOrder: count },
+                    data: { id: stored.photoId, orgId: id, storageKey: stored.baseKey, sortOrder: count,
+                        ...(published ? { credit: credit.trim(), rightsNote: rightsNote.trim() } : {}) },
                     select: { id: true, caption: true, credit: true, rightsNote: true, sortOrder: true },
                 });
                 return { image };
             });
             return NextResponse.json(result, { status: 201, headers: { "Cache-Control": "no-store" } });
         } catch (error) {
+            if (published) {
+                const deleted = await Promise.allSettled(ORG_IMAGE_SIZES.map(size =>
+                    deletePublic(`${stored.baseKey}/${size}.webp`)));
+                if (deleted.some(result => result.status === "rejected")) {
+                    console.error("Organization orphan public image cleanup incomplete", { id, photoId: stored.photoId });
+                }
+            }
             await cleanupPrivateKeys(stored.storedKeys);
             throw error;
         }

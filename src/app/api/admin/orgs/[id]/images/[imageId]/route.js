@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
-import { deletePrivate, getPrivate } from "@/lib/media/s3";
+import { deletePrivate, deletePublic, getPrivate } from "@/lib/media/s3";
+import { isEditableOrgStatus, validPublishedOrgImageRights } from "@/lib/orgLiveEdit.mjs";
 import { organizationImageKey, ORG_IMAGE_SIZES } from "@/lib/orgMedia";
 
 export const runtime = "nodejs";
@@ -64,7 +65,13 @@ export async function PATCH(request, { params }) {
     }
     try {
         const result = await getPrisma().$transaction(async (tx) => {
-            const changed = await tx.organization.updateMany({ where: { id, status: "DRAFT" },
+            const org = await tx.organization.findUnique({ where: { id }, select: { status: true } });
+            if (!isEditableOrgStatus(org?.status)) return null;
+            if (org.status === "PUBLISHED" && action === "metadata" &&
+                !validPublishedOrgImageRights(input.credit, input.rightsNote)) {
+                return { error: "Автор и основание использования обязательны для опубликованной фотографии.", status: 422 };
+            }
+            const changed = await tx.organization.updateMany({ where: { id, status: org.status },
                 data: { updatedAt: new Date() } });
             if (changed.count !== 1) return null;
             const image = await tx.orgImage.findFirst({ where: { id: imageId, orgId: id }, select: { id: true } });
@@ -82,6 +89,7 @@ export async function PATCH(request, { params }) {
             return { role: field, imageId: action.startsWith("clear") ? null : imageId };
         });
         if (!result) return fail("Карточка или фото недоступны для редактирования.", 409);
+        if (result.error) return fail(result.error, result.status);
         return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
     } catch (error) {
         console.error("Organization image change failed", { code: error?.code ?? "unknown" });
@@ -97,25 +105,30 @@ export async function DELETE(request, { params }) {
     if (!valid) return fail("Фотография не найдена.", 404);
     try {
         const result = await getPrisma().$transaction(async (tx) => {
-            const changed = await tx.organization.updateMany({ where: { id, status: "DRAFT" },
+            const org = await tx.organization.findUnique({ where: { id }, select: { status: true } });
+            if (!isEditableOrgStatus(org?.status)) return null;
+            const changed = await tx.organization.updateMany({ where: { id, status: org.status },
                 data: { updatedAt: new Date() } });
             if (changed.count !== 1) return null;
             const image = await tx.orgImage.findFirst({ where: { id: imageId, orgId: id },
                 select: { id: true, storageKey: true } });
             if (!image) return null;
             await tx.orgImage.delete({ where: { id: imageId } });
-            const org = await tx.organization.findUnique({ where: { id },
+            const imageRoles = await tx.organization.findUnique({ where: { id },
                 select: { logoImageId: true, coverImageId: true } });
             await tx.organization.update({ where: { id }, data: {
-                ...(org.logoImageId === imageId ? { logoImageId: null } : {}),
-                ...(org.coverImageId === imageId ? { coverImageId: null } : {}),
+                ...(imageRoles.logoImageId === imageId ? { logoImageId: null } : {}),
+                ...(imageRoles.coverImageId === imageId ? { coverImageId: null } : {}),
             } });
             return { key: organizationImageKey(id, image) };
         });
         if (!result) return fail("Карточка или фото недоступны для удаления.", 409);
         const keys = [`${result.key}/original.jpg`, `${result.key}/original.png`, `${result.key}/original.webp`,
             ...ORG_IMAGE_SIZES.map(size => `${result.key}/${size}.webp`)];
-        const cleanup = await Promise.allSettled(keys.map(key => deletePrivate(key)));
+        const cleanup = await Promise.allSettled([
+            ...keys.map(key => deletePrivate(key)),
+            ...ORG_IMAGE_SIZES.map(size => deletePublic(`${result.key}/${size}.webp`)),
+        ]);
         const pending = cleanup.some(item => item.status === "rejected");
         if (pending) console.error("Organization private image cleanup incomplete", { id, imageId });
         return NextResponse.json({ removed: true, storageCleanupPending: pending },
