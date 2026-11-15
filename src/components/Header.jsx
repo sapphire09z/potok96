@@ -20,6 +20,7 @@ export default function Header() {
                     <Link href="/orgs">Справочник</Link>
                     <Link href="/official">Официально</Link>
                     <Link href="/ads">Объявления</Link>
+                    <Link href="/search">Поиск</Link>
                     <Link href="/about">О проекте</Link>
                     <Link href="/account">Личный кабинет</Link>
                 </nav>

@@ -50,7 +50,7 @@ function startTime(alert) {
 
 function AlertCard({ alert }) {
     return (
-        <article className={styles.card}>
+        <article id={`alert-${alert.slug}`} className={styles.card}>
             <div className={styles.cardTop}>
         <span className={styles.category}>
           {serviceNames[alert.service] || serviceNames.other}
