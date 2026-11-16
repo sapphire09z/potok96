@@ -147,6 +147,9 @@ export default async function AccountPage() {
                         <Link href="/editor/news" className={styles.secondary}>
                             Управление новостями
                         </Link>
+                        <Link href="/editor/news/comments" className={styles.secondary}>
+                            Модерация комментариев
+                        </Link>
                         <Link href="/moderator/ads" className={styles.secondary}>
                             Модерация объявлений
                         </Link>

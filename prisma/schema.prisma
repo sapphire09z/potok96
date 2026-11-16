@@ -48,6 +48,10 @@ model User {
   orgClaims OrgClaim[] @relation("OrgClaimRequester")
   orgEditProposals OrgEditProposal[] @relation("OrgEditProposalRequester")
   newsWorkflowEvents NewsWorkflowEvent[] @relation("NewsWorkflowActor")
+  newsComments NewsComment[] @relation("NewsCommentAuthor")
+  moderatedNewsComments NewsComment[] @relation("NewsCommentModerator")
+  newsCommentEvents NewsCommentEvent[] @relation("NewsCommentEventActor")
+  newsCommentReports NewsCommentReport[] @relation("NewsCommentReporter")
 }
 
 model ClassifiedAd {
@@ -158,6 +162,8 @@ model NewsPost {
   coverImageId   String?    @db.VarChar(36)
   images         NewsImage[]
   workflowEvents NewsWorkflowEvent[]
+  comments       NewsComment[]
+  commentsEnabled Boolean @default(false)
   createdById    String?
   createdBy      User?      @relation("NewsPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt      DateTime   @default(now())
@@ -169,6 +175,77 @@ model NewsPost {
   @@index([createdById, createdAt])
 }
 
+
+// Stage 5.13: premoderated discussion on CMS news only.
+enum NewsCommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  HIDDEN
+  DELETED
+}
+
+enum NewsCommentAction {
+  APPROVE
+  REJECT
+  HIDE
+  DELETE
+}
+
+model NewsComment {
+  id             String @id @default(cuid())
+  postId         String
+  authorId       String
+  parentId       String?
+  body           String @db.Text
+  status         NewsCommentStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  moderatedById  String?
+  moderatedAt    DateTime?
+  moderationNote String? @db.VarChar(500)
+
+  post      NewsPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User @relation("NewsCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  moderator User? @relation("NewsCommentModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+  parent    NewsComment? @relation("NewsCommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies   NewsComment[] @relation("NewsCommentReplies")
+  events    NewsCommentEvent[]
+  reports   NewsCommentReport[]
+
+  @@index([postId, status, createdAt])
+  @@index([authorId, createdAt])
+  @@index([parentId, status, createdAt])
+}
+
+model NewsCommentEvent {
+  id         String @id @default(cuid())
+  commentId  String
+  actorId    String?
+  action     NewsCommentAction
+  fromStatus NewsCommentStatus
+  toStatus   NewsCommentStatus
+  note       String? @db.VarChar(500)
+  createdAt  DateTime @default(now())
+
+  comment NewsComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  actor User? @relation("NewsCommentEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([commentId, createdAt])
+}
+
+model NewsCommentReport {
+  id        String @id @default(cuid())
+  commentId String
+  userId    String
+  reason    String @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  comment NewsComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user User @relation("NewsCommentReporter", fields: [userId], references: [id], onDelete: Restrict)
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId, createdAt])
+}
 
 // Private news draft images. Public CDN promotion happens in stage 5.3.
 model NewsImage {

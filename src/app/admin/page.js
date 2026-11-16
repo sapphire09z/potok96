@@ -54,6 +54,7 @@ export default async function AdminHomePage() {
                 <Link href="/admin/official/documents">Нормативные правовые акты (НПА)</Link>
                 <Link href="/admin/alerts">Сообщения городских служб</Link>
                 <Link href="/editor/news">Создание, проверка и публикация новостей</Link>
+                <Link href="/editor/news/comments">Модерация комментариев к новостям</Link>
                 <Link href="/moderator/ads">Очередь модерации объявлений</Link>
             </div>
             <p className={styles.muted}>Интеграцию киноафиши, городские службы и настройки портала добавим отдельными этапами.</p>

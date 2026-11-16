@@ -84,7 +84,7 @@ export async function getNewsBySlug(slug) {
     const post = await getPrisma().newsPost.findUnique({
         where: { slug },
         select: {
-            ...summarySelect, body: true, status: true,
+            ...summarySelect, body: true, status: true, commentsEnabled: true,
             sourceName: true, sourceUrl: true,
             images: { select: { id: true, storageKey: true, credit: true } },
         },
@@ -94,6 +94,7 @@ export async function getNewsBySlug(slug) {
     return {
         ...toPublicSummary(post),
         content: publicNewsBody(post),
+        commentPostId: post.id, commentsEnabled: post.commentsEnabled,
         sourceName: post.sourceName || "",
         sourceUrl: post.sourceUrl || "",
         photoCredits,

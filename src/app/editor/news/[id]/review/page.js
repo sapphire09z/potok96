@@ -8,6 +8,7 @@ import { newsReviewIssues } from "@/lib/newsReviewIssues";
 import { isNewsScheduled } from "@/lib/newsPublication.mjs";
 import ReviewActions from "./ReviewActions";
 import FeaturedActions from "./FeaturedActions";
+import CommentsSettings from "./CommentsSettings";
 import styles from "./review.module.css";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export default async function NewsReviewPage({ params }) {
         select: {
             id: true, slug: true, title: true, summary: true, body: true, category: true,
             status: true, authorName: true, updatedAt: true, publishedAt: true, tags: true, sourceKind: true,
-            featured: true, featuredOrder: true,
+            featured: true, featuredOrder: true, commentsEnabled: true,
             sourceName: true, sourceUrl: true, sourceText: true, rightsNote: true, coverImageId: true,
             images: {
                 select: { id: true, caption: true, credit: true, rightsNote: true },
@@ -65,9 +66,17 @@ export default async function NewsReviewPage({ params }) {
             {post.status === "PUBLISHED" && !scheduled && <Link href={`/news/${post.slug}`} className={styles.edit}>Открыть новость на сайте</Link>}
         </header>
 
+        {post.status === "APPROVED" && user.role === "ADMIN" &&
+            <CommentsSettings key={`${post.updatedAt.toISOString()}:${post.commentsEnabled}`} postId={post.id}
+                updatedAt={post.updatedAt.toISOString()} enabled={post.commentsEnabled} />}
+
         <ReviewActions key={`${post.status}:${post.updatedAt.toISOString()}`} postId={post.id} status={post.status}
             updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} issues={issues}
             scheduled={scheduled} publishedAt={post.publishedAt?.toISOString() ?? null} />
+
+        {["PUBLISHED", "UNPUBLISHED"].includes(post.status) && user.role === "ADMIN" &&
+            <CommentsSettings key={`${post.updatedAt.toISOString()}:${post.commentsEnabled}`} postId={post.id}
+                updatedAt={post.updatedAt.toISOString()} enabled={post.commentsEnabled} />}
 
         {post.status === "PUBLISHED" && !scheduled && user.role === "ADMIN" &&
             <FeaturedActions key={`${post.id}:${post.updatedAt.toISOString()}`}

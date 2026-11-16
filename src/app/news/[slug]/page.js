@@ -6,6 +6,7 @@ import { getAllNews, getNewsBySlug } from "@/lib/news";
 import { getOrgBySlug } from "@/lib/orgs";
 import Image from "next/image";
 import styles from "./article.module.css";
+import NewsComments from "@/components/news-comments/NewsComments";
 export async function generateMetadata({ params }) {
     const { slug } = await params;
     const post = await getNewsBySlug(slug);
@@ -56,10 +57,13 @@ function ArticleParagraph({ node, children, ...props }) {
     return <p {...props}>{children}</p>;
 }
 
-export default async function NewsItemPage({ params }) {
+export default async function NewsItemPage({ params, searchParams }) {
     const { slug } = await params;
 
     const post = await getNewsBySlug(slug);
+    const requestedCommentPage = Number((await searchParams)?.commentsPage ?? 1);
+    const commentPage = Number.isSafeInteger(requestedCommentPage) && requestedCommentPage >= 1 && requestedCommentPage <= 10000
+        ? requestedCommentPage : 1;
 
     if (!post || post.status !== "published") {
         notFound();
@@ -134,6 +138,8 @@ export default async function NewsItemPage({ params }) {
                     {post.photoCredits?.length > 0 && <p>Фото: {post.photoCredits.join(", ")}</p>}
                 </section>
             )}
+
+            {post.commentPostId && post.commentsEnabled && <NewsComments postId={post.commentPostId} slug={post.slug} page={commentPage} />}
 
             {relatedPosts.length > 0 && (
                 <section className={styles.related}>

@@ -100,3 +100,7 @@
 .pagination a { color: inherit; text-underline-offset: 3px; }
 .pagination > span { color: var(--muted); }
 @media (max-width: 600px) { .searchRow button { flex: 0 0 auto; } .pagination { gap: 7px; flex-wrap: wrap; } }
+
+/* Stage 5.13 */
+.commentsLink {display:inline-flex;margin:10px 0 0 12px;padding:11px 16px;border:1px solid var(--border);font-size:14px;text-decoration:none;}
+@media(max-width:600px){.commentsLink{margin-left:0}}

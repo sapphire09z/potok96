@@ -119,6 +119,7 @@ export default async function EditorNewsPage({ searchParams }) {
                 <p>После публикации статьи из CMS появляются в общей новостной ленте
                     вместе с существующими Markdown-материалами.</p>
                 <Link href="/editor/news/new" className={styles.createLink}>+ Создать новость</Link>
+                <Link href="/editor/news/comments" className={styles.commentsLink}>Модерация комментариев</Link>
             </header>
 
             <form className={styles.searchForm} action="/editor/news" method="get" role="search">
