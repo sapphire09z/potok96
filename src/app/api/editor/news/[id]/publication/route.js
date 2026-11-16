@@ -5,6 +5,7 @@ import { hasTrustedOrigin } from "@/lib/trustedOrigin";
 import { newsReviewIssues } from "@/lib/newsReviewIssues";
 import { newsSlugExists } from "@/lib/newsDraft";
 import { promoteNewsImages, publicNewsBody, publicNewsCover } from "@/lib/newsMedia";
+import { isNewsScheduled, parseYekatPublicationDate, publicationDateLabel } from "@/lib/newsPublication.mjs";
 
 export const runtime = "nodejs";
 const POST_ID = /^c[a-z0-9]{10,40}$/;
@@ -12,6 +13,7 @@ const rules = {
     publish: { from: "APPROVED", to: "PUBLISHED", event: "PUBLISHED" },
     unpublish: { from: "PUBLISHED", to: "UNPUBLISHED", event: "UNPUBLISHED" },
     republish: { from: "UNPUBLISHED", to: "PUBLISHED", event: "REPUBLISHED" },
+    reschedule: { from: "PUBLISHED", to: "PUBLISHED", event: "PUBLISHED" },
 };
 const errorJson = (message, status) => NextResponse.json({ error: message }, {
     status, headers: { "Cache-Control": "no-store" },
@@ -44,6 +46,21 @@ export async function POST(request, { params }) {
     if (note.length > 1000 || (input.action === "unpublish" && note.length < 5)) {
         return errorJson("Для снятия с публикации укажите причину от 5 до 1000 символов.", 400);
     }
+    // HTML datetime-local is interpreted in Krasnoufimsk time (UTC+05:00),
+    // never in the browser or VPS timezone. A future publishedAt is scheduled.
+    const hasDate = input.publicationDate !== undefined;
+    if ((input.action === "reschedule" && !hasDate) ||
+        (hasDate && !["publish", "republish", "reschedule"].includes(input.action))) {
+        return errorJson("Укажите корректный режим и дату публикации.", 400);
+    }
+    const chosenAt = hasDate ? parseYekatPublicationDate(input.publicationDate) : null;
+    if (hasDate && !chosenAt) return errorJson("Проверьте дату и время (Красноуфимск, UTC+5).", 400);
+    const now = new Date();
+    const latestAllowed = new Date(now.getTime() + 5 * 366 * 24 * 60 * 60 * 1000);
+    if (chosenAt && chosenAt > latestAllowed) return errorJson("Планирование возможно не более чем на пять лет вперёд.", 400);
+    if (input.action === "reschedule" && chosenAt <= now) {
+        return errorJson("Новое время запланированной публикации должно быть в будущем.", 400);
+    }
 
     const prisma = getPrisma();
     try {
@@ -63,7 +80,10 @@ export async function POST(request, { params }) {
         if (post.status !== step.from || post.updatedAt.getTime() !== expectedAt.getTime()) {
             return errorJson("Материал изменился. Обновите страницу.", 409);
         }
-        if (step.to === "PUBLISHED") {
+        if (input.action === "reschedule" && !isNewsScheduled(post, now)) {
+            return errorJson("Время выхода можно изменить только до наступления публикации.", 409);
+        }
+        if (step.to === "PUBLISHED" && input.action !== "reschedule") {
             const issues = newsReviewIssues(post);
             if (issues.length) return errorJson(issues.join(" "), 422);
             if (await newsSlugExists(post.slug, post.id)) {
@@ -84,6 +104,14 @@ export async function POST(request, { params }) {
             }
         }
 
+        const publicationAt = step.to === "PUBLISHED" ?
+            (chosenAt ?? (input.action === "republish" ? post.publishedAt ?? now : now)) : null;
+        const eventNote = input.action === "reschedule"
+            ? `Перенос публикации: ${publicationDateLabel(publicationAt)}`
+            : chosenAt && chosenAt > now
+                ? `Публикация запланирована: ${publicationDateLabel(chosenAt)}`
+                : chosenAt ? `Дата публикации установлена: ${publicationDateLabel(chosenAt)}` : null;
+
         const result = await prisma.$transaction(async (tx) => {
             // Coordinate withdrawal with simultaneous featured-selection changes.
             if (step.to === "UNPUBLISHED") {
@@ -91,12 +119,13 @@ export async function POST(request, { params }) {
                 if (!lock?.locked) return null;
             }
             const updated = await tx.newsPost.updateMany({
-                where: { id, status: step.from, updatedAt: expectedAt },
+                where: { id, status: step.from, updatedAt: expectedAt,
+                    ...(input.action === "reschedule" ? { publishedAt: { gt: now } } : {}) },
                 data: {
                     status: step.to,
                     // Re-publication never silently returns a story to the carousel.
                     ...(step.to === "UNPUBLISHED" ? { featured: false, featuredOrder: 99 } : {}),
-                    ...(step.to === "PUBLISHED" ? { publishedAt: post.publishedAt ?? new Date() } : {}),
+                    ...(step.to === "PUBLISHED" ? { publishedAt: publicationAt } : {}),
                 },
             });
             if (updated.count !== 1) return null;
@@ -118,9 +147,12 @@ export async function POST(request, { params }) {
                 }
             }
             await tx.newsWorkflowEvent.create({
-                data: { postId: id, actorId: user.id, action: step.event, note: note || null },
+                data: { postId: id, actorId: user.id, action: step.event,
+                    note: eventNote || note || null },
             });
-            return { status: step.to, slug: post.slug };
+            return { status: step.to, slug: post.slug,
+                scheduled: step.to === "PUBLISHED" && publicationAt > new Date(),
+                publishedAt: publicationAt?.toISOString() ?? null };
         });
         if (!result) return errorJson("Статус изменился в другой вкладке. Обновите страницу.", 409);
         return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });

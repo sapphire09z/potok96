@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { hasTrustedOrigin } from "@/lib/trustedOrigin";
+import { isNewsPublic, publicNewsWhere } from "@/lib/newsPublication.mjs";
 
 export const runtime = "nodejs";
 const POST_ID = /^c[a-z0-9]{10,40}$/;
@@ -38,6 +39,7 @@ export async function POST(request, { params }) {
     if (!Number.isFinite(expectedAt.getTime())) return responseError("Некорректная версия новости.", 400);
 
     try {
+        const now = new Date();
         const result = await getPrisma().$transaction(async (tx) => {
             // Return a conflict if another editor is changing the carousel right now.
             const [lock] = await tx.$queryRaw`SELECT pg_try_advisory_xact_lock(953303) AS locked`;
@@ -45,11 +47,11 @@ export async function POST(request, { params }) {
                 return { error: "Подборку уже меняет другой администратор. Повторите.", code: 409 };
             }
             const post = await tx.newsPost.findUnique({
-                where: { id }, select: { id: true, status: true, updatedAt: true, featured: true },
+                where: { id }, select: { id: true, status: true, publishedAt: true, updatedAt: true, featured: true },
             });
             if (!post) return { error: "Новость не найдена.", code: 404 };
-            if (post.status !== "PUBLISHED") {
-                return { error: "В главные можно назначать только опубликованную новость.", code: 409 };
+            if (!isNewsPublic(post, now)) {
+                return { error: "В главные можно назначать только уже вышедшую новость.", code: 409 };
             }
             if (post.updatedAt.getTime() !== expectedAt.getTime()) {
                 return { error: "Новость или подборка изменились. Обновите страницу.", code: 409 };
@@ -58,7 +60,7 @@ export async function POST(request, { params }) {
                 return { error: "Новость уже убрана из главных.", code: 409 };
             }
             const current = await tx.newsPost.findMany({
-                where: { status: "PUBLISHED", featured: true },
+                where: { ...publicNewsWhere(now), featured: true },
                 orderBy: [{ featuredOrder: "asc" }, { publishedAt: "desc" }, { id: "asc" }],
                 select: { id: true, featuredOrder: true },
             });
@@ -78,7 +80,7 @@ export async function POST(request, { params }) {
                 const previous = current.find((row) => row.id === featuredId);
                 if (previous?.featuredOrder === order) continue;
                 const updated = await tx.newsPost.updateMany({
-                    where: { id: featuredId, status: "PUBLISHED" },
+                    where: { id: featuredId, ...publicNewsWhere(now) },
                     data: { featured: true, featuredOrder: order },
                 });
                 if (updated.count !== 1) throw new Error("News selection changed during update");

@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { getPrisma } from "@/lib/prisma";
 import { publicNewsBody, publicNewsCover } from "@/lib/newsMedia";
+import { isNewsPublic, publicNewsWhere } from "@/lib/newsPublication.mjs";
 
 const NEWS_DIR = path.join(process.cwd(), "content", "news");
 function normalizeTags(tags) {
@@ -63,7 +64,7 @@ export async function getAllNews() {
     const [files, posts] = await Promise.all([
         readMarkdownNews(),
         getPrisma().newsPost.findMany({
-            where: { status: "PUBLISHED", publishedAt: { not: null } },
+            where: publicNewsWhere(),
             select: summarySelect,
         }),
     ]);
@@ -88,7 +89,7 @@ export async function getNewsBySlug(slug) {
             images: { select: { id: true, storageKey: true, credit: true } },
         },
     });
-    if (!post || post.status !== "PUBLISHED" || !post.publishedAt) return null;
+    if (!isNewsPublic(post)) return null;
     const photoCredits = [...new Set(post.images.map((image) => image.credit?.trim()).filter(Boolean))];
     return {
         ...toPublicSummary(post),

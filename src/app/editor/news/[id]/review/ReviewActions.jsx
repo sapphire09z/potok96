@@ -3,29 +3,38 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { yekatDateTimeInput } from "@/lib/newsPublication.mjs";
 import styles from "./review.module.css";
 
-export default function ReviewActions({ postId, status, updatedAt, isAdmin, issues = [] }) {
+export default function ReviewActions({ postId, status, updatedAt, isAdmin, issues = [], scheduled = false, publishedAt = null }) {
     const router = useRouter();
     const [busy, setBusy] = useState(false);
     const [reason, setReason] = useState("");
     const [error, setError] = useState("");
+    const [publicationDate, setPublicationDate] = useState(() => scheduled ? yekatDateTimeInput(publishedAt) : "");
 
-    async function execute(action) {
+    async function execute(action, withDate = false) {
         if (busy) return;
+        if (withDate && !publicationDate) {
+            setError("Выберите дату и время публикации по Красноуфимску."); return;
+        }
         const description = {
             submit: "отправить на проверку", approve: "одобрить", return: "вернуть на доработку",
             reopen: "вернуть в черновики", reopen_unpublished: "отправить на доработку",
-            publish: "опубликовать на сайте", unpublish: "снять с публикации", republish: "повторно опубликовать",
+            publish: withDate ? "опубликовать на указанную дату" : "опубликовать сейчас",
+            unpublish: scheduled ? "отменить запланированную публикацию" : "снять с публикации",
+            republish: withDate ? "повторно опубликовать на указанную дату" : "повторно опубликовать",
+            reschedule: "изменить время запланированной публикации",
         }[action];
         if (!window.confirm(`Действительно ${description} этот материал?`)) return;
         setBusy(true); setError("");
         try {
-            const publication = ["publish", "unpublish", "republish"].includes(action);
+            const publication = ["publish", "unpublish", "republish", "reschedule"].includes(action);
             const endpoint = publication ? "publication" : "workflow";
             const response = await fetch(`/api/editor/news/${encodeURIComponent(postId)}/${endpoint}`, {
                 method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action, reason, expectedUpdatedAt: updatedAt }),
+                body: JSON.stringify({ action, reason, expectedUpdatedAt: updatedAt,
+                    ...(withDate ? { publicationDate } : {}) }),
             });
             const result = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(result.error || `Ошибка ${response.status}`);
@@ -61,7 +70,12 @@ export default function ReviewActions({ postId, status, updatedAt, isAdmin, issu
         {status === "APPROVED" && <>
             <p>Материал одобрен, но ещё не опубликован. Только администратор может открыть его на сайте.</p>
             {isAdmin && <>
-                <button type="button" disabled={busy} onClick={() => execute("publish")}>Опубликовать на сайте</button>
+                <button type="button" disabled={busy} onClick={() => execute("publish")}>Опубликовать сейчас</button>
+                <label>Дата и время публикации (Красноуфимск, UTC+5)
+                    <input type="datetime-local" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} disabled={busy} />
+                </label>
+                <p>Дата в будущем — отложенная публикация. Дата в прошлом — публикация задним числом. Время указывайте по Красноуфимску.</p>
+                <button type="button" disabled={busy || !publicationDate} onClick={() => execute("publish", true)}>Опубликовать на указанную дату / запланировать</button>
                 <label>Причина возврата в черновики
                     <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
                 </label>
@@ -69,18 +83,29 @@ export default function ReviewActions({ postId, status, updatedAt, isAdmin, issu
             </>}
         </>}
         {status === "PUBLISHED" && <>
-            <p>Новость доступна на сайте.</p>
+            <p>{scheduled ? "Выход новости запланирован. До указанного времени она недоступна посетителям, в поиске и по прямой ссылке." : "Новость доступна на сайте."}</p>
             {isAdmin && <>
-                <label>Причина снятия с публикации (не менее 5 символов)
+                {scheduled && <>
+                    <label>Изменить запланированную дату и время (Красноуфимск, UTC+5)
+                        <input type="datetime-local" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} disabled={busy} />
+                    </label>
+                    <button type="button" disabled={busy || !publicationDate} onClick={() => execute("reschedule", true)}>Перенести время выхода</button>
+                </>}
+                <label>{scheduled ? "Причина отмены публикации (не менее 5 символов)" : "Причина снятия с публикации (не менее 5 символов)"}
                     <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
                 </label>
-                <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("unpublish")}>Снять с публикации</button>
+                <button type="button" disabled={busy || reason.trim().length < 5} onClick={() => execute("unpublish")}>{scheduled ? "Отменить запланированную публикацию" : "Снять с публикации"}</button>
             </>}
         </>}
         {status === "UNPUBLISHED" && <>
             <p>Новость скрыта из публичной ленты. Администратор может вернуть её без изменений либо отправить на доработку.</p>
             {isAdmin && <>
-                <button type="button" disabled={busy} onClick={() => execute("republish")}>Повторно опубликовать</button>
+                <button type="button" disabled={busy} onClick={() => execute("republish")}>Повторно опубликовать (с прежней датой)</button>
+                <label>Новая дата и время публикации (Красноуфимск, UTC+5)
+                    <input type="datetime-local" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} disabled={busy} />
+                </label>
+                <p>Можно выбрать дату в прошлом или запланировать повторный выход на будущее.</p>
+                <button type="button" disabled={busy || !publicationDate} onClick={() => execute("republish", true)}>Опубликовать на указанную дату / запланировать</button>
                 <label>Причина возврата на доработку
                     <textarea rows={3} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
                 </label>

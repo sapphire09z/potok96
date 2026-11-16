@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
+import { isNewsScheduled, publicNewsWhere } from "@/lib/newsPublication.mjs";
 import styles from "./news-editor.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ const statusLabels = {
     REVIEW: "На проверке",
     APPROVED: "Одобрено",
     PUBLISHED: "Опубликовано",
+    SCHEDULED: "Запланировано",
     UNPUBLISHED: "Снято с публикации",
 };
 
@@ -25,6 +27,7 @@ const filters = [
     { status: "DRAFT", label: "Черновики" },
     { status: "REVIEW", label: "На проверке" },
     { status: "APPROVED", label: "Одобрено" },
+    { status: "SCHEDULED", label: "Запланированные" },
     { status: "PUBLISHED", label: "Опубликованные" },
     { status: "UNPUBLISHED", label: "Снятые" },
 ];
@@ -58,6 +61,7 @@ export default async function EditorNewsPage({ searchParams }) {
         ? requestedPage : 1;
 
     const prisma = getPrisma();
+    const now = new Date();
     const searchWhere = q ? {
         OR: [
             { title: { contains: q, mode: "insensitive" } },
@@ -70,19 +74,26 @@ export default async function EditorNewsPage({ searchParams }) {
 
     // Status counts follow the current search, so tabs always show the size of
     // the actual result set rather than counts for unrelated material.
-    const totals = await prisma.newsPost.groupBy({
-        by: ["status"],
-        where: searchWhere,
-        _count: { _all: true },
-    });
+    const [totals, scheduledCount] = await Promise.all([
+        prisma.newsPost.groupBy({
+            by: ["status"], where: searchWhere, _count: { _all: true },
+        }),
+        prisma.newsPost.count({ where: { ...searchWhere, status: "PUBLISHED", publishedAt: { gt: now } } }),
+    ]);
     const counts = Object.fromEntries(totals.map((row) => [row.status, row._count._all]));
+    counts.SCHEDULED = scheduledCount;
+    counts.PUBLISHED = Math.max(0, (counts.PUBLISHED ?? 0) - scheduledCount);
     const foundTotal = totals.reduce((sum, row) => sum + row._count._all, 0);
     const selectedTotal = selected ? counts[selected] ?? 0 : foundTotal;
     const pageCount = Math.max(1, Math.ceil(selectedTotal / PER_PAGE));
     const page = Math.min(pageNumber, pageCount);
 
     const posts = await prisma.newsPost.findMany({
-        where: selected ? { ...searchWhere, status: selected } : searchWhere,
+        where: selected === "SCHEDULED"
+            ? { ...searchWhere, status: "PUBLISHED", publishedAt: { gt: now } }
+            : selected === "PUBLISHED"
+                ? { ...searchWhere, ...publicNewsWhere(now) }
+                : selected ? { ...searchWhere, status: selected } : searchWhere,
         select: {
             id: true, title: true, slug: true, category: true, status: true,
             updatedAt: true, publishedAt: true, featured: true, featuredOrder: true,
@@ -153,8 +164,8 @@ export default async function EditorNewsPage({ searchParams }) {
                         <article key={post.id} className={styles.item}>
                             <div className={styles.itemTop}>
                                 <span>{post.category}</span>
-                                <span className={styles.status}>{statusLabels[post.status]}</span>
-                                {post.status === "PUBLISHED" && post.featured &&
+                                <span className={styles.status}>{statusLabels[isNewsScheduled(post, now) ? "SCHEDULED" : post.status]}</span>
+                                {post.status === "PUBLISHED" && !isNewsScheduled(post, now) && post.featured &&
                                     <span className={styles.status}>★ В главных · №{post.featuredOrder}</span>}
                             </div>
                             <h2><Link href={`/editor/news/${post.id}/review`}>{post.title}</Link></h2>
@@ -162,7 +173,7 @@ export default async function EditorNewsPage({ searchParams }) {
                                 {post.status === "DRAFT" && <Link href={`/editor/news/${post.id}`}>Редактировать</Link>}
                                 <Link href={`/editor/news/${post.id}/review`}>Проверка и история</Link>
                                 <span>Обновлено {timeFormatter.format(post.updatedAt)}</span>
-                                {post.publishedAt && <span>Опубликовано {timeFormatter.format(post.publishedAt)}</span>}
+                                {post.publishedAt && <span>{isNewsScheduled(post, now) ? "Выход запланирован" : "Дата публикации"} {timeFormatter.format(post.publishedAt)}</span>}
                                 <span>/{post.slug}</span>
                             </div>
                         </article>

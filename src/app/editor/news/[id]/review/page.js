@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { isNewsEditor } from "@/lib/newsDraft";
 import { newsReviewIssues } from "@/lib/newsReviewIssues";
+import { isNewsScheduled } from "@/lib/newsPublication.mjs";
 import ReviewActions from "./ReviewActions";
 import FeaturedActions from "./FeaturedActions";
 import styles from "./review.module.css";
@@ -32,7 +33,7 @@ export default async function NewsReviewPage({ params }) {
         where: { id },
         select: {
             id: true, slug: true, title: true, summary: true, body: true, category: true,
-            status: true, authorName: true, updatedAt: true, tags: true, sourceKind: true,
+            status: true, authorName: true, updatedAt: true, publishedAt: true, tags: true, sourceKind: true,
             featured: true, featuredOrder: true,
             sourceName: true, sourceUrl: true, sourceText: true, rightsNote: true, coverImageId: true,
             images: {
@@ -46,6 +47,7 @@ export default async function NewsReviewPage({ params }) {
         },
     });
     if (!post) notFound();
+    const scheduled = isNewsScheduled(post);
     const cover = post.images.find((item) => item.id === post.coverImageId);
     const issues = ["DRAFT", "REVIEW"].includes(post.status) ? newsReviewIssues(post) : [];
     const imagePath = (imageId, size) => `/api/editor/news/${post.id}/images/${imageId}?size=${size}`;
@@ -55,21 +57,25 @@ export default async function NewsReviewPage({ params }) {
         <header className={styles.header}>
             <p className={styles.kicker}>Поток 96 / Редакционная проверка</p>
             <h1>{post.title}</h1>
-            <p className={styles.meta}>{post.category} · {labels[post.status] ?? post.status} · Обновлено {dates.format(post.updatedAt)}</p>
+            <p className={styles.meta}>{post.category} · {scheduled ? "Запланировано" : labels[post.status] ?? post.status} · Обновлено {dates.format(post.updatedAt)}</p>
+            {scheduled && <p className={styles.meta}>Выход запланирован на {dates.format(post.publishedAt)} (Красноуфимск).</p>}
+            {!scheduled && post.status === "PUBLISHED" && post.publishedAt &&
+                <p className={styles.meta}>Дата публикации: {dates.format(post.publishedAt)} (Красноуфимск).</p>}
             {post.status === "DRAFT" && <Link href={`/editor/news/${post.id}`} className={styles.edit}>Редактировать черновик</Link>}
-            {post.status === "PUBLISHED" && <Link href={`/news/${post.slug}`} className={styles.edit}>Открыть новость на сайте</Link>}
+            {post.status === "PUBLISHED" && !scheduled && <Link href={`/news/${post.slug}`} className={styles.edit}>Открыть новость на сайте</Link>}
         </header>
 
         <ReviewActions key={`${post.status}:${post.updatedAt.toISOString()}`} postId={post.id} status={post.status}
-            updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} issues={issues} />
+            updatedAt={post.updatedAt.toISOString()} isAdmin={user.role === "ADMIN"} issues={issues}
+            scheduled={scheduled} publishedAt={post.publishedAt?.toISOString() ?? null} />
 
-        {post.status === "PUBLISHED" && user.role === "ADMIN" &&
+        {post.status === "PUBLISHED" && !scheduled && user.role === "ADMIN" &&
             <FeaturedActions key={`${post.id}:${post.updatedAt.toISOString()}`}
                 postId={post.id} updatedAt={post.updatedAt.toISOString()}
                 featured={post.featured} featuredOrder={post.featuredOrder} />}
 
         <section className={styles.article}>
-            <p className={styles.kicker}>{post.status === "PUBLISHED" ? "Опубликованный материал" : "Предпросмотр материала (не опубликовано)"}</p>
+            <p className={styles.kicker}>{post.status === "PUBLISHED" && !scheduled ? "Опубликованный материал" : "Предпросмотр материала (не опубликовано)"}</p>
             <h2>{post.title}</h2>
             {post.summary && <p className={styles.lead}>{post.summary}</p>}
             <p className={styles.meta}>{post.authorName}</p>
@@ -99,7 +105,9 @@ export default async function NewsReviewPage({ params }) {
             <h2>История редакционных решений</h2>
             {post.workflowEvents.length === 0 ? <p>Решений пока нет.</p> : <ol className={styles.history}>
                 {post.workflowEvents.map((event) => <li key={event.id}>
-                    <strong>{actionLabels[event.action] ?? event.action}</strong>
+                    <strong>{event.note?.startsWith("Перенос публикации:") ? "Перенесено время выхода" :
+                        event.note?.startsWith("Публикация запланирована:") ? "Запланирована публикация" :
+                        actionLabels[event.action] ?? event.action}</strong>
                     <span> {dates.format(event.createdAt)} · {event.actor?.role ?? "Сотрудник"}</span>
                     {event.note && <p>{event.note}</p>}
                 </li>)}

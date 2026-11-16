@@ -12,6 +12,7 @@
 .actions button:disabled { opacity: .45; cursor: not-allowed; }
 .actions label { display: grid; gap: 8px; width: 100%; font-size: 13px; font-weight: 700; }
 .actions textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--border); font: inherit; background: white; }
+.actions input[type="datetime-local"] { width: min(100%, 320px); min-height: 42px; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 3px; background: white; color: var(--text); font: inherit; }
 .error { color: #a32323; font-weight: 700; }
 .article { background: white; }
 .article h2 { font-size: clamp(24px,4vw,38px); letter-spacing: -.04em; }
