@@ -317,3 +317,111 @@
         overflow-wrap: anywhere;
     }
 }
+
+/* Stage 5.14.2 mobile compact layout hotfix */
+/* The description moves under the poster + title, at full card width. */
+.synopsis,
+.synopsisShort {
+    min-width: 0;
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.synopsisSummary {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    cursor: pointer;
+}
+
+.synopsisSummary::-webkit-details-marker {
+    display: none;
+}
+
+.synopsisSummary:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.synopsisTeaser {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.synopsisExpand,
+.synopsisCollapse {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.synopsisCollapse,
+.synopsis[open] .synopsisTeaser,
+.synopsis[open] .synopsisExpand {
+    display: none;
+}
+
+.synopsis[open] .synopsisCollapse {
+    display: inline;
+}
+
+.synopsisFull {
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    .page { gap: 20px; }
+    .movies { gap: 12px; }
+    .movieCard {
+        padding: 14px;
+        column-gap: 12px;
+        row-gap: 14px;
+        border-radius: 16px;
+    }
+    .movieInfo { gap: 7px; }
+    .movieInfo h2 {
+        font-size: 20px;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+    }
+    .meta {
+        gap: 4px 8px;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+    .placeholder { font-size: 18px; }
+    .synopsis,
+    .synopsisShort {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+    .schedule {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        margin-top: 0;
+        gap: 9px;
+    }
+    .schedule h3 { margin: 0; font-size: 16px; }
+    .ticketNote { font-size: 11px; }
+    .session { padding: 10px 0; gap: 7px; }
+    .sessionTime strong { font-size: 18px; }
+    .sessionDetails { gap: 4px 6px; font-size: 12px; }
+}
+
+@media (max-width: 430px) {
+    .movieCard {
+        grid-template-columns: 92px minmax(0, 1fr);
+        column-gap: 12px;
+    }
+    .movieInfo h2 { font-size: 19px; }
+}

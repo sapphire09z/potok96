@@ -121,10 +121,22 @@ export default async function CinemaPage() {
                                         )}
                                     </div>
 
-                                    {movie.summary && (
-                                        <p>{movie.summary}</p>
-                                    )}
                                 </div>
+
+                                {movie.summary && (
+                                    movie.summary.length > 170 ? (
+                                        <details className={styles.synopsis}>
+                                            <summary className={styles.synopsisSummary}>
+                                                <span className={styles.synopsisTeaser}>{movie.summary}</span>
+                                                <span className={styles.synopsisExpand}>Читать полностью</span>
+                                                <span className={styles.synopsisCollapse}>Свернуть</span>
+                                            </summary>
+                                            <p className={styles.synopsisFull}>{movie.summary}</p>
+                                        </details>
+                                    ) : (
+                                        <p className={styles.synopsisShort}>{movie.summary}</p>
+                                    )
+                                )}
 
                                 <div className={styles.schedule}>
                                     <h3>Ближайшие сеансы</h3>
