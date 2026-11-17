@@ -141,7 +141,7 @@ export default async function CinemaPage() {
                                 <div className={styles.schedule}>
                                     <h3>Ближайшие сеансы</h3>
                                     <p className={styles.ticketNote}>
-                                        Онлайн-покупка билетов на сайте пока не подключена.
+                                        Продажа, оплата и возврат билетов — на внешнем сайте кинотеатра. «Поток 96» не принимает оплату.
                                     </p>
 
                                     {movie.screenings
@@ -167,6 +167,7 @@ export default async function CinemaPage() {
                                                 <div className={styles.sessionDetails}>
                                                     {screening.hallName && <span>{screening.hallName}</span>}
                                                     {screening.formatName && <span>{screening.formatName}</span>}
+                                                    {screening.pushkinCard && <span className={styles.pushkin}>Пушкинская карта</span>}
                                                     <span>
                                                         {screening.price !== null
                                                             ? `от ${priceFormatter.format(screening.price)} ₽`
@@ -174,7 +175,12 @@ export default async function CinemaPage() {
                                                     </span>
 
                                                 </div>
-
+                                                {screening.ticketUrl && (
+                                                    <a className={styles.buyButton} href={screening.ticketUrl}
+                                                        target="_blank" rel="noopener noreferrer">
+                                                        Билеты на сайте кинотеатра ↗
+                                                    </a>
+                                                )}
                                             </div>
                                         ))}
                                 </div>

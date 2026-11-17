@@ -671,6 +671,13 @@ model CinemaSession {
   rentalLicense    Int?
   pushkinId        String? @db.VarChar(120)
   textCode         String @default("") @db.VarChar(40)
+  verifiedPushkinId          String? @db.VarChar(120)
+  pushkinVerifiedFingerprint String? @db.VarChar(64)
+  pushkinProofNote           String? @db.VarChar(500)
+  ticketUrl                  String? @db.VarChar(2048)
+  ticketVerifiedFingerprint  String? @db.VarChar(64)
+  listingReviewedById        String? @db.VarChar(100)
+  listingReviewedAt          DateTime? @db.Timestamptz(3)
   isCurrent        Boolean @default(true)
   lastSeenAt       DateTime @default(now()) @db.Timestamptz(3)
   createdAt        DateTime @default(now()) @db.Timestamptz(3)

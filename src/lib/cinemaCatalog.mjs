@@ -1,4 +1,5 @@
 import { cinemaPosterPublicUrl } from "./cinemaPosterPolicy.mjs";
+import { cinemaPushkinVerified, publicCinemaTicketUrl } from "./cinemaTicketPolicy.mjs";
 
 // Stage 5.14.2: public, read-only cinema catalogue presentation.
 // No unverified ticket URLs, poster URLs, or Pushkin Card claims are published.
@@ -24,8 +25,8 @@ export function cinemaMovieToPublic(row, now = new Date()) {
             hallName: typeof item.hallName === "string" ? item.hallName : "",
             formatName: typeof item.formatName === "string" ? item.formatName : "",
             // Potential external PushkinId is not sufficient evidence for the badge.
-            pushkinCard: false,
-            ticketUrl: "",
+            pushkinCard: cinemaPushkinVerified(item),
+            ticketUrl: publicCinemaTicketUrl(item),
         };
     });
     return {

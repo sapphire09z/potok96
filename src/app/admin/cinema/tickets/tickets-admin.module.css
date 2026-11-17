@@ -1,0 +1,21 @@
+.page { display: grid; gap: 22px; max-width: 1050px; }
+.back { font-size: 13px; color: var(--muted); width: fit-content; }
+.heading h2 { margin: 0 0 8px; font-size: clamp(28px,4vw,38px); }
+.heading p,.toolbar p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.toolbar label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.cards { display: grid; gap: 14px; }
+.card { display: grid; gap: 13px; background: var(--paper); border: 1px solid var(--border); border-radius: 16px; padding: 18px; min-width: 0; }
+.cardHead { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.cardHead h3 { margin: 0 0 5px; font-size: 18px; }
+.cardHead p { margin: 0; color: var(--muted); font-size: 13px; }
+.check { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 650; }
+.field { display: grid; gap: 6px; font-size: 13px; font-weight: 650; min-width: 0; }
+.field input { display: block; width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); color: var(--text); padding: 10px 12px; font-size: 14px; }
+.cardBottom { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.cardBottom button { border: 0; border-radius: 9px; padding: 10px 16px; font-weight: 700; background: var(--text); color: var(--paper); cursor: pointer; }
+.cardBottom button:disabled { opacity: .5; cursor: not-allowed; }
+.muted { color: var(--muted); font-size: 12px; font-weight: 400; }
+.success { color: #247044; font-size: 12px; }
+.warning { color: #995800; font-size: 12px; font-weight: 600; }
+@media(max-width:700px) { .card { padding: 13px; } .cardHead h3 { font-size: 16px; } }

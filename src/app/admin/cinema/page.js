@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
@@ -40,6 +41,7 @@ export default async function CinemaAdminPage() {
             <div><small>Будущих сеансов</small><strong>{sessions}</strong></div>
             <div><small>С постерами</small><strong>{posters}</strong></div>
         </div>
+        <p><Link href="/admin/cinema/tickets">Настройка ссылок на билеты и «Пушкинской карты» →</Link></p>
         <CinemaSyncPanel initialRuns={safeRuns} />
         <p className={styles.hint}>Обновление выполняет отдельный служебный процесс. Кнопка ставит задачу в очередь; не перезагружайте страницу для ожидания результата.</p>
     </main>;
