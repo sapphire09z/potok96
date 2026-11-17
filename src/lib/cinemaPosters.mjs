@@ -48,7 +48,7 @@ export async function fetchCinemaPoster(serviceId, mediaId, fetchFn = fetch) {
 }
 
 export async function synchronizeCinemaPosters({ prisma, serviceId, apply = false,
-    fetchFn = fetch, transform, upload, logger = console }) {
+    fetchFn = fetch, transform, upload, logger = console, shouldProcessMovie = () => true }) {
     validateCinemaServiceId(serviceId);
     if (!prisma?.cinemaMovie?.findMany || typeof transform !== "function" || (apply && typeof upload !== "function")) {
         throw new Error("Cinema poster synchronization is not configured.");
@@ -60,7 +60,7 @@ export async function synchronizeCinemaPosters({ prisma, serviceId, apply = fals
         orderBy: { externalId: "asc" },
     });
     if (movies.length > MAX_MOVIES_PER_RUN) throw new Error("Unusually large current cinema catalogue.");
-    const summary = { movies: movies.length, candidates: 0, changed: 0, unchanged: 0, missing: 0, failures: 0 };
+    const summary = { movies: movies.length, candidates: 0, changed: 0, unchanged: 0, skipped: 0, missing: 0, failures: 0 };
     for (const movie of movies) {
         const candidate = chooseCinemaPoster(movie.media);
         if (!candidate) {
@@ -75,6 +75,10 @@ export async function synchronizeCinemaPosters({ prisma, serviceId, apply = fals
             continue;
         }
         summary.candidates++;
+        if (!shouldProcessMovie(movie, candidate)) {
+            summary.skipped++;
+            continue;
+        }
         try {
             const bytes = await fetchCinemaPoster(serviceId, candidate.id, fetchFn);
             const hash = createHash("sha256").update(bytes).digest("hex");

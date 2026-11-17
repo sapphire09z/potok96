@@ -50,6 +50,7 @@ export default async function AdminHomePage() {
                 <Link href="/admin/users">Учётные записи и права доступа</Link>
                 <Link href="/admin/orgs">Управление организациями</Link>
                 <Link href="/admin/events">Управление мероприятиями</Link>
+                <Link href="/admin/cinema">Управление киноафишей</Link>
                 <Link href="/admin/official/notices">Официальные сообщения администрации и ведомств</Link>
                 <Link href="/admin/official/documents">Нормативные правовые акты (НПА)</Link>
                 <Link href="/admin/alerts">Сообщения городских служб</Link>
@@ -57,7 +58,7 @@ export default async function AdminHomePage() {
                 <Link href="/editor/news/comments">Модерация комментариев к новостям</Link>
                 <Link href="/moderator/ads">Очередь модерации объявлений</Link>
             </div>
-            <p className={styles.muted}>Интеграцию киноафиши, городские службы и настройки портала добавим отдельными этапами.</p>
+            <p className={styles.muted}>Городские службы и настройки портала добавим отдельными этапами.</p>
         </section>
         <section className={styles.panel}>
             <h2>Последние изменения ролей</h2>

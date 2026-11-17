@@ -679,3 +679,27 @@ model CinemaSession {
   @@index([isCurrent, startAt])
   @@index([movieExternalId, startAt])
 }
+
+
+// Stage 5.14.4: queued, audited automatic and manual cinema imports.
+model CinemaSyncRun {
+  id               String    @id @default(cuid())
+  trigger          String    @db.VarChar(12)
+  status           String    @default("QUEUED") @db.VarChar(16)
+  requestedById    String?   @db.VarChar(100)
+  movieCount       Int?
+  sessionCount     Int?
+  posterCandidates Int?
+  posterUpdated    Int?
+  posterUnchanged  Int?
+  posterSkipped    Int?
+  posterFailures   Int?
+  posterFullScan   Boolean   @default(false)
+  error            String?   @db.VarChar(1000)
+  startedAt        DateTime? @db.Timestamptz(3)
+  finishedAt       DateTime? @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+}

@@ -80,6 +80,36 @@ services:
         condition: service_healthy
     restart: "no"
 
+
+  # Background worker: polls durable queue and schedules CinemaWebApi imports.
+  cinema-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    image: potok96:cinema-worker
+    container_name: potok96-cinema-worker
+    command: ["node", "scripts/cinema-worker.mjs"]
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 90s
+    environment:
+      DATABASE_URL: "postgresql://potok96:${POSTGRES_PASSWORD:?Database password is required}@db:5432/potok96?schema=public"
+    env_file:
+      - path: /opt/potok96-deploy/cinema.env
+        required: true
+        format: raw
+      - path: /opt/potok96-deploy/s3.env
+        required: true
+        format: raw
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   db:
     image: postgres:17-bookworm
     container_name: potok96-db

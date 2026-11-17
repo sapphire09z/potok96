@@ -18,6 +18,9 @@ COPY scripts/sync-cinema.mjs ./scripts/sync-cinema.mjs
 COPY src/lib/cinemaPosterPolicy.mjs ./src/lib/cinemaPosterPolicy.mjs
 COPY src/lib/cinemaPosters.mjs ./src/lib/cinemaPosters.mjs
 COPY scripts/sync-cinema-posters.mjs ./scripts/sync-cinema-posters.mjs
+COPY scripts/cinema-worker.mjs ./scripts/cinema-worker.mjs
+COPY src/lib/cinemaPosterTransform.mjs ./src/lib/cinemaPosterTransform.mjs
+COPY src/lib/cinemaSyncPolicy.mjs ./src/lib/cinemaSyncPolicy.mjs
 COPY src/lib/media/s3.js ./src/lib/media/s3.js
 
 RUN DATABASE_URL="postgresql://dummy:dummy@127.0.0.1:5432/dummy" \
