@@ -119,6 +119,7 @@ enum NewsStatus {
   APPROVED
   PUBLISHED
   UNPUBLISHED
+  TRASHED
 }
 
 enum NewsWorkflowAction {
@@ -168,10 +169,13 @@ model NewsPost {
   createdBy      User?      @relation("NewsPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+  trashedAt      DateTime?  @db.Timestamptz(3)
+  trashedById    String?    @db.VarChar(100)
   publishedAt    DateTime?
 
   @@index([status, publishedAt])
   @@index([updatedAt])
+  @@index([trashedAt])
   @@index([createdById, createdAt])
 }
 
@@ -489,6 +493,7 @@ model OrgProposalReviewEvent {
 enum EventStatus {
   DRAFT
   PUBLISHED
+  TRASHED
 }
 
 model EventPost {
@@ -514,10 +519,13 @@ model EventPost {
   createdBy       User @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  trashedAt       DateTime? @db.Timestamptz(3)
+  trashedById     String?   @db.VarChar(100)
   publishedAt     DateTime?
   images          EventImage[]
 
   @@index([status, startAt])
+  @@index([trashedAt])
   @@index([category, startAt])
   @@index([createdById, createdAt])
 }
@@ -710,4 +718,19 @@ model CinemaSyncRun {
 
   @@index([createdAt])
   @@index([status, createdAt])
+}
+
+// Stage 5.15.1: durable audit trail for reversible news/event trash operations.
+model ContentTrashAudit {
+  id        String   @id @default(cuid())
+  kind      String   @db.VarChar(10)
+  itemId    String   @db.VarChar(100)
+  title     String   @db.VarChar(180)
+  action    String   @db.VarChar(10)
+  actorId   String   @db.VarChar(100)
+  reason    String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt])
+  @@index([kind, itemId, createdAt])
 }

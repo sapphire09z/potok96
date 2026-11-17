@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { getEventCategoryTitle } from "@/lib/eventCategories";
+import TrashButton from "@/components/admin/TrashButton";
 import styles from "./events-admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ export default async function EventsAdminPage({ searchParams }) {
     const requestedPage = Number(params?.page ?? 1);
     const requested = Number.isSafeInteger(requestedPage) && requestedPage > 0 && requestedPage < 10000 ? requestedPage : 1;
     const where = {
-        ...(status ? { status } : {}),
+        ...(status ? { status } : { status: { not: "TRASHED" } }),
         ...(q ? { OR: [
             { title: { contains: q, mode: "insensitive" } },
             { slug: { contains: q, mode: "insensitive" } },
@@ -52,7 +53,7 @@ export default async function EventsAdminPage({ searchParams }) {
             <div><p className={styles.kicker}>Поток 96 / Афиша</p>
                 <h2>Управление мероприятиями</h2>
                 <p>События PostgreSQL: {count}. Существующие Markdown-события остаются на сайте и здесь пока не редактируются.</p></div>
-            <Link href="/admin/events/new" className={styles.primary}>+ Новое мероприятие</Link>
+            <div><Link href="/admin/events/new" className={styles.primary}>+ Новое мероприятие</Link>{" "}<Link href="/admin/trash">Корзина материалов</Link></div>
         </header>
         <form action="/admin/events" method="get" className={styles.filters}>
             <label>Поиск по названию, месту или адресу страницы
@@ -73,7 +74,8 @@ export default async function EventsAdminPage({ searchParams }) {
                 <h3><Link href={`/admin/events/${row.id}`}>{row.title}</Link></h3>
                 <div className={styles.meta}><span>{format.format(row.startAt)}</span>
                     {row.location && <span>{row.location}</span>}<span>/{row.slug}</span>
-                    {row.status === "PUBLISHED" && <Link href={`/events/${row.slug}`}>Открыть на сайте</Link>}</div>
+                    {row.status === "PUBLISHED" && <Link href={`/events/${row.slug}`}>Открыть на сайте</Link>}
+                    {row.status === "DRAFT" && <TrashButton kind="events" id={row.id} title={row.title} updatedAt={row.updatedAt.toISOString()} />}</div>
             </article>)}</div>}
         <nav className={styles.pager} aria-label="Страницы списка мероприятий">
             {page > 1 ? <Link href={href(q, status, page - 1)}>← Назад</Link> : <span />}

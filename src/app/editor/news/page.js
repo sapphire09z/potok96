@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { isNewsScheduled, publicNewsWhere } from "@/lib/newsPublication.mjs";
+import TrashButton from "@/components/admin/TrashButton";
 import styles from "./news-editor.module.css";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export default async function EditorNewsPage({ searchParams }) {
     // the actual result set rather than counts for unrelated material.
     const [totals, scheduledCount] = await Promise.all([
         prisma.newsPost.groupBy({
-            by: ["status"], where: searchWhere, _count: { _all: true },
+            by: ["status"], where: { ...searchWhere, status: { not: "TRASHED" } }, _count: { _all: true },
         }),
         prisma.newsPost.count({ where: { ...searchWhere, status: "PUBLISHED", publishedAt: { gt: now } } }),
     ]);
@@ -93,7 +94,7 @@ export default async function EditorNewsPage({ searchParams }) {
             ? { ...searchWhere, status: "PUBLISHED", publishedAt: { gt: now } }
             : selected === "PUBLISHED"
                 ? { ...searchWhere, ...publicNewsWhere(now) }
-                : selected ? { ...searchWhere, status: selected } : searchWhere,
+                : selected ? { ...searchWhere, status: selected } : { ...searchWhere, status: { not: "TRASHED" } },
         select: {
             id: true, title: true, slug: true, category: true, status: true,
             updatedAt: true, publishedAt: true, featured: true, featuredOrder: true,
@@ -120,6 +121,7 @@ export default async function EditorNewsPage({ searchParams }) {
                     вместе с существующими Markdown-материалами.</p>
                 <Link href="/editor/news/new" className={styles.createLink}>+ Создать новость</Link>
                 <Link href="/editor/news/comments" className={styles.commentsLink}>Модерация комментариев</Link>
+                {user.role === "ADMIN" && <Link href="/admin/trash" className={styles.commentsLink}>Корзина материалов</Link>}
             </header>
 
             <form className={styles.searchForm} action="/editor/news" method="get" role="search">
@@ -173,6 +175,8 @@ export default async function EditorNewsPage({ searchParams }) {
                             <div className={styles.meta}>
                                 {post.status === "DRAFT" && <Link href={`/editor/news/${post.id}`}>Редактировать</Link>}
                                 <Link href={`/editor/news/${post.id}/review`}>Проверка и история</Link>
+                                {user.role === "ADMIN" && post.status !== "PUBLISHED" &&
+                                    <TrashButton kind="news" id={post.id} title={post.title} updatedAt={post.updatedAt.toISOString()} />}
                                 <span>Обновлено {timeFormatter.format(post.updatedAt)}</span>
                                 {post.publishedAt && <span>{isNewsScheduled(post, now) ? "Выход запланирован" : "Дата публикации"} {timeFormatter.format(post.publishedAt)}</span>}
                                 <span>/{post.slug}</span>

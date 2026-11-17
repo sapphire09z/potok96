@@ -13,7 +13,7 @@ export default async function AdminHomePage() {
     const prisma = getPrisma();
     const [users, posts, ads, latestRoles] = await Promise.all([
         prisma.user.groupBy({ by: ["role"], where: { archivedAt: null }, _count: { _all: true } }),
-        prisma.newsPost.groupBy({ by: ["status"], _count: { _all: true } }),
+        prisma.newsPost.groupBy({ by: ["status"], where: { status: { not: "TRASHED" } }, _count: { _all: true } }),
         prisma.classifiedAd.groupBy({ by: ["status"], _count: { _all: true } }),
         prisma.adminRoleChange.findMany({ orderBy: { createdAt: "desc" }, take: 5,
             select: { id: true, actorId: true, targetId: true, oldRole: true, newRole: true, createdAt: true } }),
@@ -50,6 +50,7 @@ export default async function AdminHomePage() {
                 <Link href="/admin/users">Учётные записи и права доступа</Link>
                 <Link href="/admin/orgs">Управление организациями</Link>
                 <Link href="/admin/events">Управление мероприятиями</Link>
+                <Link href="/admin/trash">Корзина материалов: новости и мероприятия</Link>
                 <Link href="/admin/cinema">Управление киноафишей</Link>
                 <Link href="/admin/official/notices">Официальные сообщения администрации и ведомств</Link>
                 <Link href="/admin/official/documents">Нормативные правовые акты (НПА)</Link>

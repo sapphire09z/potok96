@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EVENT_CATEGORIES } from "@/lib/eventCategories";
 import EventMediaManager from "./EventMediaManager";
+import TrashButton from "@/components/admin/TrashButton";
 import styles from "./events-admin.module.css";
 
 const defaults = {
@@ -157,6 +158,9 @@ export default function EventForm({ initial }) {
                 {initial && <button type="button" className={styles.secondary} disabled={busy || mediaBusy || dirty}
                     onClick={() => publish(status === "PUBLISHED" ? "unpublish" : "publish")}>
                     {status === "PUBLISHED" ? "Снять с публикации" : "Опубликовать"}</button>}
+                {initial && status === "DRAFT" &&
+                    <TrashButton kind="events" id={initial.id} title={form.title} updatedAt={version}
+                        disabled={busy || mediaBusy || dirty} />}
                 {dirty && <span className={styles.help}>Есть несохранённые изменения — сохраните их перед публикацией.</span>}
             </div>
             {error && <p role="alert" className={styles.error}>{error}</p>}

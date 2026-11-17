@@ -7,6 +7,7 @@ import { isNewsEditor } from "@/lib/newsDraft";
 import { newsReviewIssues } from "@/lib/newsReviewIssues";
 import { isNewsScheduled } from "@/lib/newsPublication.mjs";
 import ReviewActions from "./ReviewActions";
+import TrashButton from "@/components/admin/TrashButton";
 import FeaturedActions from "./FeaturedActions";
 import CommentsSettings from "./CommentsSettings";
 import styles from "./review.module.css";
@@ -47,7 +48,7 @@ export default async function NewsReviewPage({ params }) {
             },
         },
     });
-    if (!post) notFound();
+    if (!post || post.status === "TRASHED") notFound();
     const scheduled = isNewsScheduled(post);
     const cover = post.images.find((item) => item.id === post.coverImageId);
     const issues = ["DRAFT", "REVIEW"].includes(post.status) ? newsReviewIssues(post) : [];
@@ -63,6 +64,8 @@ export default async function NewsReviewPage({ params }) {
             {!scheduled && post.status === "PUBLISHED" && post.publishedAt &&
                 <p className={styles.meta}>Дата публикации: {dates.format(post.publishedAt)} (Красноуфимск).</p>}
             {post.status === "DRAFT" && <Link href={`/editor/news/${post.id}`} className={styles.edit}>Редактировать черновик</Link>}
+            {user.role === "ADMIN" && post.status !== "PUBLISHED" &&
+                <TrashButton kind="news" id={post.id} title={post.title} updatedAt={post.updatedAt.toISOString()} />}
             {post.status === "PUBLISHED" && !scheduled && <Link href={`/news/${post.slug}`} className={styles.edit}>Открыть новость на сайте</Link>}
         </header>
 

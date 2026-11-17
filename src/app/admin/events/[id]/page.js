@@ -15,7 +15,7 @@ export default async function EditEventPage({ params }) {
     if (!EVENT_ID.test(id)) notFound();
     const event = await getPrisma().eventPost.findUnique({ where: { id },
         include: { images: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } } });
-    if (!event) notFound();
+    if (!event || event.status === "TRASHED") notFound();
     return <EventForm key={`${event.id}:${event.updatedAt.toISOString()}`} initial={{
         ...event, startAt: toEventLocalTime(event.startAt),
         endAt: toEventLocalTime(event.endAt), updatedAt: event.updatedAt.toISOString(),
