@@ -89,7 +89,7 @@ export async function deletePublic(key) {
 
 export function publicMediaUrl(key) {
   publicBucket();
-  if (!/^media\/(listings|news|events|orgs|site)\/[a-zA-Z0-9_/-]+\.webp$/.test(key)) {
+  if (!/^media\/(listings|news|events|orgs|site|cinema)\/[a-zA-Z0-9_/-]+\.webp$/.test(key)) {
     throw new Error("Invalid public media key");
   }
   return `${process.env.MEDIA_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;

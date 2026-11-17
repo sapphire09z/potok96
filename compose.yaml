@@ -58,6 +58,28 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # Manually download, verify and publish image-only CinemaWebApi posters.
+  cinema-posters:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    image: potok96:cinema-posters
+    command: ["node", "scripts/sync-cinema-posters.mjs", "--dry-run"]
+    environment:
+      DATABASE_URL: "postgresql://potok96:${POSTGRES_PASSWORD:?Database password is required}@db:5432/potok96?schema=public"
+    env_file:
+      - path: /opt/potok96-deploy/cinema.env
+        required: true
+        format: raw
+      - path: /opt/potok96-deploy/s3.env
+        required: true
+        format: raw
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   db:
     image: postgres:17-bookworm
     container_name: potok96-db

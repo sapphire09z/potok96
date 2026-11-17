@@ -638,6 +638,9 @@ model CinemaMovie {
   countries       String[] @default([])
   cast            String[] @default([])
   media           Json @default("[]")
+  posterMediaId   Int?
+  posterKey       String? @db.VarChar(512)
+  posterHash      String? @db.VarChar(64)
   pzApiId         String? @db.VarChar(120)
   kinoplanId      Int?
   pushkinId       String? @db.VarChar(120)

@@ -1,3 +1,5 @@
+import { cinemaPosterPublicUrl } from "./cinemaPosterPolicy.mjs";
+
 // Stage 5.14.2: public, read-only cinema catalogue presentation.
 // No unverified ticket URLs, poster URLs, or Pushkin Card claims are published.
 export function cinemaMovieToPublic(row, now = new Date()) {
@@ -34,7 +36,7 @@ export function cinemaMovieToPublic(row, now = new Date()) {
             ? row.durationMinutes : null,
         ageRating: typeof row.ageRating === "string" ? row.ageRating : "",
         summary: description,
-        poster: "", // Stage 5.14.3 will verify and publish movie media.
+        poster: cinemaPosterPublicUrl(row),
         screenings,
     };
 }
