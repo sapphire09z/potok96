@@ -1,5 +1,5 @@
 import { cinemaPosterPublicUrl } from "./cinemaPosterPolicy.mjs";
-import { cinemaPushkinVerified, publicCinemaTicketUrl } from "./cinemaTicketPolicy.mjs";
+import { cinemaFilmPushkinCard, cinemaTicketDateLink } from "./cinemaTicketPolicy.mjs";
 
 // Stage 5.14.2: public, read-only cinema catalogue presentation.
 // No unverified ticket URLs, poster URLs, or Pushkin Card claims are published.
@@ -25,8 +25,8 @@ export function cinemaMovieToPublic(row, now = new Date()) {
             hallName: typeof item.hallName === "string" ? item.hallName : "",
             formatName: typeof item.formatName === "string" ? item.formatName : "",
             // Potential external PushkinId is not sufficient evidence for the badge.
-            pushkinCard: cinemaPushkinVerified(item),
-            ticketUrl: publicCinemaTicketUrl(item),
+            pushkinCard: false, // compatibility: only the film receives this badge
+            ticketUrl: cinemaTicketDateLink(row, item),
         };
     });
     return {
@@ -36,6 +36,7 @@ export function cinemaMovieToPublic(row, now = new Date()) {
         durationMinutes: Number.isSafeInteger(row.durationMinutes) && row.durationMinutes > 0
             ? row.durationMinutes : null,
         ageRating: typeof row.ageRating === "string" ? row.ageRating : "",
+        pushkinCard: cinemaFilmPushkinCard(row),
         summary: description,
         poster: cinemaPosterPublicUrl(row),
         screenings,

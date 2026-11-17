@@ -119,6 +119,9 @@ export default async function CinemaPage() {
                                                 {movie.ageRating}
                                             </span>
                                         )}
+                                        {movie.pushkinCard && (
+                                            <span className={styles.pushkin}>Пушкинская карта</span>
+                                        )}
                                     </div>
 
                                 </div>
@@ -141,7 +144,7 @@ export default async function CinemaPage() {
                                 <div className={styles.schedule}>
                                     <h3>Ближайшие сеансы</h3>
                                     <p className={styles.ticketNote}>
-                                        Продажа, оплата и возврат билетов — на внешнем сайте кинотеатра. «Поток 96» не принимает оплату.
+                                        Продажа, оплата и возврат — на сайте кинотеатра. При переходе выбирается дата; время сеанса уточните на сайте кинотеатра.
                                     </p>
 
                                     {movie.screenings
@@ -167,7 +170,6 @@ export default async function CinemaPage() {
                                                 <div className={styles.sessionDetails}>
                                                     {screening.hallName && <span>{screening.hallName}</span>}
                                                     {screening.formatName && <span>{screening.formatName}</span>}
-                                                    {screening.pushkinCard && <span className={styles.pushkin}>Пушкинская карта</span>}
                                                     <span>
                                                         {screening.price !== null
                                                             ? `от ${priceFormatter.format(screening.price)} ₽`

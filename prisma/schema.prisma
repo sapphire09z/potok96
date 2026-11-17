@@ -644,6 +644,7 @@ model CinemaMovie {
   pzApiId         String? @db.VarChar(120)
   kinoplanId      Int?
   pushkinId       String? @db.VarChar(120)
+  ticketPageUrl   String? @db.VarChar(2048)
   isCurrent       Boolean @default(true)
   lastSeenAt      DateTime @default(now()) @db.Timestamptz(3)
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
