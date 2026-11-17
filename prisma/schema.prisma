@@ -625,3 +625,54 @@ model ServiceAlert {
   @@index([status, state, startAt])
   @@index([createdById, createdAt])
 }
+
+// Stage 5.14.1: CinemaWebApi read-only import; external IDs belong to one configured service.
+model CinemaMovie {
+  externalId      Int @id
+  title           String @db.VarChar(180)
+  story           String @default("") @db.Text
+  durationMinutes Int?
+  ageRating       String @default("") @db.VarChar(16)
+  genres          String[] @default([])
+  directors       String[] @default([])
+  countries       String[] @default([])
+  cast            String[] @default([])
+  media           Json @default("[]")
+  pzApiId         String? @db.VarChar(120)
+  kinoplanId      Int?
+  pushkinId       String? @db.VarChar(120)
+  isCurrent       Boolean @default(true)
+  lastSeenAt      DateTime @default(now()) @db.Timestamptz(3)
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+  sessions        CinemaSession[]
+
+  @@index([isCurrent, title])
+}
+
+model CinemaSession {
+  externalId       Int @id
+  movieExternalId  Int
+  movie            CinemaMovie @relation(fields: [movieExternalId], references: [externalId], onDelete: Restrict)
+  startAt          DateTime @db.Timestamptz(3)
+  hallExternalId   Int?
+  hallName         String @default("") @db.VarChar(120)
+  formatName       String @default("") @db.VarChar(60)
+  formatExternalId Int?
+  prices           Json @default("[]")
+  minPriceRub      Decimal? @db.Decimal(10, 2)
+  locked           Boolean @default(false)
+  deleted          Boolean @default(false)
+  isEvent          Boolean @default(false)
+  noSeats          Boolean @default(false)
+  rentalLicense    Int?
+  pushkinId        String? @db.VarChar(120)
+  textCode         String @default("") @db.VarChar(40)
+  isCurrent        Boolean @default(true)
+  lastSeenAt       DateTime @default(now()) @db.Timestamptz(3)
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([isCurrent, startAt])
+  @@index([movieExternalId, startAt])
+}

@@ -13,6 +13,8 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./
 COPY src/lib/prisma.js ./src/lib/prisma.js
 COPY scripts/check-db.mjs ./scripts/check-db.mjs
+COPY src/lib/cinemaImport.mjs ./src/lib/cinemaImport.mjs
+COPY scripts/sync-cinema.mjs ./scripts/sync-cinema.mjs
 
 RUN DATABASE_URL="postgresql://dummy:dummy@127.0.0.1:5432/dummy" \
     ./node_modules/.bin/prisma generate
