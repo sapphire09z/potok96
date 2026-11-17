@@ -59,7 +59,7 @@ export default async function AdminUsersPage({ searchParams }) {
             select: { id: true, phone: true, expiresAt: true, consumedAt: true, revokedAt: true } }),
     ]);
     const ids = users.map((item) => item.id);
-    const [sessionRows, adRows, newsRows, actionRows, revocations] = await Promise.all([
+    const [sessionRows, adRows, newsRows, actionRows, commentRows, revocations] = await Promise.all([
         ids.length ? prisma.userSession.groupBy({
             by: ["userId"], where: { userId: { in: ids }, expiresAt: { gt: new Date() } },
             _count: { _all: true },
@@ -73,6 +73,9 @@ export default async function AdminUsersPage({ searchParams }) {
         ids.length ? prisma.newsWorkflowEvent.groupBy({
             by: ["actorId"], where: { actorId: { in: ids } }, _count: { _all: true },
         }) : [],
+        ids.length ? prisma.newsComment.groupBy({
+            by: ["authorId"], where: { authorId: { in: ids } }, _count: { _all: true },
+        }) : [],
         prisma.adminSessionRevocation.findMany({
             orderBy: { createdAt: "desc" }, take: 10,
             select: { id: true, actorId: true, targetId: true, revokedCount: true, createdAt: true },
@@ -83,6 +86,7 @@ export default async function AdminUsersPage({ searchParams }) {
     const ads = counts(adRows, "ownerId");
     const news = counts(newsRows, "createdById");
     const editorial = counts(actionRows, "actorId");
+    const comments = counts(commentRows, "authorId");
     const formatter = new Intl.DateTimeFormat("ru-RU", { timeZone: "Asia/Yekaterinburg", dateStyle: "medium", timeStyle: "short" });
     const lastPage = Math.max(1, Math.ceil(total / PER_PAGE));
 
@@ -124,6 +128,7 @@ export default async function AdminUsersPage({ searchParams }) {
                         <code title={user.id}>ID: {user.id}</code>
                         <span>Создан: {formatter.format(user.createdAt)}</span>
                         <span className={styles.userAssets}>Связано: объявлений {ads.get(user.id) ?? 0} · новостей {news.get(user.id) ?? 0} · редакционных действий {editorial.get(user.id) ?? 0}</span>
+                        <span className={styles.userAssets}>Комментариев: <strong>{comments.get(user.id) ?? 0}</strong> · <Link href={`/admin/users/${encodeURIComponent(user.id)}/comments`}>Просмотреть историю</Link></span>
                         {user.id === me.id && <span className={styles.selfMark}>Текущий администратор (вы)</span>}
                         {user.archivedAt && <span className={styles.archivedMark}>В архиве с {formatter.format(user.archivedAt)}</span>}
                     </div>
