@@ -1,7 +1,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { getAllMovies } from "@/lib/movies";
+import { getCinemaMovies } from "@/lib/cinemaMovies";
 
 import styles from "./cinema.module.css";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
     title: "Киноафиша",
     description:
-        "Фильмы и расписание киносеансов в Красноуфимске. Время сеансов, стоимость билетов и Пушкинская карта.",
+        "Фильмы и расписание киносеансов в Красноуфимске. Время сеансов, залы и стоимость билетов.",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
@@ -26,8 +26,10 @@ const timeFormatter = new Intl.DateTimeFormat("ru-RU", {
     timeZone: "Asia/Yekaterinburg",
 });
 
+const priceFormatter = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });
+
 export default async function CinemaPage() {
-    const movies = await getAllMovies();
+    const movies = await getCinemaMovies();
     const now = Date.now();
 
     const currentMovies = movies
@@ -71,7 +73,7 @@ export default async function CinemaPage() {
                     <h2>Расписание пока не опубликовано</h2>
                     <p>
                         Актуальные киносеансы появятся здесь
-                        после заполнения репертуара.
+                        после синхронизации расписания кинотеатра.
                     </p>
                 </div>
             ) : (
@@ -126,12 +128,15 @@ export default async function CinemaPage() {
 
                                 <div className={styles.schedule}>
                                     <h3>Ближайшие сеансы</h3>
+                                    <p className={styles.ticketNote}>
+                                        Онлайн-покупка билетов на сайте пока не подключена.
+                                    </p>
 
                                     {movie.screenings
                                         .slice(0, 12)
-                                        .map((screening, index) => (
+                                        .map((screening) => (
                                             <div
-                                                key={`${screening.startAt}-${index}`}
+                                                key={screening.id}
                                                 className={styles.session}
                                             >
                                                 <div className={styles.sessionTime}>
@@ -148,33 +153,16 @@ export default async function CinemaPage() {
                                                 </div>
 
                                                 <div className={styles.sessionDetails}>
+                                                    {screening.hallName && <span>{screening.hallName}</span>}
+                                                    {screening.formatName && <span>{screening.formatName}</span>}
                                                     <span>
                                                         {screening.price !== null
-                                                            ? `${screening.price} ₽`
+                                                            ? `от ${priceFormatter.format(screening.price)} ₽`
                                                             : "Цена уточняется"}
                                                     </span>
 
-                                                    {screening.pushkinCard && (
-                                                        <span className={styles.pushkin}>
-                                                            Пушкинская карта
-                                                        </span>
-                                                    )}
                                                 </div>
 
-                                                {screening.ticketUrl ? (
-                                                    <a
-                                                        href={screening.ticketUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={styles.buyButton}
-                                                    >
-                                                        Билеты ↗
-                                                    </a>
-                                                ) : (
-                                                    <span className={styles.noLink}>
-                                                        Ссылка на билеты уточняется
-                                                    </span>
-                                                )}
                                             </div>
                                         ))}
                                 </div>

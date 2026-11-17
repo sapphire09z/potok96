@@ -117,9 +117,16 @@
     font-size: 17px;
 }
 
+.ticketNote {
+    margin: -5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .session {
     display: grid;
-    grid-template-columns: minmax(95px, auto) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(95px, auto) minmax(0, 1fr);
     align-items: center;
     gap: 12px;
     padding: 13px 0;
