@@ -21,3 +21,5 @@
 .history li { font-size:13px; overflow-wrap:anywhere; }
 .pager { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px; }
 .pager a { color:inherit; }
+
+.inspect { font-size: 12px; text-underline-offset: 3px; color: var(--text); text-align: center; }

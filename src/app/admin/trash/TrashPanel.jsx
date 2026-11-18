@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./trash.module.css";
@@ -28,6 +29,7 @@ function RestoreButton({ item }) {
         finally { setBusy(false); }
     }
     return <div className={styles.restore}>
+        <Link className={styles.inspect} href={`/admin/trash/inspect?kind=${encodeURIComponent(item.kind)}&id=${encodeURIComponent(item.id)}`}>Проверить файлы и связи</Link>
         <button type="button" disabled={busy} onClick={restore}>
             {busy ? "Восстановление…" : "Восстановить в черновики"}
         </button>
