@@ -30,6 +30,7 @@ function RestoreButton({ item }) {
     }
     return <div className={styles.restore}>
         <Link className={styles.inspect} href={`/admin/trash/inspect?kind=${encodeURIComponent(item.kind)}&id=${encodeURIComponent(item.id)}`}>Проверить файлы и связи</Link>
+        <Link className={styles.inspect} href={`/admin/trash/requests?kind=${encodeURIComponent(item.kind)}&id=${encodeURIComponent(item.id)}`}>Заявка на очистку</Link>
         <button type="button" disabled={busy} onClick={restore}>
             {busy ? "Восстановление…" : "Восстановить в черновики"}
         </button>

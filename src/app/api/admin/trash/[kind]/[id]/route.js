@@ -61,6 +61,22 @@ export async function POST(request, { params }) {
                 kind, itemId: id, title: row.title, action: input.action,
                 actorId: actor.id, reason: input.reason || null,
             } });
+            // Restoring a record automatically cancels every pending purge request.
+            // The cancellation is in the same PostgreSQL transaction as restoration.
+            if (input.action === "restore") {
+                const active = await tx.contentPurgeRequest.findMany({ where: {
+                    kind, itemId: id, status: "PENDING",
+                }, select: { id: true } });
+                for (const pending of active) {
+                    const cancelled = await tx.contentPurgeRequest.updateMany({ where: {
+                        id: pending.id, status: "PENDING",
+                    }, data: { status: "CANCELLED", cancelledAt: now, cancelledById: actor.id } });
+                    if (cancelled.count === 1) await tx.contentPurgeRequestEvent.create({ data: {
+                        requestId: pending.id, actorId: actor.id, action: "CANCELLED",
+                        note: "Автоматически отменена при восстановлении материала",
+                    } });
+                }
+            }
             const latest = await tx[model].findUnique({ where: { id },
                 select: { updatedAt: true } });
             return { success: true, status: update.status, updatedAt: latest.updatedAt.toISOString() };
@@ -69,6 +85,7 @@ export async function POST(request, { params }) {
         revalidatePath(kind === "news" ? "/news" : "/events");
         revalidatePath(kind === "news" ? "/editor/news" : "/admin/events");
         revalidatePath("/admin/trash");
+        revalidatePath("/admin/trash/requests");
         return response(result);
     } catch (error) {
         console.error("Content trash action failed", { kind, code: error?.code || "unknown" });

@@ -734,3 +734,39 @@ model ContentTrashAudit {
   @@index([createdAt])
   @@index([kind, itemId, createdAt])
 }
+
+// Stage 5.15.2.2 — durable manual cleanup requests; no automatic worker.
+model ContentPurgeRequest {
+  id            String   @id @default(cuid())
+  kind          String   @db.VarChar(10)
+  itemId        String   @db.VarChar(100)
+  title         String   @db.VarChar(180)
+  trashedAt     DateTime @db.Timestamptz(3)
+  requestedById String   @db.VarChar(100)
+  reason        String   @db.VarChar(500)
+  status        String   @default("PENDING") @db.VarChar(12)
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+  lastCheckedAt DateTime? @db.Timestamptz(3)
+  lastCheck     Json?
+  cancelledAt   DateTime? @db.Timestamptz(3)
+  cancelledById String?  @db.VarChar(100)
+  events        ContentPurgeRequestEvent[]
+
+  @@unique([kind, itemId, trashedAt])
+  @@index([status, createdAt])
+  @@index([kind, itemId])
+}
+
+model ContentPurgeRequestEvent {
+  id        String @id @default(cuid())
+  requestId String
+  actorId   String @db.VarChar(100)
+  action    String @db.VarChar(12)
+  note      String? @db.VarChar(500)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  request ContentPurgeRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt])
+}

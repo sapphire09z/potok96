@@ -67,6 +67,7 @@ export default async function ContentTrashPage({ searchParams }) {
                 Файлы и комментарии сохраняются. Срок 30 дней отображается справочно:
                 автоматического либо окончательного удаления пока нет.</p>
         </header>
+        <p><Link href="/admin/trash/requests">Очередь заявок на очистку →</Link></p>
         <nav className={styles.tabs} aria-label="Тип материала">
             {[["all", "Все", newsCount + eventCount], ["news", "Новости", newsCount],
                 ["events", "Мероприятия", eventCount]].map(([id, title, count]) =>
