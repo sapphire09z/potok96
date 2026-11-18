@@ -145,6 +145,27 @@ services:
       db:
         condition: service_healthy
 
+  # 5.15.2.3.2 — one-shot, operator-controlled, read-only CMS backup.
+  content-archive:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    image: potok96:content-archive
+    command: ["node", "scripts/archive-content-purge.mjs"]
+    environment:
+      DATABASE_URL: "postgresql://potok96:${POSTGRES_PASSWORD:?Database password is required}@db:5432/potok96?schema=public"
+    env_file:
+      - path: /opt/potok96-deploy/s3.env
+        required: true
+        format: raw
+    volumes:
+      - /opt/potok96-deploy/backups:/archive:rw
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   caddy:
     image: caddy:2-alpine
     container_name: potok96-caddy
