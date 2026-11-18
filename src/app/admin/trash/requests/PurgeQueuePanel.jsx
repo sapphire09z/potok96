@@ -9,7 +9,7 @@ const date = new Intl.DateTimeFormat("ru-RU", {
   timeZone: "Asia/Yekaterinburg", dateStyle: "medium", timeStyle: "short",
 });
 const formatDate = iso => iso ? date.format(new Date(iso)) : "неизвестно";
-const names = { CREATED: "Создана", REQUEUED: "Возобновлена", CHECKED: "Проверена", CANCELLED: "Отменена" };
+const names = { CREATED: "Создана", REQUEUED: "Возобновлена", CHECKED: "Проверена", CANCELLED: "Отменена", PLANNED: "Сформирован план" };
 const outcomes = {
   WAITING: "Срок 30 дней не истёк", BLOCKED: "Есть несоответствия", REVIEW: "Проверено, требуется ручное решение",
   STALE: "Заявка устарела",
@@ -27,7 +27,8 @@ export default function PurgeQueuePanel({ selected, requests }) {
     if (confirmMessage && !window.confirm(confirmMessage)) return;
     setBusy(key); setError(""); setMessage("");
     try {
-      const response = await fetch(`/api/admin/trash/purge/${kind}/${encodeURIComponent(id)}`, {
+      const endpoint = payload.action === "dry-run" ? "plan" : "purge";
+      const response = await fetch(`/api/admin/trash/${endpoint}/${kind}/${encodeURIComponent(id)}`, {
         method: "POST", credentials: "same-origin", cache: "no-store",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
       });
@@ -36,6 +37,7 @@ export default function PurgeQueuePanel({ selected, requests }) {
       if (payload.action === "request") { setReason(""); setMessage("Заявка создана. Удаление не запущено."); }
       if (payload.action === "check") setMessage("Отчёт сохранён. Удаление по-прежнему отключено.");
       if (payload.action === "cancel") setMessage("Заявка отменена.");
+      if (payload.action === "dry-run") setMessage("План проверки сохранён. Удаление отключено.");
       router.refresh();
     } catch (e) { setError(e.message || "Операция не выполнена."); }
     finally { setBusy(""); }
@@ -75,6 +77,13 @@ export default function PurgeQueuePanel({ selected, requests }) {
             <p className={styles.meta}>Физическое удаление: заблокировано.</p>
             {Array.isArray(job.lastCheck.issues) && <ul>{job.lastCheck.issues.map((issue,i) => <li key={i}>{issue}</li>)}</ul>}
           </div>}
+          {job.plan && <details>
+            <summary>Последний план удаления (без выполнения) · {formatDate(job.plan.createdAt)} · {job.plan.status}</summary>
+            <p className={styles.meta}>Контрольный SHA-256: <code>{job.plan.digest}</code></p>
+            <p>Приватное S3: {job.plan.report?.privateCount ?? "?"} объектов; публичное S3: {job.plan.report?.publicCount ?? "?"} объектов.</p>
+            <p><strong>Удаление заблокировано.</strong> План не является разрешением.</p>
+            {Array.isArray(job.plan.report?.issues) && <ul>{job.plan.report.issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul>}
+          </details>}
           {job.events.length > 0 && <details><summary>История заявки ({job.events.length} последних событий)</summary>
             <ol>{job.events.map(event => <li key={event.id}>
               {names[event.action] ?? event.action} · {formatDate(event.createdAt)} · {event.actorId}
@@ -82,6 +91,9 @@ export default function PurgeQueuePanel({ selected, requests }) {
             </li>)}</ol></details>}
         </div>
         {job.status === "PENDING" && <div className={styles.restore}>
+          <button type="button" disabled={Boolean(busy)} onClick={() => perform(job.kind, job.itemId, {
+            action: "dry-run", requestId: job.id, expectedRequestUpdatedAt: job.updatedAt,
+          }, null, job.id + ":plan")}>Сформировать план (без удаления)</button>
           <button type="button" disabled={Boolean(busy)} onClick={() => perform(job.kind, job.itemId, {
             action: "check", requestId: job.id, expectedRequestUpdatedAt: job.updatedAt,
           }, null, job.id + ":check")}>Повторно проверить (без удаления)</button>

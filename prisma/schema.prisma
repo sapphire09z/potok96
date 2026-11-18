@@ -752,6 +752,7 @@ model ContentPurgeRequest {
   cancelledAt   DateTime? @db.Timestamptz(3)
   cancelledById String?  @db.VarChar(100)
   events        ContentPurgeRequestEvent[]
+  plans         ContentPurgePlan[]
 
   @@unique([kind, itemId, trashedAt])
   @@index([status, createdAt])
@@ -769,4 +770,24 @@ model ContentPurgeRequestEvent {
   request ContentPurgeRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
 
   @@index([requestId, createdAt])
+}
+
+// Stage 5.15.2.3.1: immutable manual dry-run plans, not purge approvals.
+model ContentPurgePlan {
+  id                String   @id @default(cuid())
+  requestId         String
+  kind              String   @db.VarChar(10)
+  itemId            String   @db.VarChar(100)
+  trashedAt         DateTime @db.Timestamptz(3)
+  materialUpdatedAt DateTime @db.Timestamptz(3)
+  requestUpdatedAt  DateTime @db.Timestamptz(3)
+  actorId           String   @db.VarChar(100)
+  status            String   @db.VarChar(12)
+  digest            String   @db.VarChar(64)
+  report            Json
+  createdAt         DateTime @default(now()) @db.Timestamptz(3)
+  request           ContentPurgeRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt])
+  @@index([kind, itemId])
 }

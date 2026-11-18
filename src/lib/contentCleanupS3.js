@@ -17,6 +17,7 @@ async function listBucket(bucket, prefix) {
   const objects = (result.Contents ?? []).map(item => ({
     key: item.Key,
     bytes: item.Size,
+    etag: item.ETag ?? null,
   }));
   return { objects, truncated: Boolean(result.IsTruncated) };
 }

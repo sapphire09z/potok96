@@ -25,7 +25,8 @@ export default async function PurgeRequestsPage({ searchParams }) {
   const [rows, item] = await Promise.all([
     db.contentPurgeRequest.findMany({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 40,
-      include: { events: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 10 } },
+      include: { events: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 10 },
+        plans: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1 } },
     }),
     kind && id ? db[kind === "news" ? "newsPost" : "eventPost"].findUnique({
       where: { id }, select: { id: true, title: true, status: true, updatedAt: true, trashedAt: true },
@@ -43,6 +44,9 @@ export default async function PurgeRequestsPage({ searchParams }) {
     cancelledAt: row.cancelledAt?.toISOString() ?? null,
     lastCheckedAt: row.lastCheckedAt?.toISOString() ?? null,
     lastCheck: row.lastCheck,
+    plan: row.plans[0] ? { id: row.plans[0].id, digest: row.plans[0].digest,
+      status: row.plans[0].status, createdAt: row.plans[0].createdAt.toISOString(),
+      report: row.plans[0].report } : null,
     events: row.events.map(event => ({
       id: event.id, action: event.action, note: event.note,
       actorId: event.actorId, createdAt: event.createdAt.toISOString(),
