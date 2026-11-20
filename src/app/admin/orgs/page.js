@@ -4,6 +4,7 @@ import { getPrisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { getOrgCategoryTitle } from "@/lib/orgCategories";
 import { isExtendedPlacement, placementDateInYekat } from "@/lib/orgPlacement";
+import ResourceDeleteButton from "@/components/admin/ResourceDeleteButton";
 import styles from "./orgs-admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +71,10 @@ export default async function OrganizationsAdminPage({ searchParams }) {
                     </span>}</div>
                 <h3><Link href={`/admin/orgs/${item.id}`}>{item.title}</Link></h3>
                 <div className={styles.meta}><span>{item.locality || "Красноуфимск"}</span><span>/{item.slug}</span><span>Изменено {formatter.format(item.updatedAt)}</span>
-                    {item.status === "PUBLISHED" && <Link href={`/orgs/${item.slug}`}>На сайте</Link>}</div>
+                    {item.status === "PUBLISHED" && <Link href={`/orgs/${item.slug}`}>На сайте</Link>}
+                    <ResourceDeleteButton kind="orgs" id={item.id} title={item.title}
+                        updatedAt={item.updatedAt.toISOString()} deleting={item.status === "DELETING"} />
+                </div>
             </article>)}</div>}
         <nav className={styles.pager} aria-label="Страницы организаций">
             {page > 1 ? <Link href={href({ q, status, page: page - 1 })}>← Назад</Link> : <span />}
