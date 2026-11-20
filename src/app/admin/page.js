@@ -49,6 +49,7 @@ export default async function AdminHomePage() {
             <div className={styles.links}>
                 <Link href="/admin/users">Учётные записи и права доступа</Link>
                 <Link href="/admin/orgs">Управление организациями</Link>
+                <Link href="/admin/ads">Управление всеми объявлениями</Link>
                 <Link href="/admin/events">Управление мероприятиями</Link>
                 <Link href="/admin/trash">Корзина материалов: новости и мероприятия</Link>
                 <Link href="/admin/cinema">Управление киноафишей</Link>

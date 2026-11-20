@@ -6,6 +6,7 @@ import { getPrisma } from "@/lib/prisma";
 import { getAdCategoryTitle } from "@/lib/adCategories";
 import styles from "./ads.module.css";
 import AdLifecycleActions from "./AdLifecycleActions";
+import ResourceDeleteButton from "@/components/admin/ResourceDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ const statusLabels = {
     PAUSED: "Приостановлено",
     CLOSED: "Закрыто",
     EXPIRED: "Истекло",
+    DELETING: "Удаление не завершено",
 };
 
 export default async function MyAdsPage() {
@@ -47,6 +49,7 @@ export default async function MyAdsPage() {
             status: true,
             priceRub: true,
             createdAt: true,
+            updatedAt: true,
             moderationReason: true,
             expiresAt: true,
         },
@@ -144,6 +147,8 @@ export default async function MyAdsPage() {
                             {["PUBLISHED", "PAUSED", "CLOSED", "EXPIRED"].includes(displayStatus) && (
                                 <AdLifecycleActions adId={ad.id} status={displayStatus} />
                             )}
+                            <ResourceDeleteButton kind="ads" id={ad.id} title={ad.title}
+                                updatedAt={ad.updatedAt.toISOString()} deleting={ad.status === "DELETING"} />
                         </article>
                         );
                     })}

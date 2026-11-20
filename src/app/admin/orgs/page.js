@@ -26,7 +26,7 @@ export default async function OrganizationsAdminPage({ searchParams }) {
     if (me.role !== "ADMIN") notFound();
     const params = await searchParams;
     const q = typeof params?.q === "string" ? params.q.trim().slice(0, 80) : "";
-    const status = ["DRAFT", "PUBLISHED"].includes(params?.status) ? params.status : "";
+    const status = ["DRAFT", "PUBLISHED", "DELETING"].includes(params?.status) ? params.status : "";
     const requested = Number(params?.page ?? 1);
     const page = Number.isSafeInteger(requested) && requested >= 1 && requested < 10000 ? requested : 1;
     const where = {
@@ -57,14 +57,14 @@ export default async function OrganizationsAdminPage({ searchParams }) {
         <form className={styles.search} action="/admin/orgs" method="get">
             <label>Поиск по названию, адресу или slug<input type="search" name="q" maxLength={80} defaultValue={q} placeholder="Название организации" /></label>
             <label>Статус<select name="status" defaultValue={status}>
-                <option value="">Все</option><option value="DRAFT">Черновики</option><option value="PUBLISHED">Опубликованные</option>
+                <option value="">Все</option><option value="DRAFT">Черновики</option><option value="PUBLISHED">Опубликованные</option><option value="DELETING">Незавершённое удаление</option>
             </select></label>
             <button type="submit">Найти</button><Link href="/admin/orgs">Сбросить</Link>
         </form>
         {items.length === 0 ? <section className={styles.empty}>Карточек по выбранным условиям пока нет.</section> :
             <div className={styles.items}>{items.map(item => <article key={item.id} className={styles.item}>
                 <div className={styles.row}><span>{getOrgCategoryTitle(item.category)}</span>
-                    <span className={styles.pill}>{item.status === "PUBLISHED" ? "Опубликовано" : "Черновик"}</span>
+                    <span className={styles.pill}>{item.status === "PUBLISHED" ? "Опубликовано" : item.status === "DELETING" ? "Удаление не завершено" : "Черновик"}</span>
                     {item.placement === "EXTENDED" && <span className={styles.pill}>
                         {isExtendedPlacement(item) ? `Расширенная до ${placementDateInYekat(item.extendedUntil)}` : "Расширенная: срок истёк"}
                     </span>}</div>

@@ -24,6 +24,7 @@ enum AdStatus {
   PAUSED
   CLOSED
   EXPIRED
+  DELETING
 }
 
 model User {
@@ -340,6 +341,7 @@ model AdminUserArchive {
 enum OrgStatus {
   DRAFT
   PUBLISHED
+  DELETING
 }
 
 // Stage 5.6.3: optional extended placement. Effective access requires a future date.

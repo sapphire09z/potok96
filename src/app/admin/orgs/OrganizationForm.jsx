@@ -7,6 +7,7 @@ import { ORG_CATEGORIES } from "@/lib/orgCategories";
 import OrganizationMediaManager from "./OrganizationMediaManager";
 import OrganizationPlacementControls from "./OrganizationPlacementControls";
 import OrganizationPremiumControls from "./OrganizationPremiumControls";
+import ResourceDeleteButton from "@/components/admin/ResourceDeleteButton";
 import styles from "./orgs-admin.module.css";
 
 const defaults = {
@@ -106,6 +107,14 @@ export default function OrganizationForm({ initial }) {
         finally { setBusy(false); }
     }
 
+    if (initial?.status === "DELETING") return <main className={styles.page}>
+        <Link href="/admin/orgs" className={styles.back}>← К организациям</Link>
+        <h2>Удаление организации не завершено</h2>
+        <p>Сохранение и восстановление отключены. Повторите удаление, чтобы закончить очистку файлов.</p>
+        <ResourceDeleteButton kind="orgs" id={initial.id} title={initial.title}
+            updatedAt={version} deleting redirectTo="/admin/orgs" />
+    </main>;
+
     return <main className={styles.page}>
         <Link href="/admin/orgs" className={styles.back}>← К организациям</Link>
         <header className={styles.heading}>
@@ -182,6 +191,9 @@ export default function OrganizationForm({ initial }) {
                 <button type="submit" className={styles.primary} disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || (initial && !dirty)}>{busy ? "Сохраняем…" : published ? "Сохранить изменения" : "Сохранить черновик"}</button>
                 {initial && <button type="button" disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || dirty} className={styles.secondary}
                     onClick={() => setPublication(published ? "unpublish" : "publish")}>{published ? "Снять с публикации" : "Опубликовать"}</button>}
+                {initial && <ResourceDeleteButton kind="orgs" id={initial.id} title={form.title}
+                    updatedAt={version} redirectTo="/admin/orgs"
+                    disabled={busy || mediaBusy || placementBusy || premiumBusy || premiumDirty || dirty} />}
                 {dirty && <span className={styles.help}>Есть несохранённые изменения. Сначала сохраните.</span>}
             </div>
             {error && <p role="alert" className={styles.error}>{error}</p>}

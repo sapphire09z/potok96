@@ -9,6 +9,7 @@ import styles from "./trash.module.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Корзина материалов — Поток 96", robots: { index: false, follow: false } };
 const PER_PAGE = 20;
+const auditKindNames = { news: "Новость", events: "Мероприятие", orgs: "Организация", ads: "Объявление" };
 const formatted = new Intl.DateTimeFormat("ru-RU", {
     timeZone: "Asia/Yekaterinburg", dateStyle: "medium", timeStyle: "short",
 });
@@ -86,7 +87,7 @@ export default async function ContentTrashPage({ searchParams }) {
             {history.length === 0 ? <p className={styles.meta}>Операций пока не было.</p> :
                 <ol>{history.map(log => <li key={log.id}>
                     <strong>{log.action === "trash" ? "В корзину" : log.action === "restore" ? "Восстановлено" : "Удалено навсегда"}</strong>
-                    {" · "}{log.kind === "news" ? "Новость" : "Мероприятие"}
+                    {" · "}{auditKindNames[log.kind] || log.kind}
                     {" · "}{log.title} · {formatted.format(log.createdAt)} ·
                     ID администратора: {log.actorId}{log.reason && ` · Причина: ${log.reason}`}
                 </li>)}</ol>}
