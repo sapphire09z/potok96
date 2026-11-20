@@ -44,10 +44,10 @@ export default async function ContentTrashPage({ searchParams }) {
     const limit = page * PER_PAGE;
     const [news, events] = await Promise.all([
         kind !== "events" ? db.newsPost.findMany({ where: { status: "TRASHED" },
-            select: { id: true, slug: true, title: true, updatedAt: true, trashedAt: true },
+            select: { id: true, slug: true, title: true, updatedAt: true, trashedAt: true, purgeStartedAt: true },
             orderBy: [{ trashedAt: "desc" }, { id: "desc" }], take: limit }) : [],
         kind !== "news" ? db.eventPost.findMany({ where: { status: "TRASHED" },
-            select: { id: true, slug: true, title: true, updatedAt: true, trashedAt: true },
+            select: { id: true, slug: true, title: true, updatedAt: true, trashedAt: true, purgeStartedAt: true },
             orderBy: [{ trashedAt: "desc" }, { id: "desc" }], take: limit }) : [],
     ]);
     const items = [
@@ -57,6 +57,7 @@ export default async function ContentTrashPage({ searchParams }) {
     const pageItems = items.slice((page - 1) * PER_PAGE, page * PER_PAGE).map(x => ({
         id: x.id, kind: x.kind, title: x.title, slug: x.slug,
         updatedAt: x.updatedAt.toISOString(), trashedAt: x.trashedAt.toISOString(),
+        deleting: Boolean(x.purgeStartedAt),
         eligibleAt: earliestPurgeDate(x.trashedAt).toISOString(),
     }));
     return <main className={styles.page}>
@@ -64,10 +65,9 @@ export default async function ContentTrashPage({ searchParams }) {
         <header className={styles.heading}>
             <h1>Корзина материалов</h1>
             <p>Новости и обычные мероприятия. Восстановление возвращает материал в черновик, не публикуя его.
-                Файлы и комментарии сохраняются. Срок 30 дней отображается справочно:
-                автоматического либо окончательного удаления пока нет.</p>
+                Пока материал в корзине, его можно восстановить. Через 30 дней автоматического удаления нет.
+                ADMIN может удалить материал навсегда вручную, без ожидания 30 дней.</p>
         </header>
-        <p><Link href="/admin/trash/requests">Очередь заявок на очистку →</Link></p>
         <nav className={styles.tabs} aria-label="Тип материала">
             {[["all", "Все", newsCount + eventCount], ["news", "Новости", newsCount],
                 ["events", "Мероприятия", eventCount]].map(([id, title, count]) =>
@@ -85,7 +85,7 @@ export default async function ContentTrashPage({ searchParams }) {
             <h2>Журнал действий</h2>
             {history.length === 0 ? <p className={styles.meta}>Операций пока не было.</p> :
                 <ol>{history.map(log => <li key={log.id}>
-                    <strong>{log.action === "trash" ? "В корзину" : "Восстановлено"}</strong>
+                    <strong>{log.action === "trash" ? "В корзину" : log.action === "restore" ? "Восстановлено" : "Удалено навсегда"}</strong>
                     {" · "}{log.kind === "news" ? "Новость" : "Мероприятие"}
                     {" · "}{log.title} · {formatted.format(log.createdAt)} ·
                     ID администратора: {log.actorId}{log.reason && ` · Причина: ${log.reason}`}

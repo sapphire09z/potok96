@@ -171,6 +171,7 @@ model NewsPost {
   updatedAt      DateTime   @updatedAt
   trashedAt      DateTime?  @db.Timestamptz(3)
   trashedById    String?    @db.VarChar(100)
+  purgeStartedAt DateTime? @db.Timestamptz(3)
   publishedAt    DateTime?
 
   @@index([status, publishedAt])
@@ -521,6 +522,7 @@ model EventPost {
   updatedAt       DateTime @updatedAt
   trashedAt       DateTime? @db.Timestamptz(3)
   trashedById     String?   @db.VarChar(100)
+  purgeStartedAt DateTime? @db.Timestamptz(3)
   publishedAt     DateTime?
   images          EventImage[]
 

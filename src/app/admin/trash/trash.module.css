@@ -23,3 +23,4 @@
 .pager a { color:inherit; }
 
 .inspect { font-size: 12px; text-underline-offset: 3px; color: var(--text); text-align: center; }
+.restore .danger { border-color:#8f3232; background:#8f3232; color:#fff; }

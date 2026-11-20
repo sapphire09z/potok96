@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./trash.module.css";
+import PermanentDeleteButton from "./PermanentDeleteButton";
 
 const dates = new Intl.DateTimeFormat("ru-RU", {
     timeZone: "Asia/Yekaterinburg", dateStyle: "medium", timeStyle: "short",
@@ -28,12 +29,16 @@ function RestoreButton({ item }) {
         } catch (err) { setError(err.message || "Не удалось восстановить материал."); }
         finally { setBusy(false); }
     }
+    if (item.deleting) return <div className={styles.restore}>
+        <span className={styles.meta}>Очистка была начата, но не завершилась. Восстановление заблокировано.</span>
+        <PermanentDeleteButton item={item} />
+    </div>;
     return <div className={styles.restore}>
         <Link className={styles.inspect} href={`/admin/trash/inspect?kind=${encodeURIComponent(item.kind)}&id=${encodeURIComponent(item.id)}`}>Проверить файлы и связи</Link>
-        <Link className={styles.inspect} href={`/admin/trash/requests?kind=${encodeURIComponent(item.kind)}&id=${encodeURIComponent(item.id)}`}>Заявка на очистку</Link>
         <button type="button" disabled={busy} onClick={restore}>
             {busy ? "Восстановление…" : "Восстановить в черновики"}
         </button>
+        <PermanentDeleteButton item={item} />
         {error && <span role="alert" className={styles.error}>{error}</span>}
     </div>;
 }
@@ -47,8 +52,9 @@ export default function TrashPanel({ items }) {
                     {" · "}Перемещено {dates.format(new Date(item.trashedAt))}</p>
                 <h3>{item.title}</h3>
                 <p className={styles.meta}>/{item.slug} · ID: {item.id}</p>
-                <p className={styles.meta}>30 дней истекают {dates.format(new Date(item.eligibleAt))}.
-                    Фактическое удаление в этом этапе отключено.</p>
+                {item.deleting
+                    ? <p className={styles.meta}>Окончательное удаление не завершено — требуется повторить операцию.</p>
+                    : <p className={styles.meta}>Контрольный срок корзины: {dates.format(new Date(item.eligibleAt))}. ADMIN может удалить вручную раньше.</p>}
             </div>
             <RestoreButton item={item} />
         </article>)}

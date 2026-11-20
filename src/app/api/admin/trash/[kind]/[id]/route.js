@@ -38,8 +38,10 @@ export async function POST(request, { params }) {
         const model = kind === "news" ? "newsPost" : "eventPost";
         const result = await db.$transaction(async (tx) => {
             const row = await tx[model].findUnique({ where: { id },
-                select: { id: true, title: true, slug: true, status: true, updatedAt: true } });
+                select: { id: true, title: true, slug: true, status: true, updatedAt: true, purgeStartedAt: true } });
             if (!row) return { error: "Материал не найден.", code: 404 };
+            if (row.purgeStartedAt && input.action === "restore")
+                return { error: "Окончательное удаление уже началось. Восстановление запрещено.", code: 409 };
             if (row.updatedAt.getTime() !== input.version.getTime())
                 return { error: "Материал изменился в другой вкладке. Обновите страницу.", code: 409 };
             const allowed = input.action === "trash" ? canMoveToTrash(kind, row.status)
